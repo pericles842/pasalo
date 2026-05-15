@@ -1,0 +1,52 @@
+{
+  "name": "pasalo.api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --log-error src/app.ts",
+    "build": "tsc && cp -r src/views dist/views",
+    "start": "node dist/app.js",
+    "migrate": "npx sequelize-cli db:migrate --env development",
+    "seed": "npx sequelize-cli db:seed:all --env development"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Plantilla mvc node express sequelize migraciones usando ts ",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.934.0",
+    "@aws-sdk/s3-request-presigner": "^3.934.0",
+    "axios": "^1.13.5",
+    "bcryptjs": "^3.0.2",
+    "chalk": "^4.1.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.6.0",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.2",
+    "mysql2": "^3.14.1",
+    "pdfmake": "^0.2.20",
+    "sequelize": "^6.37.7",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.9",
+    "@types/cors": "^2.8.19",
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.10.1",
+    "@types/pdfmake": "^0.2.12",
+    "@types/sharp": "^0.31.1",
+    "sequelize-cli": "^6.6.3",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.3"
+  }
+}

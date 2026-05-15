@@ -26,11 +26,11 @@
     <app-global-input class="col-span-12" name="email_client" label="Correo del cliente"
       placeholder="Ej. cliente@correo.com" type="email" [control]="orderForm.controls.email_client" />
 
-    <app-global-input class="col-span-12 md:col-span-10" name="pay_url_token" label="Token de URL de pago" type="text"
+    <app-global-input class="col-span-12 md:col-span-10" name="pay_url_token" label="URL de pago" type="text"
       [control]="orderForm.controls.pay_url_token" />
-    <div class="col-span-12 md:col-span-2 flex h-full items-end ">
+    <div class="col-span-12 md:col-span-2 flex items-end md:items-start md:pt-7">
 
-      <button nbButton appearance="ghost" status="primary" size="medium" type="submit">
+      <button nbButton appearance="outline" status="primary" size="medium" type="submit">
         <nb-icon icon="copy-outline"></nb-icon>
       </button>
     </div>

@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Super Administrador",
+    "description": "Super Administrador del sistema, este rol tiene acceso a todo puede modificar administradores"
+  },
+  {
+    "name": "Administrador",
+    "description": "El administrador puede ver y editar la informaci n de los usuarios no puede crear roles o permisos"
+  },
+  {
+    "name": "Asistente general",
+    "description": "Se encarga de mantener el inventario, crear productos categor as eliminar actualizar etc"
+  },
+  {
+    "name": "Asistente de Ventas",
+    "description": "Se encarga de validar los pagos de los productos enviar correos etc"
+  },
+  {
+    "name": "Soporte tecnico",
+    "description": "Se encarga de resolver problemas de los clientes"
+  },
+  {
+    "name": "Cliente",
+    "description": "Este es un ente sin permisos en la p gina, solo puede ver la informaci n de la tienda"
+  }
+]
