@@ -1,3 +1,4 @@
+import { FormControl } from '@angular/forms';
 import { OrderStatus } from './status-order';
 
 export interface Order {
@@ -22,4 +23,5 @@ export interface OrderFormGroup {
   name_client: FormControl<string>;
   ci_client: FormControl<number>;
   email_client: FormControl<string>;
+  pay_url_token: FormControl<string>;
 }

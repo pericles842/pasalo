@@ -1,0 +1,12 @@
+<div class="flex flex-col gap-1.5">
+  <label [for]="name" class="text-sm font-medium text-gray-600" [class.text-red-600]="isInvalid">
+    {{ label }}
+  </label>
+
+  <input nbInput fullWidth [id]="name" [name]="name" [type]="type" [formControl]="control" [placeholder]="placeholder"
+    [status]="status" />
+
+  <small class="text-xs text-gray-500" [class.text-red-600]="isInvalid">
+    {{ hint }}
+  </small>
+</div>

@@ -3,9 +3,40 @@
   <span>Crea el formulario para generar nuevas órdenes a los usuarios</span>
 </section>
 
-<section class="grid grid-cols-2 gap-4 mt-5">
-  <div>
-    <label class=" text-gray-500">Nombre del producto</label>
-    <input [status]="'danger'" nbInput>
+<form [formGroup]="orderForm" (ngSubmit)="onSubmit()" class="mt-5 flex flex-col gap-5">
+  <section class="grid grid-cols-12 gap-4">
+    <app-global-input class="col-span-12 md:col-span-6" name="name_product" label="Nombre del producto"
+      placeholder="Ej. Teclado mecánico" hint="Debe contener al menos 3 caracteres"
+      [control]="orderForm.controls.name_product" />
+
+    <app-global-input class="col-span-12 md:col-span-3" name="amount" label="Cantidad" placeholder="Ej. 2"
+      hint="Debe ser mayor o igual a 1" type="number" [control]="orderForm.controls.amount" />
+
+    <app-global-input class="col-span-12 md:col-span-3" name="price" label="Precio" placeholder="Ej. 25.50"
+      hint="Debe ser mayor a 0" type="number" [control]="orderForm.controls.price" />
+
+    <app-global-input class="col-span-12 md:col-span-6" name="name_client" label="Nombre del cliente"
+      placeholder="Ej. Maria Perez" hint="Debe contener al menos 3 caracteres"
+      [control]="orderForm.controls.name_client" />
+
+    <app-global-input class="col-span-12 md:col-span-6" name="ci_client" label="Cédula del cliente"
+      placeholder="Ej. 12345678" hint="Debe ser un numero valido" type="number"
+      [control]="orderForm.controls.ci_client" />
+
+    <app-global-input class="col-span-12" name="email_client" label="Correo del cliente"
+      placeholder="Ej. cliente@correo.com" type="email" [control]="orderForm.controls.email_client" />
+
+    <app-global-input class="col-span-12 md:col-span-10" name="pay_url_token" label="Token de URL de pago" type="text"
+      [control]="orderForm.controls.pay_url_token" />
+    <div class="col-span-12 md:col-span-2 flex h-full items-end ">
+
+      <button nbButton appearance="ghost" status="primary" size="medium" type="submit">
+        <nb-icon icon="copy-outline"></nb-icon>
+      </button>
+    </div>
+  </section>
+
+  <div class="flex justify-end">
+    <button nbButton status="primary" type="submit">Crear orden</button>
   </div>
-</section>
+</form>
