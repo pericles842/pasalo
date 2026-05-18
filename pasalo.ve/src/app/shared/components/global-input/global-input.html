@@ -3,8 +3,8 @@
     {{ label }}
   </label>
 
-  <input nbInput fullWidth [id]="name" [name]="name" [type]="type" [formControl]="control" [placeholder]="placeholder"
-    [status]="status" />
+  <input nbInput style="font-weight: 500;" fullWidth [id]="name" [name]="name" [type]="type"
+    [formControl]="control" [placeholder]="placeholder" [status]="status" />
 
   <small class="text-xs text-gray-500" [class.text-red-600]="isInvalid">
     {{ hint }}

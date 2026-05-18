@@ -1,1 +1,21 @@
-<p>register-company works!</p>
+<app-general-title-form [title]="'Registra tu empresa'"
+  [description]="'Completa el formulario para registrar tu empresa en Pásalo.'">
+</app-general-title-form>
+
+{{ company_form.value | json }}
+
+
+<nb-stepper orientation="horizontal" >
+  <nb-step label="step number one">
+    <app-company-form [form]="company_form"></app-company-form>
+  </nb-step>
+
+  <nb-step label="stepLabel">
+    <
+    // ... step content here
+  </nb-step>
+  <nb-step label="stepLabel">
+
+    // ... step content here
+  </nb-step>
+</nb-stepper>

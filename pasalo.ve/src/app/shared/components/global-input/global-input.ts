@@ -9,12 +9,13 @@ import { NbInputModule } from '@nebular/theme';
   styleUrl: './global-input.scss',
 })
 export class GlobalInput {
-  @Input({ required: true }) control!: FormControl<string | number>;
+  @Input() control!: FormControl<string | number | null | boolean>;
   @Input({ required: true }) label!: string;
   @Input({ required: true }) name!: string;
+  // Eliminado formControlName, solo se usará control
   @Input() placeholder = '';
   @Input() hint = '';
-  @Input() type: 'text' | 'number' | 'email' = 'text';
+  @Input() type: 'text' | 'number' | 'email' | 'file' = 'text';
 
   get isInvalid(): boolean {
     return this.control.invalid && (this.control.touched || this.control.dirty);

@@ -5,9 +5,10 @@ import { GlobalInput } from '@shared/components/global-input/global-input';
 import { OrderFormGroup } from '@shared/interfaces/order';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { NbIconModule } from '@nebular/theme';
+import { GeneralTitleForm } from "@shared/elements/general-title-form/general-title-form";
 @Component({
   selector: 'app-orders-form',
-  imports: [ReactiveFormsModule, NbButtonModule, GlobalInput, NbEvaIconsModule, NbIconModule],
+  imports: [ReactiveFormsModule, NbButtonModule, GlobalInput, NbEvaIconsModule, NbIconModule, GeneralTitleForm],
   templateUrl: './orders-form.html',
   styleUrl: './orders-form.scss',
 })
