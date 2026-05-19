@@ -1,0 +1,38 @@
+@if (plan) {
+<div
+  class="transition-transform duration-150 hover:-translate-y-1 h-full"
+  [ngClass]="{'ring-2 ring-blue-500 rounded-lg': isSelected}">
+  <nb-card [status]="isSelected ? 'primary' : plan.controls.status.value">
+    <nb-card-header>
+      <div class="relative pr-8">
+        <span class="font-bold text-base">{{ plan.controls.title.value }}</span>
+        @if (plan.controls.is_free.value) {
+          <nb-badge text="Gratis" status="success" position="top right"></nb-badge>
+        }
+      </div>
+    </nb-card-header>
+
+    <nb-card-body>
+      <div class="flex items-baseline gap-1 mb-3">
+        @if (plan.controls.is_free.value) {
+          <span class="text-4xl font-bold">$0</span>
+        } @else {
+          <span class="text-4xl font-bold">${{ plan.controls.price.value }}</span>
+          <span class="text-sm text-gray-400">/mes</span>
+        }
+      </div>
+      <p class="text-sm text-gray-400 m-0 leading-relaxed">{{ plan.controls.description.value }}</p>
+    </nb-card-body>
+
+    <nb-card-footer>
+      <button
+        nbButton
+        fullWidth
+        [status]="isSelected ? 'primary' : 'basic'"
+        (click)="planSelected.emit()">
+        {{ isSelected ? 'Seleccionado ✓' : 'Seleccionar' }}
+      </button>
+    </nb-card-footer>
+  </nb-card>
+</div>
+}
