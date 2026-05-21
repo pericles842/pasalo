@@ -3,38 +3,36 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-     */
-    await queryInterface.createTable('product_attributes', {
-      id: {
-        type: Sequelize.INTEGER,
+    await queryInterface.createTable('companies', {
+      uuid: {
+        type: Sequelize.UUID,
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true
       },
       name: {
         type: Sequelize.STRING(255),
         allowNull: false
       },
-      key: {
+      logo_url: {
+        type: Sequelize.STRING(255),
+        allowNull: true
+      },
+      rif: {
         type: Sequelize.STRING(255),
         allowNull: false
       },
-      description: {
-        type: Sequelize.TEXT,
+      tenant_id: {
+        type: Sequelize.STRING(255),
         allowNull: false
       },
-      attributes: {
-        type: Sequelize.JSON,
+      domain: {
+        type: Sequelize.STRING(255),
         allowNull: false
       },
-      created_at: {
-        type: Sequelize.DATE,
-        allowNull: true
+      user_limit: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        defaultValue: 1
       }
     });
   },
@@ -46,6 +44,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable('product_attributes', null, {});
+    await queryInterface.dropTable('companies', null, {});
   }
 };

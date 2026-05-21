@@ -2,97 +2,100 @@
   [description]="'Completa el formulario para registrar tu empresa en Pásalo.'">
 </app-general-title-form>
 
-<nb-stepper #stepper orientation="horizontal">
+<section class="mt-10">
+  <nb-stepper #stepper orientation="horizontal">
 
-  <!-- Step 1: Datos de la empresa -->
-  <nb-step label="Empresa">
-    <app-company-form [form]="company_form"></app-company-form>
-    <div class="flex justify-end mt-6">
-      <button nbButton status="primary" nbStepperNext [disabled]="company_form.invalid">
-        Siguiente
-      </button>
-    </div>
-  </nb-step>
+    <!-- Step 1: Datos de la empresa -->
+    <nb-step label="Empresa">
+      <app-company-form [form]="company_form"></app-company-form>
+      <div class="flex justify-end mt-6">
+        <button nbButton status="primary" nbStepperNext [disabled]="company_form.invalid">
+          Siguiente
+        </button>
+      </div>
+    </nb-step>
 
-  <!-- Step 2: Selección de plan -->
-  <nb-step label="Plan">
-    <h3 class="text-xl font-semibold mb-6">Elige tu plan de suscripción</h3>
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      @for (plan of plans; track $index) {
-      <app-card-subscription-plan [plan]="plan" [isSelected]="selected_plan_index === $index"
-        (planSelected)="selectPlan($index)">
-      </app-card-subscription-plan>
-      }
-    </div>
-    <div class="flex gap-4 justify-end mt-6">
-      <button nbButton nbStepperPrevious>Anterior</button>
-      <button nbButton status="primary" nbStepperNext [disabled]="selected_plan_index === null">
-        Siguiente
-      </button>
-    </div>
-  </nb-step>
+    <!-- Step 2: Selección de plan -->
+    <nb-step label="Plan">
+      <h3 class="text-xl font-semibold mb-6">Elige tu plan de suscripción</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        @for (plan of plans; track $index) {
+        <app-card-subscription-plan [plan]="plan" [isSelected]="selected_plan_index === $index"
+          (planSelected)="selectPlan($index)">
+        </app-card-subscription-plan>
+        }
+      </div>
+      <div class="flex gap-4 justify-end mt-6">
+        <button nbButton nbStepperPrevious>Anterior</button>
+        <button nbButton status="primary" nbStepperNext [disabled]="selected_plan_index === null">
+          Siguiente
+        </button>
+      </div>
+    </nb-step>
 
-  <!-- Step 3: Confirmación o Pago -->
-  <nb-step label="Confirmar">
-    @if (is_free_plan) {
-    <!-- Plan gratis: pantalla de agradecimiento -->
-    <div class="flex flex-col items-center text-center py-10 px-4 gap-4">
-      <div class="text-6xl leading-none">🎉</div>
-      <h2 class="text-3xl font-bold m-0">¡Bienvenido a Pásalo!</h2>
-      <p class="text-lg text-gray-500 m-0">
-        Tu empresa ha sido registrada exitosamente con el <strong>Plan Free</strong>.
-      </p>
-      <p class="max-w-md text-gray-500 m-0">
-        Ya puedes comenzar a explorar la plataforma. Cuando estés listo, puedes
-        actualizar tu plan desde el panel de administración.
-      </p>
-      <button nbButton status="success" size="large">
-        Ir al panel
-      </button>
-    </div>
-    } @else {
-    @if (selected_plan; as sp) {
-    <!-- Plan de pago: formulario de pago -->
-    <div class="max-w-lg">
-      <h3 class="text-xl font-semibold mb-1">Datos de pago</h3>
-      <p class="text-gray-500 mb-6">
-        Plan seleccionado:
-        <strong>{{ sp.controls.title.value }}</strong> —
-        ${{ sp.controls.price.value }}/mes
-      </p>
+    <!-- Step 3: Confirmación o Pago -->
+    <nb-step label="Confirmar">
+      @if (is_free_plan) {
+      <!-- Plan gratis: pantalla de agradecimiento -->
+      <div class="flex flex-col items-center text-center py-10 px-4 gap-4">
+        <div class="text-6xl leading-none">🎉</div>
+        <h2 class="text-3xl font-bold m-0">¡Bienvenido a Pásalo!</h2>
+        <p class="text-lg text-gray-500 m-0">
+          Tu empresa ha sido registrada exitosamente con el <strong>Plan Free</strong>.
+        </p>
+        <p class="max-w-md text-gray-500 m-0">
+          Ya puedes comenzar a explorar la plataforma. Cuando estés listo, puedes
+          actualizar tu plan desde el panel de administración.
+        </p>
+        <button nbButton status="success" size="large">
+          Ir al panel
+        </button>
+      </div>
+      } @else {
+      @if (selected_plan; as sp) {
+      <!-- Plan de pago: formulario de pago -->
+      <div class="max-w-lg">
+        <h3 class="text-xl font-semibold mb-1">Datos de pago</h3>
+        <p class="text-gray-500 mb-6">
+          Plan seleccionado:
+          <strong>{{ sp.controls.title.value }}</strong> —
+          ${{ sp.controls.price.value }}/mes
+        </p>
 
-      <form [formGroup]="payment_form" class="flex flex-col gap-5">
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-semibold">Nombre en la tarjeta</label>
-          <input nbInput fullWidth formControlName="cardholder_name" placeholder="Ej. Juan Pérez">
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-semibold">Número de tarjeta</label>
-          <input nbInput fullWidth formControlName="card_number" placeholder="1234567890123456" maxlength="16">
-        </div>
-
-        <div class="grid grid-cols-3 gap-4">
-          <div class="col-span-2 flex flex-col gap-1">
-            <label class="text-sm font-semibold">Vencimiento (MM/AA)</label>
-            <input nbInput fullWidth formControlName="expiry" placeholder="MM/AA" maxlength="5">
-          </div>
+        <form [formGroup]="payment_form" class="flex flex-col gap-5">
           <div class="flex flex-col gap-1">
-            <label class="text-sm font-semibold">CVV</label>
-            <input nbInput fullWidth formControlName="cvv" placeholder="123" maxlength="4" type="password">
+            <label class="text-sm font-semibold">Nombre en la tarjeta</label>
+            <input nbInput fullWidth formControlName="cardholder_name" placeholder="Ej. Juan Pérez">
           </div>
-        </div>
 
-        <div class="flex gap-4 justify-end mt-2">
-          <button nbButton nbStepperPrevious type="button">Anterior</button>
-          <button nbButton status="primary" type="submit" [disabled]="payment_form.invalid">
-            Confirmar pago
-          </button>
-        </div>
-      </form>
-    </div>
-    }
-    }
-  </nb-step>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-semibold">Número de tarjeta</label>
+            <input nbInput fullWidth formControlName="card_number" placeholder="1234567890123456" maxlength="16">
+          </div>
 
-</nb-stepper>
+          <div class="grid grid-cols-3 gap-4">
+            <div class="col-span-2 flex flex-col gap-1">
+              <label class="text-sm font-semibold">Vencimiento (MM/AA)</label>
+              <input nbInput fullWidth formControlName="expiry" placeholder="MM/AA" maxlength="5">
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-semibold">CVV</label>
+              <input nbInput fullWidth formControlName="cvv" placeholder="123" maxlength="4" type="password">
+            </div>
+          </div>
+
+          <div class="flex gap-4 justify-end mt-2">
+            <button nbButton nbStepperPrevious type="button">Anterior</button>
+            <button nbButton status="primary" type="submit" [disabled]="payment_form.invalid">
+              Confirmar pago
+            </button>
+          </div>
+        </form>
+      </div>
+      }
+      }
+    </nb-step>
+
+  </nb-stepper>
+
+</section>
