@@ -13,7 +13,8 @@ module.exports = {
             uuid: {
                 allowNull: false,
                 primaryKey: true,
-                type: Sequelize.UUID
+                type: Sequelize.UUID,
+                defaultValue: Sequelize.UUIDV4
             },
             id_company: {
                 allowNull: false,
@@ -44,6 +45,16 @@ module.exports = {
             db_password: {
                 allowNull: false,
                 type: Sequelize.STRING(255)
+            },
+            createdAt: {
+                type: Sequelize.DATE,
+                allowNull: false,
+                defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+            },
+            updatedAt: {
+                type: Sequelize.DATE,
+                allowNull: false,
+                defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
             }
         });
     },

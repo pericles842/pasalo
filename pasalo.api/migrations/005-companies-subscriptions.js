@@ -7,7 +7,8 @@ module.exports = {
             uuid: {
                 type: Sequelize.UUID,
                 allowNull: false,
-                primaryKey: true
+                primaryKey: true,
+                defaultValue: Sequelize.UUIDV4
             },
             company_id: {
                 type: Sequelize.UUID,
@@ -38,6 +39,16 @@ module.exports = {
                 },
                 onUpdate: 'CASCADE',
                 onDelete: 'CASCADE'
+            },
+            createdAt: {
+                type: Sequelize.DATE,
+                allowNull: false,
+                defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+            },
+            updatedAt: {
+                type: Sequelize.DATE,
+                allowNull: false,
+                defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
             }
         });
     },

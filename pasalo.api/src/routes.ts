@@ -1,13 +1,11 @@
 // src/routes/user.routes.ts
 import { Router } from 'express';
-import {
-  TestController
-} from './app/controllers';
+import { PlansController } from './app/controllers/plans.controller';
+
 const router = Router();
 
-//*Test
-router.get('/tests', TestController.getTests);
-router.post('/tests', TestController.createTest);
+//*Plans
+router.get('/plans', PlansController.getAllPlans);
 
 
 export default router;

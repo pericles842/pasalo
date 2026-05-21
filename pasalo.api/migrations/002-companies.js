@@ -7,7 +7,8 @@ module.exports = {
       uuid: {
         type: Sequelize.UUID,
         allowNull: false,
-        primaryKey: true
+        primaryKey: true,
+        defaultValue: Sequelize.UUIDV4
       },
       name: {
         type: Sequelize.STRING(255),
@@ -19,20 +20,33 @@ module.exports = {
       },
       rif: {
         type: Sequelize.STRING(255),
-        allowNull: false
+        allowNull: false,
+        unique: true
       },
       tenant_id: {
         type: Sequelize.STRING(255),
-        allowNull: false
+        allowNull: false,
+        unique: true
       },
       domain: {
         type: Sequelize.STRING(255),
-        allowNull: false
+        allowNull: false,
+        unique: true
       },
       user_limit: {
         type: Sequelize.INTEGER,
         allowNull: true,
         defaultValue: 1
+      },
+      createdAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+      },
+      updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
   },
