@@ -1,5 +1,6 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import { sequelize } from '../config/db';
+import { randomUUID } from 'crypto';
 
 export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCreationAttributes<CompanyModel>> {
   // Llave primaria UUID
@@ -17,6 +18,42 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
   // Timestamps automáticos
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+
+
+  static async createConnectionCompany(company: CompanyModel, plan_id: number,) {
+
+    const db_client = `pasalo_${company.tenant_id}`
+    await sequelize.query(`CREATE DATABASE ${db_client}`);
+    await sequelize.getQueryInterface().bulkInsert('companies_connections', [
+      {
+        uuid: randomUUID(),
+        id_company: company.uuid,
+        db_name: db_client,
+        db_host: process.env.DB_HOST,
+        db_port: process.env.PORT,
+        db_user: process.env.DB_USER,
+        db_password: process.env.DB_PASS,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ]);
+
+    await sequelize.getQueryInterface().bulkInsert('companies_subscriptions', [
+      {
+        uuid: randomUUID(),
+        company_id: company.uuid,
+        plan_id: plan_id,
+        status_id: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ])
+
+    return await sequelize.query(`SELECT * FROM companies_subscriptions WHERE company_id = :company_id`, {
+      replacements: { company_id: company.uuid }
+    })
+
+  }
 }
 
 CompanyModel.init(

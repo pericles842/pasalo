@@ -3,7 +3,7 @@
 </app-general-title-form>
 
 <section class="mt-10">
-  <nb-stepper #stepper orientation="horizontal">
+  <nb-stepper [disableStepNavigation]="true" #stepper orientation="horizontal">
 
     <!-- Step 1: Datos de la empresa -->
     <nb-step label="Empresa">
@@ -27,7 +27,7 @@
       </div>
       <div class="flex gap-4 justify-end mt-6">
         <button nbButton nbStepperPrevious>Anterior</button>
-        <button nbButton status="primary" nbStepperNext [disabled]="selected_plan_index === null">
+        <button nbButton status="primary" (click)="registerCompany()" nbStepperNext [disabled]="selected_plan_index === null">
           Siguiente
         </button>
       </div>
@@ -52,14 +52,15 @@
         </button>
       </div>
       } @else {
-      @if (selected_plan; as sp) {
+      @if (selected_plan) {
       <!-- Plan de pago: formulario de pago -->
       <div class="max-w-lg">
         <h3 class="text-xl font-semibold mb-1">Datos de pago</h3>
         <p class="text-gray-500 mb-6">
           Plan seleccionado:
-          <strong>{{ sp.controls.title.value }}</strong> —
-          ${{ sp.controls.price.value }}/mes
+
+          <strong>{{ selected_plan.name }}</strong> —
+          ${{selected_plan.price}}/mes
         </p>
 
         <form [formGroup]="payment_form" class="flex flex-col gap-5">
@@ -86,7 +87,8 @@
 
           <div class="flex gap-4 justify-end mt-2">
             <button nbButton nbStepperPrevious type="button">Anterior</button>
-            <button nbButton status="primary" type="submit" [disabled]="payment_form.invalid">
+            <button nbButton status="primary"  type="submit"
+              [disabled]="payment_form.invalid">
               Confirmar pago
             </button>
           </div>

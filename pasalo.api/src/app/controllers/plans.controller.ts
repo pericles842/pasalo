@@ -1,6 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import { TestResponse } from '../interfaces/test';
-import { TestModel } from '../models/test.model';
 import { PlanModel } from '../models/plans.model';
 
 export class PlansController {

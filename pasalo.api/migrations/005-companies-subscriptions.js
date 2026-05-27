@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
     async up(queryInterface, Sequelize) {
-        await queryInterface.createTable('companies-subscriptions', {
+        await queryInterface.createTable('companies_subscriptions', {
             uuid: {
                 type: Sequelize.UUID,
                 allowNull: false,
@@ -13,6 +13,7 @@ module.exports = {
             company_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
+                unique: true,
                 references: {
                     model: 'companies',
                     key: 'uuid'
@@ -60,6 +61,6 @@ module.exports = {
          * Example:
          * await queryInterface.dropTable('users');
          */
-        await queryInterface.dropTable('005-companies-subscriptions', null, {});
+        await queryInterface.dropTable('companies_subscriptions', null, {});
     }
 };
