@@ -17,27 +17,30 @@ const chalk_1 = __importDefault(require("chalk"));
 const systemFunctions_1 = require("./utils/systemFunctions");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const PORT = process.env.PORT || 3000;
 // Configuración de CORS para permitir peticiones desde otros orígenes
 app.use((0, cors_1.default)({
-    origin: "*",
+    origin: ['https://tienda-online-j3m.vercel.app', 'http://localhost:4200'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // explícito
+    allowedHeaders: ['Content-Type', 'Authorization', 'module_id'], // explícito
+    exposedHeaders: ['Content-Disposition'],
 }));
 // Middlewares
 app.use(express_1.default.json());
 //cokie parser Only
 app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.urlencoded({ extended: false }));
-app.use((0, morgan_1.default)("dev")); //'dev' o 'combined' para más info
+app.use((0, morgan_1.default)('dev')); //'dev' o 'combined' para más info
 // View engine (EJS) — quítalo si solo será API
-app.set("view engine", "ejs");
-app.set("views", path_1.default.join(__dirname, "views"));
+app.set('view engine', 'ejs');
+app.set('views', path_1.default.join(__dirname, 'views'));
 // Middlewares
 // Agregar timestamps
 //app.use(addTimestamps);
 // Rutas API
-app.use("/api/", routes_1.default);
-app.get("/", (req, res) => {
-    res.render("home", { title: "Home" });
+app.use('/api/', routes_1.default);
+app.get('/', (req, res) => {
+    res.render('home', { title: 'Home' });
 });
 //manejo de errores
 app.use(errorHandler_1.errorHandler);
@@ -47,10 +50,10 @@ const server = app.listen(port, async () => {
         await db_1.sequelize.authenticate();
         const address = (0, systemFunctions_1.getLocalIp)();
         const actualPort = server.address().port;
-        console.log(chalk_1.default.hex("#FF69B4")("🟢 Conectado a Mysql"));
-        console.log(chalk_1.default.hex("#FF69B4")(`🟢 Servidor listo en http://${address}:${actualPort}`));
+        console.log(chalk_1.default.hex('#FF69B4')('🟢 Conectado a Mysql'));
+        console.log(chalk_1.default.hex('#FF69B4')(`🟢 Servidor listo en http://${address}:${actualPort}`));
     }
     catch (error) {
-        console.log(chalk_1.default.red("Hubo un problema"), error);
+        console.log(chalk_1.default.red('Hubo un problema'), error);
     }
 });

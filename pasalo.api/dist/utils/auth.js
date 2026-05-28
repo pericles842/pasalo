@@ -32,11 +32,16 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hashPassword = hashPassword;
 exports.comparePassword = comparePassword;
+exports.decodeToken = decodeToken;
 // helpers/auth.ts
 const bcrypt = __importStar(require("bcryptjs"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 /**
  * Encripta la contraseña del usuario
  *
@@ -58,4 +63,14 @@ async function hashPassword(plain) {
  */
 async function comparePassword(plain, hash) {
     return await bcrypt.compare(plain, hash);
+}
+/**
+ * Decodifica el token
+ *
+ * @export
+ * @param {string} token
+ * @return {Promise<object>}
+ */
+function decodeToken(token) {
+    return jsonwebtoken_1.default.decode(token);
 }

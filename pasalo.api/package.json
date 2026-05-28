@@ -32,7 +32,8 @@
     "mysql2": "^3.14.1",
     "pdfmake": "^0.2.20",
     "sequelize": "^6.37.7",
-    "sharp": "^0.34.5"
+    "sharp": "^0.34.5",
+    "umzug": "^3.8.3"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.9",

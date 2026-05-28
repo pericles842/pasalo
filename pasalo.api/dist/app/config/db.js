@@ -10,6 +10,14 @@ dotenv_1.default.config();
 //conexion con sequelize
 exports.sequelize = new sequelize_1.Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASS, {
     host: process.env.DB_HOST,
-    dialect: 'mysql',
-    logging: false
+    port: Number(process.env.DB_PORT),
+    dialect: "mysql",
+    dialectModule: require("mysql2"),
+    logging: false,
+    pool: {
+        max: 5,
+        min: 0,
+        acquire: 60000, // 60 segs
+        idle: 10000,
+    },
 });

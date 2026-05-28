@@ -1,6 +1,8 @@
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, QueryTypes, Sequelize } from 'sequelize';
 import { sequelize } from '../config/db';
 import { randomUUID } from 'crypto';
+import { Umzug, SequelizeStorage } from 'umzug';
+import path from 'path';
 
 export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCreationAttributes<CompanyModel>> {
   // Llave primaria UUID
@@ -24,6 +26,8 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
 
     const db_client = `pasalo_${company.tenant_id}`
     await sequelize.query(`CREATE DATABASE ${db_client}`);
+    await CompanyModel.generateTablesForCompanyClient(db_client);
+
     await sequelize.getQueryInterface().bulkInsert('companies_connections', [
       {
         uuid: randomUUID(),
@@ -50,9 +54,51 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
     ])
 
     return await sequelize.query(`SELECT * FROM companies_subscriptions WHERE company_id = :company_id`, {
-      replacements: { company_id: company.uuid }
+      replacements: { company_id: company.uuid },
+      type: QueryTypes.SELECT
     })
 
+  }
+
+  /**
+   * Genra las tablas de la db de la cpmpa;ia
+   *
+   * @static
+   * @param {string} db_client
+   * @memberof CompanyModel
+   */
+  static async generateTablesForCompanyClient(db_client: string) {
+    const tenantSequelize = new Sequelize(db_client, process.env.DB_USER!, process.env.DB_PASS!, {
+      host: process.env.DB_HOST,
+      dialect: 'mysql',
+      logging: false
+    });
+
+
+    const baseDir = process.env.NODE_ENV === 'production' ? 'dist' : 'src';
+
+    const migrator = new Umzug({
+      migrations: {
+        // Apunta directo usando la raíz del proyecto como punto de partida
+        glob: path.join(process.cwd(), baseDir, 'migrations/pasalo-client/*.js'),
+
+        resolve: ({ name, path: migrationPath, context }) => {
+          const migration = require(migrationPath!);
+          return {
+            name,
+            up: async () => migration.up(context, Sequelize),
+            down: async () => migration.down(context, Sequelize),
+          };
+        },
+      },
+      context: tenantSequelize.getQueryInterface(),
+      storage: new SequelizeStorage({ sequelize: tenantSequelize }),
+      logger: console,
+    });
+
+
+    await migrator.up();
+    await tenantSequelize.close();
   }
 }
 
