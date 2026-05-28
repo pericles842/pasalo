@@ -75,12 +75,9 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
     });
 
 
-    const baseDir = process.env.NODE_ENV === 'production' ? 'dist' : 'src';
-
     const migrator = new Umzug({
       migrations: {
-        // Apunta directo usando la raíz del proyecto como punto de partida
-        glob: path.join(process.cwd(), baseDir, 'migrations/pasalo-client/*.js'),
+        glob: path.join(__dirname, '../../../migrations/pasalo-client/*.js').replace(/\\/g, '/'),
 
         resolve: ({ name, path: migrationPath, context }) => {
           const migration = require(migrationPath!);

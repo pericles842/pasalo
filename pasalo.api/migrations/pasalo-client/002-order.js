@@ -16,12 +16,12 @@ module.exports = {
             user_id: {
                 type: DataTypes.UUID,
                 allowNull: true,
-                references: {
-                    model: 'users',
-                    key: 'id'
-                },
-                onUpdate: 'CASCADE',
-                onDelete: 'SET NULL'
+                // references: {
+                //     model: 'users',
+                //     key: 'id'
+                // },
+                // onUpdate: 'CASCADE',
+                // onDelete: 'SET NULL'
             },
             name_product: {
                 type: DataTypes.STRING(255),

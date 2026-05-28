@@ -57,9 +57,9 @@ class CompanyModel extends sequelize_1.Model {
         });
         const migrator = new umzug_1.Umzug({
             migrations: {
-                glob: path_1.default.join(__dirname, '../../../migrations/pasalo-client/*.js'),
-                resolve: ({ name, path, context }) => {
-                    const migration = require(path);
+                glob: path_1.default.join(__dirname, '../../../migrations/pasalo-client/*.js').replace(/\\/g, '/'),
+                resolve: ({ name, path: migrationPath, context }) => {
+                    const migration = require(migrationPath);
                     return {
                         name,
                         up: async () => migration.up(context, sequelize_1.Sequelize),
