@@ -9,6 +9,7 @@ export class LoadingService {
     this.activeRequests.update(n => n + 1);
   }
 
+
   hide(): void {
     this.activeRequests.update(n => Math.max(0, n - 1));
   }
