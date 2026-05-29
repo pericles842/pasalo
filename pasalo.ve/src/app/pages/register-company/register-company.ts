@@ -1,4 +1,3 @@
-import { CdkObserveContent } from "@angular/cdk/observers";
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -7,7 +6,9 @@ import { CardSubscriptionPlanComponent } from "@shared/components/card-subscript
 import { GeneralTitleForm } from "@shared/elements/general-title-form/general-title-form";
 import { CompanyService } from "src/app/features/company/company-repository.service";
 import { CompanyForm } from "src/app/features/company/components/company-form/company-form";
+import { UsersInfoForm } from "src/app/features/company/components/users-info-form/users-info-form";
 import { CompanyControls } from 'src/app/features/company/interfaces/company';
+import { UserCompanyForm } from "src/app/features/company/interfaces/user";
 import { PlanInterface } from 'src/app/services/http/plan/plan';
 import { PlanService } from 'src/app/services/http/plan/plan.service';
 
@@ -22,7 +23,8 @@ import { PlanService } from 'src/app/services/http/plan/plan.service';
     NbInputModule,
     ReactiveFormsModule,
     CommonModule,
-    CardSubscriptionPlanComponent
+    CardSubscriptionPlanComponent,
+    UsersInfoForm
   ],
   templateUrl: './register-company.html',
   styleUrl: './register-company.scss',
@@ -33,13 +35,23 @@ export class RegisterCompany {
     name: new FormControl(null, [Validators.required, Validators.minLength(5)]),
     logo: new FormControl(null),
     rif: new FormControl(null),
-    email: new FormControl(null, [Validators.required, Validators.email]),
     domain: new FormControl(null),
     user_limits: new FormControl(0, {
       nonNullable: true,
       validators: [Validators.required, Validators.min(1), Validators.max(5)],
     })
   });
+
+  company_user: FormGroup<UserCompanyForm> = new FormGroup({
+    first_name: new FormControl(null, [Validators.required]),
+    middle_name: new FormControl(null),
+    photo_url: new FormControl(null),
+    ci: new FormControl(null, [Validators.required]),
+    email: new FormControl(null, [Validators.required, Validators.email]),
+    password: new FormControl(null, [Validators.required, Validators.minLength(8)]),
+    charge: new FormControl('support', [Validators.required]),
+    status: new FormControl('active')
+  })
 
   plans: PlanInterface[] = []
 

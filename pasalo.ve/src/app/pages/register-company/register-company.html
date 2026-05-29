@@ -3,11 +3,20 @@
 </app-general-title-form>
 
 <section class="mt-10">
-  <nb-stepper [disableStepNavigation]="true" #stepper orientation="horizontal">
+  <nb-stepper [disableStepNavigation]="false" #stepper orientation="horizontal">
 
     <!-- Step 1: Datos de la empresa -->
-    <nb-step label="Empresa">
+    <nb-step label="Informacion de empresa">
       <app-company-form [form]="company_form"></app-company-form>
+      <div class="flex justify-end mt-6">
+        <button nbButton status="primary" nbStepperNext [disabled]="company_form.invalid">
+          Siguiente
+        </button>
+      </div>
+    </nb-step>
+
+    <nb-step label="Informacion de usuario">
+      <app-users-info-form [form]="company_user"></app-users-info-form>
       <div class="flex justify-end mt-6">
         <button nbButton status="primary" nbStepperNext [disabled]="company_form.invalid">
           Siguiente
@@ -27,7 +36,8 @@
       </div>
       <div class="flex gap-4 justify-end mt-6">
         <button nbButton nbStepperPrevious>Anterior</button>
-        <button nbButton status="primary" (click)="registerCompany()" nbStepperNext [disabled]="selected_plan_index === null">
+        <button nbButton status="primary" (click)="registerCompany()" nbStepperNext
+          [disabled]="selected_plan_index === null">
           Siguiente
         </button>
       </div>
@@ -87,8 +97,7 @@
 
           <div class="flex gap-4 justify-end mt-2">
             <button nbButton nbStepperPrevious type="button">Anterior</button>
-            <button nbButton status="primary"  type="submit"
-              [disabled]="payment_form.invalid">
+            <button nbButton status="primary" type="submit" [disabled]="payment_form.invalid">
               Confirmar pago
             </button>
           </div>

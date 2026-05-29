@@ -1,0 +1,21 @@
+<form [formGroup]="form" class="mt-5 flex flex-col gap-5">
+  <section class="grid grid-cols-12 gap-4">
+    <app-global-input class="col-span-12 md:col-span-6" name="first_name" label="Nombre"
+      [control]="form.controls.first_name" />
+
+    <app-global-input class="col-span-12 md:col-span-6" name="middle_name" label="Apellido"
+      [control]="form.controls.middle_name" />
+
+    <app-global-input class="col-span-12 md:col-span-6" name="email" label="Correo de la empresa"
+      [control]="form.controls.email" placeholder="example@gmail.com" hint="No es obligatorio un correo empresarial" />
+
+    <app-global-input class="col-span-12 md:col-span-4" name="ci" label="Cédula" [control]="form.controls.ci"
+      placeholder="13728876" />
+
+    <nb-select placeholder="Form control" [formControl]="form.controls.charge">
+      <nb-option value="support">Soporte</nb-option>
+      <nb-option value="seller">Vendedor</nb-option>
+    </nb-select>
+
+  </section>
+</form>
