@@ -12,6 +12,7 @@ import dotenv from 'dotenv';
 import morgan from 'morgan';
 import chalk from 'chalk';
 import { getLocalIp } from './utils/systemFunctions';
+import { initSocket } from './app/config/socket';
 
 dotenv.config();
 
@@ -21,7 +22,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ['https://tienda-online-j3m.vercel.app', 'http://localhost:4200'],
+    origin: ['*'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // explícito
     allowedHeaders: ['Content-Type', 'Authorization', 'module_id'], // explícito
@@ -44,6 +45,9 @@ app.set('views', path.join(__dirname, 'views'));
 // Agregar timestamps
 //app.use(addTimestamps);
 
+// Comprobantes y logos mientras no hay AWS configurado (ver src/utils/storage.ts)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Rutas API
 app.use('/api/', routes);
 
@@ -58,6 +62,7 @@ const port = process.env.PORT || 3000;
 const server = app.listen(port, async () => {
   try {
     await sequelize.authenticate();
+    initSocket(server);
     const address = getLocalIp();
     const actualPort = (server.address() as any).port;
 

@@ -1,0 +1,111 @@
+<section class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
+  <div class="w-full max-w-lg">
+
+    @if (is_loading()) {
+    <p class="text-center text-sm text-gray-500">Cargando tu orden...</p>
+    } @else if (not_found()) {
+    <nb-card class="m-0">
+      <nb-card-body class="text-center">
+        <p class="m-0 text-lg font-semibold text-red-600">Este link no es válido</p>
+        <p class="mt-2 mb-0 text-sm text-gray-500">Verifica el enlace con quien te lo envió.</p>
+      </nb-card-body>
+    </nb-card>
+    } @else if (summary(); as data) {
+
+    <!-- Resumen de la orden -->
+    <nb-card class="m-0">
+      <nb-card-header>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">{{ data.order.company_name }}</span>
+          <span class="text-xl font-bold text-slate-900">Confirma tu pago</span>
+        </div>
+      </nb-card-header>
+
+      <nb-card-body class="flex flex-col gap-4">
+        <div class="grid grid-cols-2 gap-3 text-sm">
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-gray-500">Cliente</span>
+            <span class="font-medium text-slate-900">
+              {{ data.order.first_name_client }} {{ data.order.last_name_client }}
+            </span>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-gray-500">Vendedor</span>
+            <span class="font-medium text-slate-900">{{ data.order.seller_name ?? '—' }}</span>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-gray-500">Productos</span>
+            <span class="font-medium text-slate-900">{{ data.order.items_count }}</span>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-gray-500">Monto a pagar</span>
+            <span class="text-lg font-bold text-blue-600">${{ data.order.amount }}</span>
+          </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+
+    @if (already_paid()) {
+    <div class="mt-4 rounded-xl border border-green-200 bg-green-50 p-6 text-center">
+      <p class="m-0 text-lg font-semibold text-green-800">✔ Ya registramos tu pago</p>
+      <p class="mt-1 mb-0 text-sm text-green-700">El vendedor lo validará pronto.</p>
+    </div>
+    } @else if (submitted()) {
+    <div class="mt-4 rounded-xl border border-green-200 bg-green-50 p-6 text-center">
+      <p class="m-0 text-lg font-semibold text-green-800">¡Gracias! Recibimos tu comprobante</p>
+      @if (extracted_reference()) {
+      <p class="mt-2 mb-0 text-sm text-green-700">Detectamos la referencia <strong>{{ extracted_reference() }}</strong>.</p>
+      } @else {
+      <p class="mt-2 mb-0 text-sm text-green-700">El vendedor revisará tu comprobante manualmente.</p>
+      }
+    </div>
+    } @else {
+
+    <!-- Metodo de pago -->
+    <div class="mt-4 flex flex-col gap-3">
+      <span class="text-sm font-semibold text-slate-900">1. Elige el método de pago</span>
+
+      @for (method of data.payment_methods; track method.id) {
+      <button type="button" class="rounded-xl border p-4 text-left transition-colors"
+        [class]="selected_method_id() === method.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'"
+        (click)="selectMethod(method.id)">
+        <span class="block text-sm font-semibold text-slate-900">{{ method.name }}</span>
+        @if (method.titular) {
+        <span class="block text-xs text-gray-500">Titular: {{ method.titular }}</span>
+        }
+        <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600">
+          @for (field of parseDatos(method.datos); track field.label) {
+          <span><strong>{{ field.label }}:</strong> {{ field.value }}</span>
+          }
+        </div>
+      </button>
+      }
+
+      @if (data.payment_methods.length === 0) {
+      <p class="text-sm text-gray-500">Esta empresa todavía no tiene métodos de pago configurados.</p>
+      }
+    </div>
+
+    <!-- Comprobante -->
+    <div class="mt-6 flex flex-col gap-3">
+      <span class="text-sm font-semibold text-slate-900">2. Sube la foto de tu comprobante</span>
+
+      <label
+        class="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-gray-300 p-6 text-center hover:border-blue-400">
+        @if (receipt_preview(); as preview) {
+        <img [src]="preview" alt="Comprobante" class="max-h-48 rounded-lg object-contain" />
+        } @else {
+        <span class="text-sm text-gray-500">Toca para tomar o elegir una foto</span>
+        }
+        <input type="file" accept="image/*" class="hidden" (change)="onFileSelected($event)" />
+      </label>
+    </div>
+
+    <button nbButton status="primary" fullWidth class="mt-6" type="button" [disabled]="!can_submit()"
+      (click)="submit()">
+      {{ is_submitting() ? 'Enviando...' : 'Acepto, ya pagué' }}
+    </button>
+    }
+    }
+  </div>
+</section>

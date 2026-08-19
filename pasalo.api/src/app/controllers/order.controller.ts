@@ -86,7 +86,9 @@ export class OrderController {
                     pay_url_token
                 },
                 items,
-                pay_url: `${payUrlBase}/${pay_url_token}`
+                // El tenant_id viaja en la url: es la unica forma de resolver la empresa
+                // en una pagina publica que no tiene sesion
+                pay_url: `${payUrlBase}/${session.company.tenant_id}/${pay_url_token}`
             });
         } catch (err) {
             next(err);
@@ -139,6 +141,46 @@ export class OrderController {
             );
 
             res.json(orders);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    /**
+     * Detalle de una orden: comprador, productos, comprobante subido y lo
+     * que la extraccion automatica logro leer.
+     *
+     * @static
+     * @memberof OrderController
+     */
+    static async getById(req: Request, res: Response, next: NextFunction) {
+        try {
+            const session = OrderController.session(req);
+            const tenantDb = OrderController.tenantDb(req);
+            const is_admin = session.role === 'admin';
+            const { id } = req.params;
+
+            const where = is_admin ? 'o.id = :id' : 'o.id = :id AND o.user_id = :user_id';
+
+            const [order] = await tenantDb.query<any>(
+                `SELECT o.*, pm.name AS payment_method_name, pm.type AS payment_method_type
+                 FROM orders o
+                 LEFT JOIN payment_methods pm ON pm.id = o.payment_method_id
+                 WHERE ${where}`,
+                { replacements: { id, user_id: session.user.uuid }, type: QueryTypes.SELECT }
+            );
+
+            if (!order) {
+                res.status(404).json({ message: 'Orden no encontrada', error: 'Esa orden no existe o no te pertenece.' });
+                return;
+            }
+
+            const items = await tenantDb.query(
+                `SELECT id, name, reference, price FROM order_items WHERE order_id = :id`,
+                { replacements: { id }, type: QueryTypes.SELECT }
+            );
+
+            res.json({ order, items });
         } catch (err) {
             next(err);
         }

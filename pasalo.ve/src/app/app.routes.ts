@@ -7,6 +7,8 @@ import { Dashboard } from './layout/dashboard/dashboard';
 import { WebClient } from './layout/web-client/web-client';
 import { Login } from './features/auth/pages/login/login';
 import { UsersPage } from './features/users/pages/users-page/users-page';
+import { PaymentMethodsPage } from './features/payment-methods/pages/payment-methods-page/payment-methods-page';
+import { PublicPayment } from './features/orders/pages/public-payment/public-payment';
 import { authGuard } from './features/auth/auth.guard';
 
 export const routes: Routes = [
@@ -20,6 +22,8 @@ export const routes: Routes = [
   },
   // Pantalla independiente: sin el header ni los margenes del WebClient
   { path: 'login', component: Login, title: 'Iniciar sesión | Pásalo.ve' },
+  // Link de pago publico: sin sesion, sin layout
+  { path: 'p/:tenant_id/:token', component: PublicPayment, title: 'Confirma tu pago | Pásalo.ve' },
   {
     path: 'dashboard',
     component: Dashboard,
@@ -27,6 +31,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'users', component: UsersPage, title: 'Usuarios | Pásalo.ve' },
+      { path: 'payment-methods', component: PaymentMethodsPage, title: 'Métodos de pago | Pásalo.ve' },
       {
         path: '',
         loadChildren: () =>

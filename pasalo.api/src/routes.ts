@@ -6,8 +6,11 @@ import { AuthController } from './app/controllers/auth.controller';
 import { CompanyUserController } from './app/controllers/company_user.controller';
 import { OrderController } from './app/controllers/order.controller';
 import { OrderStatusController } from './app/controllers/order_status.controller';
+import { PublicOrderController } from './app/controllers/public_order.controller';
+import { PaymentMethodController } from './app/controllers/payment_method.controller';
 import { jwtMiddleware } from './middlewares/jwtMiddleware';
 import { tenantMiddleware } from './middlewares/tenantMiddleware';
+import { upload } from './middlewares/upload';
 
 const router = Router();
 
@@ -31,11 +34,21 @@ router.post('/company/users', jwtMiddleware, CompanyUserController.createUser);
 router.delete('/company/users/:uuid', jwtMiddleware, CompanyUserController.deleteUser);
 router.put('/company/subscription', jwtMiddleware, CompanyUserController.changePlan);
 
+//*Metodos de pago
+router.get('/company/payment-methods', authTenant, PaymentMethodController.list);
+router.post('/company/payment-methods', authTenant, PaymentMethodController.create);
+router.delete('/company/payment-methods/:id', authTenant, PaymentMethodController.remove);
+
 //*Ordenes
 router.get('/order-statuses', jwtMiddleware, OrderStatusController.listStatuses);
 router.get('/orders', authTenant, OrderController.list);
 router.post('/orders', authTenant, OrderController.create);
+router.get('/orders/:id', authTenant, OrderController.getById);
 router.put('/orders/:id/status', authTenant, OrderController.updateStatus);
+
+//*Pantalla publica de pago (sin sesion, el token viaja en la url)
+router.get('/public/orders/:tenant_id/:token', PublicOrderController.getSummary);
+router.post('/public/orders/:tenant_id/:token/pay', upload.single('receipt'), PublicOrderController.submitPayment);
 
 
 export default router;

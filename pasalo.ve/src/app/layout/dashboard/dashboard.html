@@ -10,8 +10,8 @@
       }
 
       <aside
-        class="fixed inset-y-0 left-0 z-40 w-72 max-w-[85vw] -translate-x-full overflow-y-auto bg-white p-6 shadow-lg transition-transform duration-200 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:translate-x-0 lg:rounded lg:border lg:border-blue-100 lg:p-6 lg:shadow-sm lg:shadow-blue-900/5"
-        [class.translate-x-0]="is_menu_open()">
+        class="fixed inset-y-0 left-0 z-40 w-72 max-w-[85vw] overflow-y-auto bg-white p-6 shadow-lg lg:static lg:z-auto lg:block lg:w-auto lg:max-w-none lg:rounded lg:border lg:border-blue-100 lg:p-6 lg:shadow-sm lg:shadow-blue-900/5"
+        [class.hidden]="!is_menu_open()">
         <div class="grid content-start gap-6">
           <div class="space-y-1 border-b border-blue-100 pb-4">
             <p class="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500">Navegacion</p>
@@ -33,6 +33,11 @@
             <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="users"
               routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
               Usuarios
+            </button>
+
+            <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="payment-methods"
+              routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
+              Métodos de pago
             </button>
             }
           </nav>

@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { CreateOrderPayload, CreateOrderResponse, Order, OrderStatus } from './interfaces/order';
+import { CreateOrderPayload, CreateOrderResponse, Order, OrderDetail, OrderStatus } from './interfaces/order';
 
 export interface OrderFilters {
   seller_id?: string | null;
@@ -39,5 +39,9 @@ export class OrdersService {
 
   updateStatus(order_id: string, status_id: number): Observable<{ message: string }> {
     return this.http.put<{ message: string }>(`${environment.host}/orders/${order_id}/status`, { status_id });
+  }
+
+  getOrderById(id: string): Observable<OrderDetail> {
+    return this.http.get<OrderDetail>(`${environment.host}/orders/${id}`);
   }
 }

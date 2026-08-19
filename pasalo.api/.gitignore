@@ -8,6 +8,8 @@ postman/
 
 logs/
 
+# Comprobantes/logos subidos mientras no hay AWS configurado
+uploads/
 
 seeders/
 package-lock.json

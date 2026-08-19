@@ -1,24 +1,28 @@
 import { DatePipe, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
-import { NbButtonModule, NbCardModule, NbSelectModule } from '@nebular/theme';
+import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { NbButtonModule, NbCardModule, NbIconModule, NbSelectModule } from '@nebular/theme';
+import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { UsersService } from 'src/app/features/users/users.service';
 import { CompanyUser } from 'src/app/features/users/interfaces/company-user';
 import { ToastService } from '@shared/services/toast.service';
+import { OrderPaidNotification, SocketService } from 'src/app/features/notifications/socket.service';
 import { Order, OrderStatus } from '../../interfaces/order';
 import { OrdersService } from '../../orders.service';
 
 @Component({
   selector: 'app-orders-list',
-  imports: [NbCardModule, NbSelectModule, NbButtonModule, DatePipe],
+  imports: [NbCardModule, NbSelectModule, NbButtonModule, NbIconModule, NbEvaIconsModule, DatePipe, RouterLink],
   templateUrl: './orders-list.html',
 })
-export class OrdersList implements OnInit {
+export class OrdersList implements OnInit, OnDestroy {
 
   private ordersService = inject(OrdersService);
   private usersService = inject(UsersService);
   protected auth = inject(AuthService);
   private toast = inject(ToastService);
+  private socket = inject(SocketService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   orders = signal<Order[]>([]);
@@ -36,6 +40,9 @@ export class OrdersList implements OnInit {
 
   statusMap = computed(() => new Map(this.statuses().map((s) => [s.id, s])));
 
+  /** Guardada para poder quitar el listener al salir de la pantalla */
+  private handleOrderPaid = (_payload: OrderPaidNotification) => this.loadOrders();
+
   ngOnInit(): void {
     if (!this.is_browser) return;
 
@@ -46,6 +53,13 @@ export class OrdersList implements OnInit {
     }
 
     this.loadOrders();
+
+    // El vendedor/admin ve la orden pasar a "Pagado" sin tener que recargar la pantalla
+    this.socket.onOrderPaid(this.handleOrderPaid);
+  }
+
+  ngOnDestroy(): void {
+    this.socket.offOrderPaid(this.handleOrderPaid);
   }
 
   loadOrders(): void {

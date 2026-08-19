@@ -12,14 +12,24 @@ import { optimizeImage, ResizeOptions } from './ImageOptimize';
 
 dotenv.config();
 
-// Inicialización del cliente S3
-const s3 = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
+// El cliente se crea recien cuando se usa: si AWS_REGION no esta configurado
+// (mientras se sube a disco vía storage.ts), importar este archivo no debe
+// tumbar el servidor.
+let s3Client: S3Client | null = null;
+
+function getS3Client(): S3Client {
+  if (!s3Client) {
+    s3Client = new S3Client({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
+      }
+    });
   }
-});
+
+  return s3Client;
+}
 
 // Nombre del bucket desde el .env
 const BUCKET = process.env.AWS_BUCKET || '';
@@ -50,7 +60,7 @@ export const uploadToS3 = async (
     CacheControl: 'no-cache, no-store, must-revalidate'
   };
 
-  await s3.send(new PutObjectCommand(uploadParams));
+  await getS3Client().send(new PutObjectCommand(uploadParams));
 
   return {
     key: fileKey,
@@ -67,7 +77,7 @@ export const getSignedFileUrl = async (key: string, expiresInSeconds = 3600) => 
     Key: key
   });
 
-  const signedUrl = await getSignedUrl(s3, command, { expiresIn: expiresInSeconds });
+  const signedUrl = await getSignedUrl(getS3Client(), command, { expiresIn: expiresInSeconds });
   return signedUrl;
 };
 
@@ -80,7 +90,7 @@ export const listFiles = async (folder: string) => {
     Prefix: `${folder}/`
   });
 
-  const data = await s3.send(command);
+  const data = await getS3Client().send(command);
   return data.Contents || [];
 };
 
@@ -100,7 +110,7 @@ export const deleteFile = async (key: string | string[]) => {
       }
     });
 
-    await s3.send(command);
+    await getS3Client().send(command);
     return { deleted: true, keys: key };
   }
 
@@ -110,7 +120,7 @@ export const deleteFile = async (key: string | string[]) => {
     Key: key
   });
 
-  await s3.send(command);
+  await getS3Client().send(command);
   return { deleted: true, key };
 };
 

@@ -26,10 +26,48 @@ export interface Order {
   notes: string | null;
   amount: number;
   status_id: number;
+  payment_method_id: number | null;
+  payment_method_name?: string | null;
+  payment_method_type?: string | null;
+  receipt_url: string | null;
+  extracted_reference: string | null;
+  extracted_raw_text?: string | null;
+  paid_at: string | null;
   reference: string | null;
   pay_url_token: string;
   items_count: number;
   createdAt: string;
+}
+
+export interface OrderDetail {
+  order: Order;
+  items: (OrderItem & { id: string })[];
+}
+
+/** Lo que ve el comprador en su link de pago */
+export interface PublicOrderSummary {
+  order: {
+    id: string;
+    amount: number;
+    status_id: number;
+    first_name_client: string;
+    last_name_client: string;
+    items_count: number;
+    seller_name: string | null;
+    company_name: string | null;
+  };
+  payment_methods: {
+    id: number;
+    name: string;
+    type: string;
+    titular: string | null;
+    datos: string;
+  }[];
+}
+
+export interface SubmitPaymentResponse {
+  message: string;
+  extracted_reference: string | null;
 }
 
 /** Renglon de producto dentro del formulario de creacion */
