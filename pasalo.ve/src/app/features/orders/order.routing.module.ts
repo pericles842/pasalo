@@ -1,10 +1,12 @@
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { OrdersForm } from "./pages/orders-form/orders-form";
+import { OrdersList } from "./pages/orders-list/orders-list";
 
 const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'form' },
-  { path: 'form', component: OrdersForm, },
+  { path: '', pathMatch: 'full', redirectTo: 'list' },
+  { path: 'list', component: OrdersList },
+  { path: 'form', component: OrdersForm },
 ]
 
 @NgModule({
@@ -12,4 +14,3 @@ const routes: Routes = [
   exports: [RouterModule]
 })
 export class OrdersRoutingModule { }
-

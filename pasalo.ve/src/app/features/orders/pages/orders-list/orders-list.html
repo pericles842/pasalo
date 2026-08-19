@@ -1,0 +1,88 @@
+<section class="flex flex-col gap-6">
+
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div class="flex flex-col gap-1">
+      <span class="text-xl font-bold text-slate-900">Órdenes</span>
+      <span class="text-sm text-gray-500">
+        {{ is_admin() ? 'Todas las órdenes de la empresa.' : 'Tus órdenes.' }}
+      </span>
+    </div>
+
+    <!-- Filtrado simple: por estado y, si eres admin, tambien por vendedor -->
+    <div class="flex flex-wrap items-center gap-3">
+      <nb-select placeholder="Todos los estados" size="small" scrollStrategy="reposition"
+        [selected]="filter_status_id()" (selectedChange)="onStatusFilterChange($event)">
+        <nb-option [value]="null">Todos los estados</nb-option>
+        @for (status of statuses(); track status.id) {
+        <nb-option [value]="status.id">{{ status.name }}</nb-option>
+        }
+      </nb-select>
+
+      @if (is_admin()) {
+      <nb-select placeholder="Todos los vendedores" size="small" scrollStrategy="reposition"
+        [selected]="filter_seller_id()" (selectedChange)="onSellerFilterChange($event)">
+        <nb-option [value]="null">Todos los vendedores</nb-option>
+        @for (seller of sellers(); track seller.uuid) {
+        <nb-option [value]="seller.uuid">{{ seller.first_name }} {{ seller.middle_name }}</nb-option>
+        }
+      </nb-select>
+      }
+    </div>
+  </div>
+
+  <nb-card class="m-0">
+    <nb-card-body>
+      @if (is_loading()) {
+      <p class="m-0 text-sm text-gray-500">Cargando órdenes...</p>
+      } @else if (orders().length === 0) {
+      <p class="m-0 text-sm text-gray-500">No hay órdenes que coincidan con el filtro.</p>
+      } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[720px] border-collapse text-left text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 text-xs uppercase tracking-wide text-gray-500">
+              <th class="py-2 pr-4 font-semibold">Cliente</th>
+              <th class="py-2 pr-4 font-semibold">Productos</th>
+              <th class="py-2 pr-4 font-semibold">Total</th>
+              @if (is_admin()) {
+              <th class="py-2 pr-4 font-semibold">Vendedor</th>
+              }
+              <th class="py-2 pr-4 font-semibold">Fecha</th>
+              <th class="py-2 font-semibold">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (order of orders(); track order.id) {
+            <tr class="border-b border-gray-100 last:border-0">
+              <td class="py-3 pr-4">
+                <div class="flex flex-col">
+                  <span class="font-semibold text-slate-900">
+                    {{ order.first_name_client }} {{ order.last_name_client }}
+                  </span>
+                  <span class="text-xs text-gray-500">{{ order.email_client }}</span>
+                </div>
+              </td>
+              <td class="py-3 pr-4 text-gray-600">{{ order.items_count }}</td>
+              <td class="py-3 pr-4 font-semibold text-slate-900">${{ order.amount }}</td>
+              @if (is_admin()) {
+              <td class="py-3 pr-4 text-gray-600">{{ order.user_id === auth.session()?.user?.uuid ? 'Tú' : '—' }}</td>
+              }
+              <td class="py-3 pr-4 text-gray-500">{{ order.createdAt | date: 'dd/MM/yy' }}</td>
+              <td class="py-3">
+                <nb-select size="tiny" [selected]="order.status_id" scrollStrategy="reposition"
+                  [disabled]="updating_order_id() === order.id"
+                  (selectedChange)="changeStatus(order, $event)">
+                  @for (status of statuses(); track status.id) {
+                  <nb-option [value]="status.id">{{ status.name }}</nb-option>
+                  }
+                </nb-select>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      }
+    </nb-card-body>
+  </nb-card>
+</section>

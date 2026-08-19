@@ -1,35 +1,42 @@
 <section class="min-h-screen bg-blue-50 px-6 py-4 lg:px-8 lg:py-6">
   <section class="grid  gap-2 ">
-    <app-header-dashboard></app-header-dashboard>
+    <app-header-dashboard (menuToggle)="toggleMenu()"></app-header-dashboard>
 
     <section class="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
-      <aside class="grid content-start gap-6 rounded border border-blue-100 bg-white p-6 shadow-sm shadow-blue-900/5">
-        <div class="space-y-1 border-b border-blue-100 pb-4">
-          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500">Navegacion</p>
-          <h2 class="text-xl font-semibold text-slate-900">pasalo.ve</h2>
+
+      <!-- Fondo oscuro al abrir el menu en modo telefono -->
+      @if (is_menu_open()) {
+      <div class="fixed inset-0 z-30 bg-black/40 lg:hidden" (click)="closeMenu()"></div>
+      }
+
+      <aside
+        class="fixed inset-y-0 left-0 z-40 w-72 max-w-[85vw] -translate-x-full overflow-y-auto bg-white p-6 shadow-lg transition-transform duration-200 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:translate-x-0 lg:rounded lg:border lg:border-blue-100 lg:p-6 lg:shadow-sm lg:shadow-blue-900/5"
+        [class.translate-x-0]="is_menu_open()">
+        <div class="grid content-start gap-6">
+          <div class="space-y-1 border-b border-blue-100 pb-4">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500">Navegacion</p>
+            <h2 class="text-xl font-semibold text-slate-900">pasalo.ve</h2>
+          </div>
+
+          <nav class="grid gap-3" (click)="closeMenu()">
+            <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="list"
+              routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
+              Ordenes
+            </button>
+
+            <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="form"
+              routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
+              Crear Orden
+            </button>
+
+            @if (is_admin()) {
+            <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="users"
+              routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
+              Usuarios
+            </button>
+            }
+          </nav>
         </div>
-
-        <nav class="grid gap-3">
-          <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="form"
-            routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
-            Crear Ordenes
-          </button>
-
-          <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="form"
-            routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
-            Ordenes
-          </button>
-
-          <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="users"
-            routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
-            Usuarios
-          </button>
-
-          <button nbButton [status]="'info'" [appearance]="'outline'" routerLink="/create-company"
-            routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
-            Registrar Empresa
-          </button>
-        </nav>
       </aside>
 
       <main class="min-w-0 rounded-xl border border-blue-100 bg-white p-6 shadow-sm shadow-blue-900/5">

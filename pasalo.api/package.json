@@ -7,7 +7,8 @@
     "build": "tsc && cp -r src/views dist/views",
     "start": "node dist/app.js",
     "migrate": "npx sequelize-cli db:migrate --env development",
-    "seed": "npx sequelize-cli db:seed:all --env development"
+    "seed": "npx sequelize-cli db:seed:all --env development",
+    "migrate:tenants": "ts-node src/scripts/migrate-tenants.ts"
   },
   "keywords": [],
   "author": "",

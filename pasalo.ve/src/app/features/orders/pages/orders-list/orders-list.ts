@@ -1,0 +1,99 @@
+import { DatePipe, isPlatformBrowser } from '@angular/common';
+import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { NbButtonModule, NbCardModule, NbSelectModule } from '@nebular/theme';
+import { AuthService } from 'src/app/features/auth/auth.service';
+import { UsersService } from 'src/app/features/users/users.service';
+import { CompanyUser } from 'src/app/features/users/interfaces/company-user';
+import { ToastService } from '@shared/services/toast.service';
+import { Order, OrderStatus } from '../../interfaces/order';
+import { OrdersService } from '../../orders.service';
+
+@Component({
+  selector: 'app-orders-list',
+  imports: [NbCardModule, NbSelectModule, NbButtonModule, DatePipe],
+  templateUrl: './orders-list.html',
+})
+export class OrdersList implements OnInit {
+
+  private ordersService = inject(OrdersService);
+  private usersService = inject(UsersService);
+  protected auth = inject(AuthService);
+  private toast = inject(ToastService);
+  private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  orders = signal<Order[]>([]);
+  statuses = signal<OrderStatus[]>([]);
+  sellers = signal<CompanyUser[]>([]);
+
+  is_loading = signal(true);
+  updating_order_id = signal<string | null>(null);
+
+  /** Filtrado simple: por vendedor (solo admin) y por estado */
+  filter_seller_id = signal<string | null>(null);
+  filter_status_id = signal<number | null>(null);
+
+  is_admin = computed(() => this.auth.session()?.role?.slug === 'admin');
+
+  statusMap = computed(() => new Map(this.statuses().map((s) => [s.id, s])));
+
+  ngOnInit(): void {
+    if (!this.is_browser) return;
+
+    this.ordersService.getStatuses().subscribe((statuses) => this.statuses.set(statuses));
+
+    if (this.is_admin()) {
+      this.usersService.getCompanyUsers().subscribe((response) => this.sellers.set(response.users));
+    }
+
+    this.loadOrders();
+  }
+
+  loadOrders(): void {
+    this.is_loading.set(true);
+
+    this.ordersService
+      .getOrders({ seller_id: this.filter_seller_id(), status_id: this.filter_status_id() })
+      .subscribe({
+        next: (orders) => {
+          this.orders.set(orders);
+          this.is_loading.set(false);
+        },
+        error: (err) => {
+          this.toast.error(err?.error?.error ?? 'No pudimos cargar las órdenes.');
+          this.is_loading.set(false);
+        }
+      });
+  }
+
+  onSellerFilterChange(seller_id: string | null): void {
+    this.filter_seller_id.set(seller_id);
+    this.loadOrders();
+  }
+
+  onStatusFilterChange(status_id: number | null): void {
+    this.filter_status_id.set(status_id);
+    this.loadOrders();
+  }
+
+  statusName(status_id: number): string {
+    return this.statusMap().get(status_id)?.name ?? '—';
+  }
+
+  changeStatus(order: Order, status_id: number): void {
+    if (status_id === order.status_id) return;
+
+    this.updating_order_id.set(order.id);
+
+    this.ordersService.updateStatus(order.id, status_id).subscribe({
+      next: () => {
+        this.updating_order_id.set(null);
+        this.orders.update((orders) => orders.map((o) => (o.id === order.id ? { ...o, status_id } : o)));
+        this.toast.success(`Orden marcada como ${this.statusName(status_id)}.`);
+      },
+      error: (err) => {
+        this.updating_order_id.set(null);
+        this.toast.error(err?.error?.error ?? 'No pudimos actualizar el estado.');
+      }
+    });
+  }
+}

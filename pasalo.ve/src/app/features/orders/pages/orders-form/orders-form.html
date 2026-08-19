@@ -1,41 +1,112 @@
-<app-general-title-form [title]="'Crear Orden'"
-  [description]="'Crea el formulario para generar nuevas órdenes a los usuarios'">
+<app-general-title-form [title]="'Crear orden'"
+  [description]="'Registra la venta con los datos del comprador y los productos.'">
 </app-general-title-form>
 
-<form [formGroup]="orderForm" (ngSubmit)="onSubmit()" class="mt-5 flex flex-col gap-5">
-  <section class="grid grid-cols-12 gap-4">
-    <app-global-input class="col-span-12 md:col-span-6" name="name_product" label="Nombre del producto"
-      placeholder="Ej. Teclado mecánico" hint="Debe contener al menos 3 caracteres"
-      [control]="orderForm.controls.name_product" />
+@if (created_order(); as result) {
+<div class="mt-6 flex flex-col gap-4 rounded-xl border border-green-200 bg-green-50 p-6">
+  <div class="flex flex-col gap-1">
+    <span class="text-lg font-semibold text-green-800">¡Orden creada!</span>
+    <span class="text-sm text-green-700">
+      Total: <strong>${{ result.order.amount }}</strong>. Comparte este link con el cliente para que suba su
+      comprobante de pago.
+    </span>
+  </div>
 
-    <app-global-input class="col-span-12 md:col-span-3" name="amount" label="Cantidad" placeholder="Ej. 2"
-      hint="Debe ser mayor o igual a 1" type="number" [control]="orderForm.controls.amount" />
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+    <input readonly class="min-w-0 flex-1 rounded-lg border border-green-300 bg-white px-3 py-2 text-sm text-slate-700"
+      [value]="result.pay_url" />
+    <button nbButton status="success" type="button" (click)="copyPayUrl()">
+      <nb-icon icon="copy-outline"></nb-icon>
+      Copiar link
+    </button>
+  </div>
 
-    <app-global-input class="col-span-12 md:col-span-3" name="price" label="Precio" placeholder="Ej. 25.50"
-      hint="Debe ser mayor a 0" type="number" [control]="orderForm.controls.price" />
+  <div>
+    <button nbButton appearance="outline" status="success" type="button" (click)="createAnother()">
+      Crear otra orden
+    </button>
+  </div>
+</div>
+} @else {
+<form (submit)="$event.preventDefault(); onSubmit()" class="mt-6 flex flex-col gap-8">
 
-    <app-global-input class="col-span-12 md:col-span-6" name="name_client" label="Nombre del cliente"
-      placeholder="Ej. Maria Perez" hint="Debe contener al menos 3 caracteres"
-      [control]="orderForm.controls.name_client" />
+  <!-- Datos del comprador -->
+  <section class="flex flex-col gap-4">
+    <h3 class="text-base font-semibold text-slate-900">Datos del comprador</h3>
 
-    <app-global-input class="col-span-12 md:col-span-6" name="ci_client" label="Cédula del cliente"
-      placeholder="Ej. 12345678" hint="Debe ser un numero valido" type="number"
-      [control]="orderForm.controls.ci_client" />
+    <div class="grid grid-cols-12 gap-4" [formGroup]="buyer_form">
+      <app-global-input class="col-span-12 md:col-span-6" name="buyer_first_name" label="Nombre"
+        placeholder="Ej. Louis" [control]="buyer_form.controls.first_name" error="El nombre es requerido" />
 
-    <app-global-input class="col-span-12" name="email_client" label="Correo del cliente"
-      placeholder="Ej. cliente@correo.com" type="email" [control]="orderForm.controls.email_client" />
+      <app-global-input class="col-span-12 md:col-span-6" name="buyer_last_name" label="Apellido"
+        placeholder="Ej. Sarmiento" [control]="buyer_form.controls.last_name" error="El apellido es requerido" />
 
-    <app-global-input class="col-span-12 md:col-span-10" name="pay_url_token" label="URL de pago" type="text"
-      [control]="orderForm.controls.pay_url_token" />
-    <div class="col-span-12 md:col-span-2 flex items-end md:items-start md:pt-7">
+      <app-global-input class="col-span-12 md:col-span-6" name="buyer_email" label="Correo" type="email"
+        placeholder="cliente@correo.com" [control]="buyer_form.controls.email" error="Ingresa un correo válido" />
 
-      <button nbButton appearance="outline" status="primary" size="medium" type="submit">
-        <nb-icon icon="copy-outline"></nb-icon>
-      </button>
+      <app-global-input class="col-span-12 md:col-span-6" name="buyer_ci" label="Cédula" placeholder="Ej. V-12345678"
+        [control]="buyer_form.controls.ci" error="La cédula es requerida" />
+
+      <app-global-input class="col-span-12 md:col-span-6" name="buyer_phone" label="Teléfono"
+        placeholder="Ej. 0414-1234567" [control]="buyer_form.controls.phone" error="El teléfono es requerido" />
+
+      <app-global-input class="col-span-12 md:col-span-6" name="buyer_address" label="Ubicación"
+        placeholder="Ej. Caracas, Venezuela" [control]="buyer_form.controls.address"
+        error="La ubicación es requerida" />
     </div>
   </section>
 
+  <!-- Productos -->
+  <section class="flex flex-col gap-4">
+    <div class="flex items-center justify-between">
+      <h3 class="text-base font-semibold text-slate-900">Productos</h3>
+      <button nbButton size="small" appearance="outline" status="primary" type="button" (click)="addItem()">
+        <nb-icon icon="plus-outline"></nb-icon>
+        Agregar producto
+      </button>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      @for (item of items_controls; track $index) {
+      <div class="grid grid-cols-12 items-start gap-3 rounded-lg border border-gray-100 bg-gray-50/60 p-3"
+        [formGroup]="item">
+        <app-global-input class="col-span-12 md:col-span-5" [name]="'item_name_' + $index" label="Nombre del producto"
+          placeholder="Ej. Teclado mecánico" [control]="item.controls.name" error="El nombre es requerido" />
+
+        <app-global-input class="col-span-12 md:col-span-3" [name]="'item_ref_' + $index" label="Referencia"
+          placeholder="Ej. TK-100" [control]="item.controls.reference" />
+
+        <app-global-input class="col-span-9 md:col-span-3" [name]="'item_price_' + $index" label="Precio (USD)"
+          type="number" placeholder="0.00" [control]="item.controls.price" error="Debe ser mayor a 0" />
+
+        <div class="col-span-3 md:col-span-1 flex items-end justify-end pb-1 md:pt-7">
+          <button nbButton size="small" status="danger" appearance="ghost" type="button"
+            [disabled]="items_controls.length === 1" (click)="removeItem($index)" aria-label="Eliminar producto">
+            <nb-icon icon="trash-2-outline"></nb-icon>
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="flex justify-end border-t border-gray-100 pt-3">
+      <span class="text-sm font-medium text-gray-500">Total:&nbsp;</span>
+      <span class="text-lg font-bold text-slate-900">${{ items_total() }}</span>
+    </div>
+  </section>
+
+  <!-- Observaciones -->
+  <section class="flex flex-col gap-2">
+    <label class="text-sm font-medium text-gray-600" for="notes">Observaciones generales</label>
+    <textarea id="notes" name="notes" rows="3" [formControl]="notes"
+      class="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+      placeholder="Ej. Coordinar entrega, instrucciones especiales..."></textarea>
+  </section>
+
   <div class="flex justify-end">
-    <button nbButton status="primary" type="submit">Crear orden</button>
+    <button nbButton status="primary" type="submit" [disabled]="is_saving()">
+      {{ is_saving() ? 'Creando orden...' : 'Crear orden y generar link de pago' }}
+    </button>
   </div>
 </form>
+}

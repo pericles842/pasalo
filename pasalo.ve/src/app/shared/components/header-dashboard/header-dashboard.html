@@ -1,7 +1,14 @@
 <header class="flex items-center justify-between gap-4  px-4 py-3 text-white shadow-blue-900/15">
-  <div class="space-y-1">
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <h1 class="text-base font-semibold">{{ auth.session()?.company?.name ?? 'Pásalo' }}</h1>
+  <div class="flex items-center gap-3">
+    <button class="grid h-9 w-9 place-items-center rounded-lg text-white lg:hidden" type="button"
+      aria-label="Abrir menú" (click)="menuToggle.emit()">
+      <nb-icon icon="menu-2-outline" [options]="{ width: 22, height: 22 }"></nb-icon>
+    </button>
+
+    <div class="space-y-1">
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <h1 class="text-base font-semibold">{{ auth.session()?.company?.name ?? 'Pásalo' }}</h1>
+      </div>
     </div>
   </div>
 
