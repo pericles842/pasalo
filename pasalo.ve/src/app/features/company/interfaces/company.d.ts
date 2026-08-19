@@ -5,8 +5,8 @@ export interface Company {
   name: string | null;
   logo: string | null;
   rif: string | null;
+  email: string | null;
   domain: string | null;
-  user_limits: number;
 }
 
 export interface CompanyControls {
@@ -14,6 +14,6 @@ export interface CompanyControls {
   name: FormControl<string | null>;
   logo: FormControl<string | null>;
   rif: FormControl<string | null>;
+  email: FormControl<string | null>;
   domain: FormControl<string | null>;
-  user_limits: FormControl<number>;
 }

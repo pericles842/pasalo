@@ -1,24 +1,31 @@
+import { Company } from './company';
+import { FormControl } from '@angular/forms';
+
 export interface UserCompany {
-  uuid: string;
-  first_name: string;
-  middle_name: string;
-  photo_url: string;
-  ci: string;
-  email: string;
-  password: string;
-  charge: 'support' | 'seller';
-  status: 'active' | 'inactive' | 'baned';
+  uuid?: string | null;
+  first_name: string | null;
+  middle_name: string | null;
+  photo_url: string | null;
+  ci: string | null;
+  email: string | null;
+  password: string | null;
+  password_confirmation: string | null;
 }
 
-
 export interface UserCompanyForm {
-  uuid?: FormControl<string>;
-  first_name: FormControl<string>;
-  middle_name: FormControl<string>;
-  photo_url: FormControl<string>;
-  ci: FormControl<string>;
-  email: FormControl<string>;
-  password: FormControl<string>;
-  charge: FormControl<'support' | 'seller'>;
-  status: FormControl<'active' | 'inactive' | 'baned'>;
+  uuid?: FormControl<string | null>;
+  first_name: FormControl<string | null>;
+  middle_name: FormControl<string | null>;
+  photo_url: FormControl<string | null>;
+  ci: FormControl<string | null>;
+  email: FormControl<string | null>;
+  password: FormControl<string | null>;
+  password_confirmation: FormControl<string | null>;
+}
+
+/** Cuerpo que espera el endpoint POST /company */
+export interface RegisterCompanyPayload {
+  company: Company;
+  user: UserCompany;
+  plan_id: number;
 }

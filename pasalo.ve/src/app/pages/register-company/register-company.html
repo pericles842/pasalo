@@ -15,35 +15,53 @@
       </div>
     </nb-step>
 
+    <!-- Step 2: Usuario master -->
     <nb-step label="Informacion de usuario">
       <app-users-info-form [form]="company_user"></app-users-info-form>
-      <div class="flex justify-end mt-6">
-        <button nbButton status="primary" nbStepperNext [disabled]="company_form.invalid">
+      <div class="flex gap-4 justify-end mt-6">
+        <button nbButton nbStepperPrevious>Anterior</button>
+        <button nbButton status="primary" nbStepperNext [disabled]="company_user.invalid">
           Siguiente
         </button>
       </div>
     </nb-step>
 
-    <!-- Step 2: Selección de plan -->
+    <!-- Step 3: Selección de plan -->
     <nb-step label="Plan">
-      <h3 class="text-xl font-semibold mb-6">Elige tu plan de suscripción</h3>
+      <h3 class="text-xl font-semibold mb-1">Elige tu plan de suscripción</h3>
+      <p class="text-gray-500 mb-6">
+        El plan define cuántos usuarios internos podrás agregar desde tu panel.
+      </p>
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        @for (plan of plans; track $index) {
+        @for (plan of plans; track plan.id) {
         <app-card-subscription-plan [plan]="plan" [isSelected]="selected_plan_index === $index"
           (planSelected)="selectPlan($index)">
         </app-card-subscription-plan>
         }
       </div>
+
+      @if (selected_plan) {
+      <p class="mt-6 mb-0 text-sm text-gray-500">
+        Con el <strong>{{ selected_plan.name }}</strong> podrás gestionar hasta
+        <strong>{{ selected_plan.user_limit }}</strong>
+        {{ selected_plan.user_limit === 1 ? 'usuario' : 'usuarios' }} en tu empresa.
+      </p>
+      }
+
+      @if (error_message) {
+      <p class="mt-4 mb-0 text-sm text-red-600">{{ error_message }}</p>
+      }
+
       <div class="flex gap-4 justify-end mt-6">
         <button nbButton nbStepperPrevious>Anterior</button>
-        <button nbButton status="primary" (click)="registerCompany()" nbStepperNext
-          [disabled]="selected_plan_index === null">
-          Siguiente
+        <button nbButton status="primary" (click)="continueFromPlan()" nbStepperNext
+          [disabled]="selected_plan_index === null || is_saving">
+          {{ is_saving ? 'Registrando...' : 'Siguiente' }}
         </button>
       </div>
     </nb-step>
 
-    <!-- Step 3: Confirmación o Pago -->
+    <!-- Step 4: Confirmación o Pago -->
     <nb-step label="Confirmar">
       @if (is_free_plan) {
       <!-- Plan gratis: pantalla de agradecimiento -->
@@ -57,7 +75,10 @@
           Ya puedes comenzar a explorar la plataforma. Cuando estés listo, puedes
           actualizar tu plan desde el panel de administración.
         </p>
-        <button nbButton status="success" size="large">
+        @if (error_message) {
+        <p class="text-sm text-red-600 m-0">{{ error_message }}</p>
+        }
+        <button nbButton status="success" size="large" routerLink="/login" [disabled]="!company_registered">
           Ir al panel
         </button>
       </div>
@@ -71,9 +92,19 @@
 
           <strong>{{ selected_plan.name }}</strong> —
           ${{selected_plan.price}}/mes
+          <br>
+          <span class="text-sm">
+            Incluye hasta {{ selected_plan.user_limit }}
+            {{ selected_plan.user_limit === 1 ? 'usuario' : 'usuarios' }}.
+          </span>
         </p>
 
-        <form [formGroup]="payment_form" class="flex flex-col gap-5">
+        @if (company_registered) {
+        <p class="text-green-600 font-semibold">
+          ¡Listo! Tu empresa quedó registrada con el {{ selected_plan.name }}.
+        </p>
+        } @else {
+        <form [formGroup]="payment_form" class="flex flex-col gap-5" (ngSubmit)="registerCompany()">
           <div class="flex flex-col gap-1">
             <label class="text-sm font-semibold">Nombre en la tarjeta</label>
             <input nbInput fullWidth formControlName="cardholder_name" placeholder="Ej. Juan Pérez">
@@ -95,13 +126,18 @@
             </div>
           </div>
 
+          @if (error_message) {
+          <p class="text-sm text-red-600 m-0">{{ error_message }}</p>
+          }
+
           <div class="flex gap-4 justify-end mt-2">
             <button nbButton nbStepperPrevious type="button">Anterior</button>
-            <button nbButton status="primary" type="submit" [disabled]="payment_form.invalid">
-              Confirmar pago
+            <button nbButton status="primary" type="submit" [disabled]="payment_form.invalid || is_saving">
+              {{ is_saving ? 'Procesando...' : 'Confirmar pago' }}
             </button>
           </div>
         </form>
+        }
       </div>
       }
       }

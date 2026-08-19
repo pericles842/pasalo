@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { NbSelectModule } from '@nebular/theme';
 import { GlobalInput } from "@shared/components/global-input/global-input";
 import { UserCompanyForm } from '../../interfaces/user';
 
@@ -8,11 +7,12 @@ import { UserCompanyForm } from '../../interfaces/user';
   selector: 'app-users-info-form',
   imports: [
     GlobalInput,
-    ReactiveFormsModule,
-    NbSelectModule
+    ReactiveFormsModule
   ],
   templateUrl: './users-info-form.html',
 })
 export class UsersInfoForm {
-  @Input() form!: FormGroup<UserCompanyForm>
+  // El usuario que registra la empresa siempre es administrador,
+  // por eso no se selecciona el cargo en este formulario.
+  @Input({ required: true }) form!: FormGroup<UserCompanyForm>
 }

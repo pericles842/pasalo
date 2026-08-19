@@ -1,4 +1,4 @@
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, QueryTypes, Sequelize } from 'sequelize';
+import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, QueryTypes, Sequelize, Transaction } from 'sequelize';
 import { sequelize } from '../config/db';
 import { randomUUID } from 'crypto';
 import { Umzug, SequelizeStorage } from 'umzug';
@@ -10,11 +10,13 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
 
   declare name: string;
   declare rif: string;
+  declare email: string;
   declare tenant_id: string;
   declare domain: string;
 
 
-  declare logo_url: string | null;
+  declare logo_url: CreationOptional<string | null>;
+  // Lo define el plan contratado, no el formulario de registro
   declare user_limit: CreationOptional<number>;
 
   // Timestamps automáticos
@@ -22,26 +24,27 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
   declare updatedAt: CreationOptional<Date>;
 
 
-  static async createConnectionCompany(company: CompanyModel, plan_id: number,) {
+  /**
+   * Nombre de la base de datos de la compañía
+   *
+   * @static
+   * @param {string} tenant_id
+   * @memberof CompanyModel
+   */
+  static tenantDbName(tenant_id: string): string {
+    return `pasalo_${tenant_id}`;
+  }
 
-    const db_client = `pasalo_${company.tenant_id}`
-    await sequelize.query(`CREATE DATABASE ${db_client}`);
-    await CompanyModel.generateTablesForCompanyClient(db_client);
-
-    await sequelize.getQueryInterface().bulkInsert('companies_connections', [
-      {
-        uuid: randomUUID(),
-        id_company: company.uuid,
-        db_name: db_client,
-        db_host: process.env.DB_HOST,
-        db_port: process.env.PORT,
-        db_user: process.env.DB_USER,
-        db_password: process.env.DB_PASS,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    ]);
-
+  /**
+   * Registra la suscripción de la empresa al plan seleccionado
+   *
+   * @static
+   * @param {CompanyModel} company
+   * @param {number} plan_id
+   * @param {Transaction} [transaction]
+   * @memberof CompanyModel
+   */
+  static async createSubscription(company: CompanyModel, plan_id: number, transaction?: Transaction) {
     await sequelize.getQueryInterface().bulkInsert('companies_subscriptions', [
       {
         uuid: randomUUID(),
@@ -51,13 +54,56 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
         createdAt: new Date(),
         updatedAt: new Date()
       }
-    ])
+    ], { transaction });
 
-    return await sequelize.query(`SELECT * FROM companies_subscriptions WHERE company_id = :company_id`, {
+    const [subscription] = await sequelize.query(`SELECT * FROM companies_subscriptions WHERE company_id = :company_id`, {
       replacements: { company_id: company.uuid },
-      type: QueryTypes.SELECT
-    })
+      type: QueryTypes.SELECT,
+      transaction
+    });
 
+    return subscription;
+  }
+
+  /**
+   * Crea la base de datos de la compañía con sus tablas y guarda la conexión
+   *
+   * @static
+   * @param {CompanyModel} company
+   * @memberof CompanyModel
+   */
+  static async createConnectionCompany(company: CompanyModel) {
+
+    const db_client = CompanyModel.tenantDbName(company.tenant_id);
+    await sequelize.query(`CREATE DATABASE \`${db_client}\``);
+    await CompanyModel.generateTablesForCompanyClient(db_client);
+
+    await sequelize.getQueryInterface().bulkInsert('companies_connections', [
+      {
+        uuid: randomUUID(),
+        id_company: company.uuid,
+        db_name: db_client,
+        db_host: process.env.DB_HOST,
+        db_port: process.env.DB_PORT,
+        db_user: process.env.DB_USER,
+        db_password: process.env.DB_PASS,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ]);
+
+    return db_client;
+  }
+
+  /**
+   * Elimina la base de datos de la compañía (rollback del registro)
+   *
+   * @static
+   * @param {string} tenant_id
+   * @memberof CompanyModel
+   */
+  static async dropConnectionCompany(tenant_id: string) {
+    await sequelize.query(`DROP DATABASE IF EXISTS \`${CompanyModel.tenantDbName(tenant_id)}\``);
   }
 
   /**
@@ -70,6 +116,7 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
   static async generateTablesForCompanyClient(db_client: string) {
     const tenantSequelize = new Sequelize(db_client, process.env.DB_USER!, process.env.DB_PASS!, {
       host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
       dialect: 'mysql',
       logging: false
     });
@@ -77,7 +124,7 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
 
     const migrator = new Umzug({
       migrations: {
-        glob: path.join(__dirname, '../../../migrations/pasalo-client/*.js').replace(/\\/g, '/'),
+        glob: path.join(__dirname, '../../../migrations/pasalo-client/*.js').split(path.sep).join('/'),
 
         resolve: ({ name, path: migrationPath, context }) => {
           const migration = require(migrationPath!);
@@ -127,6 +174,15 @@ CompanyModel.init(
       },
       unique: true
     },
+    email: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      unique: true,
+      validate: {
+        notEmpty: { msg: 'El correo de la empresa es requerido' },
+        isEmail: { msg: 'El correo de la empresa no es válido' }
+      }
+    },
     tenant_id: {
       type: DataTypes.STRING(255),
       allowNull: false,
@@ -144,8 +200,8 @@ CompanyModel.init(
     },
     user_limit: {
       type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 1
+      allowNull: false,
+      defaultValue: 0
     },
     createdAt: {
       type: DataTypes.DATE,

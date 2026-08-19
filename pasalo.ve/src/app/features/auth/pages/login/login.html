@@ -1,0 +1,35 @@
+<section class="flex min-h-[70vh] items-center justify-center px-4 py-10">
+  <nb-card class="w-full max-w-md">
+    <nb-card-header>
+      <div class="flex flex-col gap-1">
+        <span class="text-2xl font-bold">Inicia sesión</span>
+        <span class="text-sm text-gray-500">Entra al panel de tu empresa en Pásalo.</span>
+      </div>
+    </nb-card-header>
+
+    <nb-card-body>
+      <form [formGroup]="login_form" (ngSubmit)="submit()" class="flex flex-col gap-5">
+        <app-global-input name="login_email" label="Correo" type="email" [control]="login_form.controls.email"
+          placeholder="tucorreo@gmail.com" error="Ingresa un correo válido" />
+
+        <app-global-input name="login_password" label="Contraseña" type="password"
+          [control]="login_form.controls.password" placeholder="********" error="La contraseña es requerida" />
+
+        @if (error_message) {
+        <p class="m-0 text-sm text-red-600">{{ error_message }}</p>
+        }
+
+        <button nbButton status="primary" fullWidth type="submit" [disabled]="is_saving">
+          {{ is_saving ? 'Entrando...' : 'Entrar' }}
+        </button>
+      </form>
+    </nb-card-body>
+
+    <nb-card-footer>
+      <p class="m-0 text-center text-sm text-gray-500">
+        ¿Aún no tienes empresa registrada?
+        <a routerLink="/create-company" class="font-semibold text-blue-600">Regístrala aquí</a>
+      </p>
+    </nb-card-footer>
+  </nb-card>
+</section>

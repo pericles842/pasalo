@@ -9,13 +9,15 @@ import { NbInputModule } from '@nebular/theme';
   styleUrl: './global-input.scss',
 })
 export class GlobalInput {
-  @Input() control!: FormControl<string | number | null | boolean>;
+  @Input() control!: FormControl<any>;
   @Input({ required: true }) label!: string;
   @Input({ required: true }) name!: string;
   // Eliminado formControlName, solo se usará control
   @Input() placeholder = '';
   @Input() hint = '';
-  @Input() type: 'text' | 'number' | 'email' | 'file' = 'text';
+  // Mensaje que reemplaza al hint cuando el campo es inválido
+  @Input() error = '';
+  @Input() type: 'text' | 'number' | 'email' | 'file' | 'password' = 'text';
 
   get isInvalid(): boolean {
     return this.control.invalid && (this.control.touched || this.control.dirty);
@@ -23,5 +25,9 @@ export class GlobalInput {
 
   get status(): 'primary' | 'danger' {
     return this.isInvalid ? 'danger' : 'primary';
+  }
+
+  get message(): string {
+    return this.isInvalid && this.error ? this.error : this.hint;
   }
 }

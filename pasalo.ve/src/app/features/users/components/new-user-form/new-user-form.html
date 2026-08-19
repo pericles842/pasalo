@@ -1,0 +1,24 @@
+<div [formGroup]="form" class="flex flex-col gap-5">
+
+  <div class="flex flex-col gap-1.5">
+    <label class="text-sm font-medium text-gray-600">Cargo</label>
+    <nb-select fullWidth placeholder="Selecciona un cargo" [formControl]="form.controls.role_id">
+      @for (role of roles; track role.id) {
+      <nb-option [value]="role.id">{{ role.name }}</nb-option>
+      }
+    </nb-select>
+  </div>
+
+  <app-global-input name="new_first_name" label="Nombre" [control]="form.controls.first_name"
+    placeholder="Ej. Carlos" error="El nombre es requerido" />
+
+  <app-global-input name="new_email" label="Correo" type="email" [control]="form.controls.email"
+    placeholder="usuario@empresa.com" hint="Con este correo iniciará sesión" error="Ingresa un correo válido" />
+
+  <app-global-input name="new_password" label="Contraseña" type="password" [control]="form.controls.password"
+    placeholder="********" hint="Mínimo 8 caracteres" error="La contraseña debe tener al menos 8 caracteres" />
+
+  <app-global-input name="new_password_confirmation" label="Confirmar contraseña" type="password"
+    [control]="form.controls.password_confirmation" placeholder="********" error="Las contraseñas no coinciden" />
+
+</div>

@@ -1,21 +1,34 @@
 <form [formGroup]="form" class="mt-5 flex flex-col gap-5">
   <section class="grid grid-cols-12 gap-4">
     <app-global-input class="col-span-12 md:col-span-6" name="first_name" label="Nombre"
-      [control]="form.controls.first_name" />
+      [control]="form.controls.first_name" placeholder="Ej. Louis" error="El nombre es requerido" />
 
     <app-global-input class="col-span-12 md:col-span-6" name="middle_name" label="Apellido"
-      [control]="form.controls.middle_name" />
+      [control]="form.controls.middle_name" placeholder="Ej. Sarmiento" error="El apellido es requerido" />
 
-    <app-global-input class="col-span-12 md:col-span-6" name="email" label="Correo de la empresa"
-      [control]="form.controls.email" placeholder="example@gmail.com" hint="No es obligatorio un correo empresarial" />
+    <app-global-input class="col-span-12 md:col-span-6" name="ci" label="Cédula" [control]="form.controls.ci"
+      placeholder="13728876" error="La cédula es requerida" />
 
-    <app-global-input class="col-span-12 md:col-span-4" name="ci" label="Cédula" [control]="form.controls.ci"
-      placeholder="13728876" />
+    <app-global-input class="col-span-12 md:col-span-6" name="user_email" label="Correo personal"
+      [control]="form.controls.email" type="email" placeholder="example@gmail.com"
+      hint="Con este correo iniciarás sesión" error="Ingresa un correo válido" />
 
-    <nb-select placeholder="Form control" [formControl]="form.controls.charge">
-      <nb-option value="support">Soporte</nb-option>
-      <nb-option value="seller">Vendedor</nb-option>
-    </nb-select>
+    <app-global-input class="col-span-12 md:col-span-6" name="password" label="Contraseña"
+      [control]="form.controls.password" type="password" placeholder="********"
+      hint="Mínimo 8 caracteres" error="La contraseña debe tener al menos 8 caracteres" />
 
+    <app-global-input class="col-span-12 md:col-span-6" name="password_confirmation" label="Confirmar contraseña"
+      [control]="form.controls.password_confirmation" type="password" placeholder="********"
+      error="Las contraseñas no coinciden" />
+
+    <div class="col-span-12 flex items-center gap-3 rounded-lg bg-gray-50 px-4 py-3">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-bold">A</span>
+      <div class="flex flex-col">
+        <span class="text-sm font-semibold">Rol: Administrador</span>
+        <span class="text-xs text-gray-500">
+          Eres el usuario master de la empresa: podrás crear y gestionar al resto de los usuarios.
+        </span>
+      </div>
+    </div>
   </section>
 </form>

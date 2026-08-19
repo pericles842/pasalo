@@ -21,6 +21,9 @@
         }
       </div>
       <p class="text-sm text-gray-400 m-0 leading-relaxed">{{ plan.description}}</p>
+      <p class="text-sm font-medium text-gray-600 mt-3 mb-0">
+        Hasta {{ plan.user_limit }} {{ plan.user_limit === 1 ? 'usuario' : 'usuarios' }}
+      </p>
     </nb-card-body>
 
     <nb-card-footer>
