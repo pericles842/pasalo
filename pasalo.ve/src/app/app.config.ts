@@ -5,7 +5,7 @@ import {
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { NbOverlayContainerAdapter, NbThemeModule } from '@nebular/theme';
+import { NbOverlayContainerAdapter, NbThemeModule, NbToastrModule } from '@nebular/theme';
 
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -24,6 +24,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     provideClientHydration(withEventReplay()),
     importProvidersFrom(NbThemeModule.forRoot({ name: 'default' })),
+    importProvidersFrom(NbToastrModule.forRoot()),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor, loadingInterceptor])),
     {
       provide: NbOverlayContainerAdapter,

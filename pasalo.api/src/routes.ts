@@ -22,6 +22,7 @@ router.post('/company', CompanyController.registerCompanyProcess);
 router.get('/roles', jwtMiddleware, CompanyUserController.listRoles);
 router.get('/company/users', jwtMiddleware, CompanyUserController.listUsers);
 router.post('/company/users', jwtMiddleware, CompanyUserController.createUser);
+router.delete('/company/users/:uuid', jwtMiddleware, CompanyUserController.deleteUser);
 router.put('/company/subscription', jwtMiddleware, CompanyUserController.changePlan);
 
 

@@ -48,10 +48,6 @@
       </p>
       }
 
-      @if (error_message) {
-      <p class="mt-4 mb-0 text-sm text-red-600">{{ error_message }}</p>
-      }
-
       <div class="flex gap-4 justify-end mt-6">
         <button nbButton nbStepperPrevious>Anterior</button>
         <button nbButton status="primary" (click)="continueFromPlan()" nbStepperNext
@@ -75,9 +71,6 @@
           Ya puedes comenzar a explorar la plataforma. Cuando estés listo, puedes
           actualizar tu plan desde el panel de administración.
         </p>
-        @if (error_message) {
-        <p class="text-sm text-red-600 m-0">{{ error_message }}</p>
-        }
         <button nbButton status="success" size="large" routerLink="/login" [disabled]="!company_registered">
           Ir al panel
         </button>
@@ -125,10 +118,6 @@
               <input nbInput fullWidth formControlName="cvv" placeholder="123" maxlength="4" type="password">
             </div>
           </div>
-
-          @if (error_message) {
-          <p class="text-sm text-red-600 m-0">{{ error_message }}</p>
-          }
 
           <div class="flex gap-4 justify-end mt-2">
             <button nbButton nbStepperPrevious type="button">Anterior</button>

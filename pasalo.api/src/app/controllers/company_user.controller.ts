@@ -247,4 +247,46 @@ export class CompanyUserController {
             next(err);
         }
     }
+
+    /**
+     * Elimina un usuario interno de la empresa.
+     * El usuario master no puede eliminarse a si mismo desde aqui.
+     *
+     * @static
+     * @memberof CompanyUserController
+     */
+    static async deleteUser(req: Request, res: Response, next: NextFunction) {
+        if (!CompanyUserController.isAdmin(req)) {
+            res.status(403).json({ message: 'Acceso denegado', error: 'Solo el administrador puede eliminar usuarios.' });
+            return;
+        }
+
+        try {
+            const session = CompanyUserController.session(req);
+            const company_id = session.company.uuid;
+            const { uuid } = req.params;
+
+            if (uuid === session.user.uuid) {
+                res.status(400).json({ message: 'Operación no permitida', error: 'No puedes eliminar tu propio usuario administrador.' });
+                return;
+            }
+
+            // Confirma que el usuario pertenece a la empresa de quien hace la peticion
+            const link = await CompanyUserModel.findOne({ where: { company_id, user_id: uuid } });
+
+            if (!link) {
+                res.status(404).json({ message: 'Usuario no encontrado', error: 'Ese usuario no pertenece a tu empresa.' });
+                return;
+            }
+
+            // company_users se elimina en cascada por la FK hacia users
+            await UserModel.destroy({ where: { uuid } });
+
+            const { usage } = await CompanyUserController.getUsage(company_id);
+
+            res.json({ message: 'Usuario eliminado', usage });
+        } catch (err) {
+            next(err);
+        }
+    }
 }

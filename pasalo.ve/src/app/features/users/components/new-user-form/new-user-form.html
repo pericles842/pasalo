@@ -2,7 +2,8 @@
 
   <div class="flex flex-col gap-1.5">
     <label class="text-sm font-medium text-gray-600">Cargo</label>
-    <nb-select fullWidth placeholder="Selecciona un cargo" [formControl]="form.controls.role_id">
+    <nb-select fullWidth placeholder="Selecciona un cargo" [formControl]="form.controls.role_id"
+      scrollStrategy="reposition">
       @for (role of roles; track role.id) {
       <nb-option [value]="role.id">{{ role.name }}</nb-option>
       }

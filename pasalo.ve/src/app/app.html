@@ -1,2 +1,11 @@
 <app-loading-spinner />
 <router-outlet></router-outlet>
+
+<!--
+  Nebular necesita un <nb-layout> vivo en algun lugar de la app: es quien responde
+  las mediciones de viewport que usan internamente sus overlays (select, autocomplete,
+  popover, tooltip...) para calcular su posicion. Sin el, esos componentes revientan
+  al abrirse. Por defecto mide el document real (no a si mismo), asi que puede ir
+  vacio y oculto, sin envolver ni afectar visualmente ninguna pantalla.
+-->
+<nb-layout style="display: none" aria-hidden="true"></nb-layout>

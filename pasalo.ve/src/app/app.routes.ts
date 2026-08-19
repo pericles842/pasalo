@@ -16,9 +16,10 @@ export const routes: Routes = [
     children: [
       { path: '', component: Home, title: 'Pásalo.ve' },
       { path: 'create-company', component: RegisterCompany, title: 'Pásalo.ve' },
-      { path: 'login', component: Login, title: 'Iniciar sesión | Pásalo.ve' },
     ],
   },
+  // Pantalla independiente: sin el header ni los margenes del WebClient
+  { path: 'login', component: Login, title: 'Iniciar sesión | Pásalo.ve' },
   {
     path: 'dashboard',
     component: Dashboard,

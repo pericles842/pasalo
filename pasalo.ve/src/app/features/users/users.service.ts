@@ -51,4 +51,14 @@ export class UsersService {
   changePlan(plan_id: number): Observable<ChangePlanResponse> {
     return this.http.put<ChangePlanResponse>(`${environment.host}/company/subscription`, { plan_id });
   }
+
+  /**
+   * Elimina un usuario interno de la empresa
+   *
+   * @param {string} uuid
+   * @memberof UsersService
+   */
+  deleteUser(uuid: string): Observable<{ message: string; usage: ChangePlanResponse['usage'] }> {
+    return this.http.delete<{ message: string; usage: ChangePlanResponse['usage'] }>(`${environment.host}/company/users/${uuid}`);
+  }
 }

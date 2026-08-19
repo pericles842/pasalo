@@ -6,6 +6,7 @@ import { NbButtonModule, NbCardModule, NbInputModule, NbStepperModule } from '@n
 import { CardSubscriptionPlanComponent } from "@shared/components/card-subscription-plan/card-subscription-plan";
 import { GeneralTitleForm } from "@shared/elements/general-title-form/general-title-form";
 import { passwordMatchValidator } from '@shared/validators/password-match.validator';
+import { ToastService } from '@shared/services/toast.service';
 import { CompanyService } from "src/app/features/company/company-repository.service";
 import { CompanyForm } from "src/app/features/company/components/company-form/company-form";
 import { UsersInfoForm } from "src/app/features/company/components/users-info-form/users-info-form";
@@ -62,8 +63,6 @@ export class RegisterCompany implements OnInit {
 
   company_registered = false;
 
-  error_message: string | null = null;
-
   payment_form = new FormGroup({
     cardholder_name: new FormControl('', [Validators.required]),
     card_number: new FormControl('', [Validators.required, Validators.pattern(/^\d{16}$/)]),
@@ -73,7 +72,8 @@ export class RegisterCompany implements OnInit {
 
   constructor(
     private planService: PlanService,
-    private companyService: CompanyService
+    private companyService: CompanyService,
+    private toast: ToastService
   ) { }
 
   get selected_plan() {
@@ -107,12 +107,11 @@ export class RegisterCompany implements OnInit {
     this.company_user.markAllAsTouched();
 
     if (this.company_form.invalid || this.company_user.invalid) {
-      this.error_message = 'Revisa los datos de la empresa y del usuario antes de continuar.';
+      this.toast.error('Revisa los datos de la empresa y del usuario antes de continuar.');
       return;
     }
 
     this.is_saving = true;
-    this.error_message = null;
 
     this.companyService
       .createCompany(this.company_form.getRawValue(), this.company_user.getRawValue(), this.selected_plan.id)
@@ -122,7 +121,7 @@ export class RegisterCompany implements OnInit {
           this.is_saving = false;
         },
         error: (err) => {
-          this.error_message = err?.error?.error ?? 'No pudimos registrar la empresa, intenta nuevamente.';
+          this.toast.error(err?.error?.error ?? 'No pudimos registrar la empresa, intenta nuevamente.');
           this.is_saving = false;
         }
       });
