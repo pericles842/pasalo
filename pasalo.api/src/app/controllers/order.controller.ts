@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { QueryTypes } from 'sequelize';
 import { randomUUID } from 'crypto';
 import { Sequelize } from 'sequelize';
+import { sequelize } from '../config/db';
 import { SessionPayload } from '../../middlewares/jwtMiddleware';
 
 export class OrderController {
@@ -130,7 +131,7 @@ export class OrderController {
 
             const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
-            const orders = await tenantDb.query(
+            const orders = await tenantDb.query<any>(
                 `SELECT o.*, COUNT(oi.id) AS items_count
                  FROM orders o
                  LEFT JOIN order_items oi ON oi.order_id = o.id
@@ -139,6 +140,24 @@ export class OrderController {
                  ORDER BY o.createdAt DESC`,
                 { replacements, type: QueryTypes.SELECT }
             );
+
+            // El vendedor vive en la base master: se resuelve aparte y se pega por uuid.
+            // Para el admin es imprescindible (ve ordenes de todos); para el vendedor,
+            // solo hace falta reconocer las suyas.
+            if (orders.length) {
+                const seller_ids = [...new Set(orders.map((o) => o.user_id))];
+
+                const sellers = await sequelize.query<any>(
+                    `SELECT uuid, first_name, middle_name FROM users WHERE uuid IN (:seller_ids)`,
+                    { replacements: { seller_ids }, type: QueryTypes.SELECT }
+                );
+
+                const sellerNames = new Map(sellers.map((s) => [s.uuid, `${s.first_name} ${s.middle_name ?? ''}`.trim()]));
+
+                for (const o of orders) {
+                    o.seller_name = sellerNames.get(o.user_id) ?? null;
+                }
+            }
 
             res.json(orders);
         } catch (err) {
@@ -218,9 +237,15 @@ export class OrderController {
                 return;
             }
 
-            await tenantDb.query(`UPDATE orders SET status_id = :status_id, updatedAt = NOW() WHERE id = :id`, {
-                replacements: { status_id, id }
-            });
+            // Si se confirma como pagado (p.ej. desde el boton de "Confirmar pago" de una
+            // orden sospechosa) y todavia no tenia fecha de pago, se estampa ahora
+            await tenantDb.query(
+                `UPDATE orders
+                 SET status_id = :status_id, updatedAt = NOW(),
+                     paid_at = CASE WHEN :status_id = 2 AND paid_at IS NULL THEN NOW() ELSE paid_at END
+                 WHERE id = :id`,
+                { replacements: { status_id, id } }
+            );
 
             res.json({ message: 'Estado actualizado' });
         } catch (err) {

@@ -8,5 +8,6 @@ export interface AppNotification {
   amount: number;
   reference: string | null;
   pay_url_token: string;
+  is_suspicious: boolean;
   createdAt: string;
 }

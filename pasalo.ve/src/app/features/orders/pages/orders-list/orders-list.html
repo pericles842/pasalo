@@ -54,13 +54,19 @@
           </thead>
           <tbody>
             @for (order of orders(); track order.id) {
-            <tr class="border-b border-gray-100 last:border-0">
+            <tr class="border-b border-gray-100 last:border-0"
+              [class.bg-amber-50]="order.is_suspicious && order.status_id === 1">
               <td class="py-3 pr-4">
                 <div class="flex flex-col">
                   <span class="font-semibold text-slate-900">
                     {{ order.first_name_client }} {{ order.last_name_client }}
                   </span>
                   <span class="text-xs text-gray-500">{{ order.email_client }}</span>
+                  @if (order.is_suspicious && order.status_id === 1) {
+                  <span class="mt-1 text-xs font-semibold text-amber-700">
+                    ⚠️ Pago sospechoso: revisa el comprobante
+                  </span>
+                  }
                 </div>
               </td>
               <td class="py-3 pr-4 text-gray-600">{{ order.items_count }}</td>
@@ -73,7 +79,9 @@
                 </div>
               </td>
               @if (is_admin()) {
-              <td class="py-3 pr-4 text-gray-600">{{ order.user_id === auth.session()?.user?.uuid ? 'Tú' : '—' }}</td>
+              <td class="py-3 pr-4 text-gray-600">
+                {{ order.user_id === auth.session()?.user?.uuid ? 'Tú' : (order.seller_name ?? '—') }}
+              </td>
               }
               <td class="py-3 pr-4 text-gray-500">{{ order.createdAt | date: 'dd/MM/yy' }}</td>
               <td class="py-3">
@@ -86,13 +94,23 @@
                 </nb-select>
               </td>
               <td class="py-3">
-                <button nbButton size="tiny" [appearance]="order.status_id === 2 ? 'outline' : 'ghost'"
-                  [status]="order.status_id === 2 ? 'primary' : 'basic'" type="button"
-                  [routerLink]="['/dashboard', order.id]"
-                  [attr.aria-label]="order.status_id === 2 ? 'Ver comprobante' : 'Ver orden'"
-                  [title]="order.status_id === 2 ? 'Ver comprobante y referencia' : 'Ver orden'">
-                  <nb-icon icon="eye-outline"></nb-icon>
-                </button>
+                <div class="flex items-center gap-1.5">
+                  @if (order.is_suspicious && order.status_id === 1) {
+                  <button nbButton size="tiny" status="success" type="button"
+                    [disabled]="updating_order_id() === order.id" (click)="changeStatus(order, 2)"
+                    title="Confirmar que este pago es válido a pesar de la diferencia detectada">
+                    <nb-icon icon="checkmark-outline"></nb-icon>
+                    Confirmar pago
+                  </button>
+                  }
+                  <button nbButton size="tiny" [appearance]="order.status_id === 2 ? 'outline' : 'ghost'"
+                    [status]="order.status_id === 2 ? 'primary' : 'basic'" type="button"
+                    [routerLink]="['/dashboard', order.id]"
+                    [attr.aria-label]="order.status_id === 2 ? 'Ver comprobante' : 'Ver orden'"
+                    [title]="order.status_id === 2 ? 'Ver comprobante y referencia' : 'Ver orden'">
+                    <nb-icon icon="eye-outline"></nb-icon>
+                  </button>
+                </div>
               </td>
             </tr>
             }

@@ -38,7 +38,15 @@ export class Dashboard implements OnInit, OnDestroy {
     // Le llega al vendedor dueño de la orden y, siempre, al administrador
     this.socket.onOrderPaid((payload) => {
       const reference = payload.reference ? `referencia ${payload.reference}` : 'sin referencia detectada';
-      this.toast.success(`Un cliente completó su pago (${reference}).`, '💰 Nuevo pago recibido');
+
+      if (payload.is_suspicious) {
+        this.toast.warning(
+          `${payload.buyer_name} subió un comprobante pero el monto no coincide (${reference}). Revísalo antes de confirmar.`,
+          '⚠️ Pago sospechoso'
+        );
+      } else {
+        this.toast.success(`${payload.buyer_name} completó su pago (${reference}).`, '💰 Nuevo pago recibido');
+      }
     });
   }
 

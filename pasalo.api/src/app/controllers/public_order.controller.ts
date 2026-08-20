@@ -3,9 +3,17 @@ import { QueryTypes } from 'sequelize';
 import { sequelize } from '../config/db';
 import { getTenantConnection } from '../config/tenant';
 import { randomUUID } from 'crypto';
-import { extractPaymentReference } from '../../utils/ocr';
+import { extractReceiptData } from '../../utils/ocr';
 import { uploadFile } from '../../utils/storage';
+import { getExchangeRates } from '../../utils/exchangeRate';
 import { notifyOrderPaid } from '../config/socket';
+
+// Metodos que se cobran en bolivares: el comprobante muestra Bs, no USD
+const BS_PAYMENT_TYPES = ['pagomovil', 'transferencia'];
+
+// Tolerancia para diferencias de redondeo / variacion de tasa entre que se
+// creo la orden y se pago
+const AMOUNT_TOLERANCE = 0.03;
 
 export class PublicOrderController {
 
@@ -68,7 +76,9 @@ export class PublicOrderController {
 
     /**
      * El cliente sube su comprobante y elige con que metodo pago.
-     * Se intenta extraer la referencia de la imagen y la orden pasa a "pagado".
+     * Se intenta extraer la referencia y el monto de la imagen. Si el monto no
+     * coincide con lo que la orden espera, la orden NO pasa a pagado sola:
+     * queda marcada como sospechosa para que el vendedor la revise a mano.
      *
      * @static
      * @memberof PublicOrderController
@@ -108,22 +118,48 @@ export class PublicOrderController {
                 return;
             }
 
-            const [{ reference, raw_text }, uploaded] = await Promise.all([
-                extractPaymentReference(file.buffer),
+            const [method] = await tenantDb.query<any>(
+                `SELECT type FROM payment_methods WHERE id = :payment_method_id`,
+                { replacements: { payment_method_id }, type: QueryTypes.SELECT }
+            );
+
+            const [{ reference, amount: extracted_amount, raw_text }, uploaded] = await Promise.all([
+                extractReceiptData(file.buffer),
                 uploadFile(file, `receipts/${tenant_id}`, 'jpg', { width: 1200, height: 1200, fit: 'inside' })
             ]);
 
+            // Si el metodo cobra en bolivares, el comprobante trae Bs: se compara
+            // contra el monto de la orden convertido con la tasa BCV del momento
+            let expected_amount = Number(order.amount);
+
+            if (method && BS_PAYMENT_TYPES.includes(method.type)) {
+                const rates = await getExchangeRates().catch(() => null);
+                if (rates?.oficial) expected_amount = Number(order.amount) * rates.oficial;
+                else expected_amount = 0; // sin tasa no hay con que comparar: no se marca sospechoso
+            }
+
+            const is_suspicious = extracted_amount !== null && expected_amount > 0
+                && Math.abs(extracted_amount - expected_amount) / expected_amount > AMOUNT_TOLERANCE;
+
+            const new_status_id = is_suspicious ? order.status_id : 2;
+
             await tenantDb.query(
                 `UPDATE orders
-                 SET status_id = 2, payment_method_id = :payment_method_id, receipt_url = :receipt_url,
-                     extracted_reference = :reference, extracted_raw_text = :raw_text, paid_at = NOW(), updatedAt = NOW()
+                 SET status_id = :status_id, payment_method_id = :payment_method_id, receipt_url = :receipt_url,
+                     extracted_reference = :reference, extracted_amount = :extracted_amount,
+                     is_suspicious = :is_suspicious, extracted_raw_text = :raw_text,
+                     paid_at = CASE WHEN :status_id = 2 THEN NOW() ELSE paid_at END,
+                     updatedAt = NOW()
                  WHERE id = :id`,
                 {
                     replacements: {
                         id: order.id,
+                        status_id: new_status_id,
                         payment_method_id,
                         receipt_url: uploaded.url,
                         reference,
+                        extracted_amount,
+                        is_suspicious,
                         raw_text
                     }
                 }
@@ -140,6 +176,7 @@ export class PublicOrderController {
                 buyer_name,
                 amount: order.amount,
                 reference,
+                is_suspicious,
                 createdAt: new Date()
             }]);
 
@@ -148,7 +185,8 @@ export class PublicOrderController {
                 buyer_name,
                 amount: order.amount,
                 reference,
-                receipt_url: uploaded.url
+                receipt_url: uploaded.url,
+                is_suspicious
             });
 
             res.json({

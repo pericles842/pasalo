@@ -6,8 +6,12 @@ import { AuthService } from 'src/app/features/auth/auth.service';
 
 export interface OrderPaidNotification {
   order_id: string;
+  buyer_name: string;
+  amount: number;
   reference: string | null;
   receipt_url: string;
+  /** El monto extraído del comprobante no coincidía: la orden sigue en espera */
+  is_suspicious: boolean;
 }
 
 /**

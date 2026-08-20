@@ -1,7 +1,8 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { NbButtonModule, NbCardModule } from '@nebular/theme';
+import { NbButtonModule, NbCardModule, NbIconModule } from '@nebular/theme';
+import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { ToastService } from '@shared/services/toast.service';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
@@ -13,7 +14,7 @@ const STATUS_LABELS: Record<number, string> = { 1: 'En espera', 2: 'Pagado', 3: 
 
 @Component({
   selector: 'app-order-detail',
-  imports: [NbCardModule, NbButtonModule, RouterLink, BsAmountPipe],
+  imports: [NbCardModule, NbButtonModule, NbIconModule, NbEvaIconsModule, RouterLink, BsAmountPipe],
   templateUrl: './order-detail.html',
 })
 export class OrderDetail implements OnInit {
@@ -26,6 +27,7 @@ export class OrderDetail implements OnInit {
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   is_loading = signal(true);
+  is_confirming = signal(false);
   data = signal<OrderDetailModel | null>(null);
 
   ngOnInit(): void {
@@ -76,5 +78,24 @@ export class OrderDetail implements OnInit {
       () => this.toast.success('Link de pago copiado.'),
       () => this.toast.error('No pudimos copiar el link.')
     );
+  }
+
+  confirmPayment(): void {
+    const order = this.data()?.order;
+    if (!order || this.is_confirming()) return;
+
+    this.is_confirming.set(true);
+
+    this.ordersService.updateStatus(order.id, 2).subscribe({
+      next: () => {
+        this.is_confirming.set(false);
+        this.data.update((current) => current && { ...current, order: { ...current.order, status_id: 2 } });
+        this.toast.success('Pago confirmado.');
+      },
+      error: (err) => {
+        this.is_confirming.set(false);
+        this.toast.error(err?.error?.error ?? 'No pudimos confirmar el pago.');
+      }
+    });
   }
 }

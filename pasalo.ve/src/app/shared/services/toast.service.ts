@@ -14,6 +14,10 @@ export class ToastService {
     this.toastr.success(message, title, { duration: 4000 });
   }
 
+  warning(message: string, title = 'Atención'): void {
+    this.toastr.warning(message, title, { duration: 6000 });
+  }
+
   error(message: string, title = 'Error'): void {
     this.toastr.danger(message, title, { duration: 6000 });
   }

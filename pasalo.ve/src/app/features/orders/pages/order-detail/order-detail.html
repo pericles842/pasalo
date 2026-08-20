@@ -111,11 +111,38 @@
             <span class="text-gray-500">Referencia detectada</span>
             <span class="font-medium text-slate-900">{{ result.order.extracted_reference ?? 'No detectada' }}</span>
           </div>
+          @if (result.order.extracted_amount) {
+          <div class="flex justify-between">
+            <span class="text-gray-500">Monto detectado en la foto</span>
+            <span class="font-medium" [class]="result.order.is_suspicious ? 'text-amber-700' : 'text-slate-900'">
+              {{ result.order.extracted_amount }}
+            </span>
+          </div>
+          }
+          @if (result.order.paid_at) {
           <div class="flex justify-between">
             <span class="text-gray-500">Fecha de pago</span>
             <span class="font-medium text-slate-900">{{ result.order.paid_at }}</span>
           </div>
+          }
         </div>
+
+        @if (result.order.is_suspicious && result.order.status_id === 1) {
+        <div class="mt-4 flex flex-col gap-3 rounded-lg bg-amber-50 px-4 py-3">
+          <span class="text-sm font-semibold text-amber-800">
+            ⚠️ Pago sospechoso: revisa el comprobante
+          </span>
+          <span class="text-xs text-amber-700">
+            El monto que se leyó de la foto no coincide con lo que debía pagarse. La orden sigue
+            "En espera" hasta que confirmes que el pago es válido.
+          </span>
+          <button nbButton size="small" status="success" type="button" [disabled]="is_confirming()"
+            (click)="confirmPayment()" title="Confirmar que este pago es válido a pesar de la diferencia detectada">
+            <nb-icon icon="checkmark-outline"></nb-icon>
+            {{ is_confirming() ? 'Confirmando...' : 'Confirmar pago' }}
+          </button>
+        </div>
+        }
         } @else {
         <p class="m-0 text-sm text-gray-500">El cliente todavía no ha subido su comprobante.</p>
 

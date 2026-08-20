@@ -3,7 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 export interface OrderStatus {
   id: number;
   name: string;
-  slug: 'pendiente' | 'pagado' | 'atrasado';
+  slug: 'pendiente' | 'pagado' | 'atrasado' | 'rechazado';
   description: string | null;
 }
 
@@ -17,6 +17,7 @@ export interface Order {
   id: string;
   company_id: string;
   user_id: string;
+  seller_name?: string | null;
   first_name_client: string;
   last_name_client: string;
   email_client: string;
@@ -31,7 +32,10 @@ export interface Order {
   payment_method_type?: string | null;
   receipt_url: string | null;
   extracted_reference: string | null;
+  extracted_amount: number | null;
   extracted_raw_text?: string | null;
+  /** El monto extraído del comprobante no coincidía con lo esperado: revisar a mano */
+  is_suspicious: boolean;
   paid_at: string | null;
   reference: string | null;
   pay_url_token: string;
