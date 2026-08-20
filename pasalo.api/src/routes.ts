@@ -53,6 +53,8 @@ router.put('/orders/:id/status', authTenant, OrderController.updateStatus);
 
 //*Notificaciones
 router.get('/notifications', authTenant, NotificationController.list);
+router.delete('/notifications/:id', authTenant, NotificationController.remove);
+router.delete('/notifications', authTenant, NotificationController.removeAll);
 
 //*Pantalla publica de pago (sin sesion, el token viaja en la url)
 router.get('/public/orders/:tenant_id/:token', PublicOrderController.getSummary);

@@ -76,4 +76,63 @@ export class NotificationController {
             next(err);
         }
     }
+
+    /**
+     * Elimina una notificación puntual. El vendedor solo puede borrar las suyas;
+     * el administrador puede borrar cualquiera de la empresa.
+     *
+     * @static
+     * @memberof NotificationController
+     */
+    static async remove(req: Request, res: Response, next: NextFunction) {
+        try {
+            const session = NotificationController.session(req);
+            const tenantDb = NotificationController.tenantDb(req);
+            const is_admin = session.role === 'admin';
+            const { id } = req.params;
+
+            const where = is_admin ? 'id = :id' : 'id = :id AND seller_id = :seller_id';
+
+            const [existing] = await tenantDb.query(`SELECT id FROM notifications WHERE ${where}`, {
+                replacements: { id, seller_id: session.user.uuid },
+                type: QueryTypes.SELECT
+            });
+
+            if (!existing) {
+                res.status(404).json({ message: 'Notificación no encontrada', error: 'Esa notificación no existe o no te pertenece.' });
+                return;
+            }
+
+            await tenantDb.query(`DELETE FROM notifications WHERE id = :id`, { replacements: { id } });
+
+            res.json({ message: 'Notificación eliminada' });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    /**
+     * Borra todas las notificaciones visibles para el usuario actual: el
+     * vendedor limpia las suyas, el administrador limpia todas las de la empresa.
+     *
+     * @static
+     * @memberof NotificationController
+     */
+    static async removeAll(req: Request, res: Response, next: NextFunction) {
+        try {
+            const session = NotificationController.session(req);
+            const tenantDb = NotificationController.tenantDb(req);
+            const is_admin = session.role === 'admin';
+
+            const where = is_admin ? '' : 'WHERE seller_id = :seller_id';
+
+            await tenantDb.query(`DELETE FROM notifications ${where}`, {
+                replacements: { seller_id: session.user.uuid }
+            });
+
+            res.json({ message: 'Notificaciones eliminadas' });
+        } catch (err) {
+            next(err);
+        }
+    }
 }

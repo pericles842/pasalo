@@ -1,6 +1,7 @@
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
-import { NbCardModule, NbSelectModule } from '@nebular/theme';
+import { NbButtonModule, NbCardModule, NbIconModule, NbSelectModule } from '@nebular/theme';
+import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { UsersService } from 'src/app/features/users/users.service';
 import { CompanyUser } from 'src/app/features/users/interfaces/company-user';
@@ -13,7 +14,7 @@ import { OrderPaidNotification, SocketService } from '../../socket.service';
 
 @Component({
   selector: 'app-notifications-page',
-  imports: [NbCardModule, NbSelectModule, DatePipe, BsAmountPipe],
+  imports: [NbCardModule, NbSelectModule, NbButtonModule, NbIconModule, NbEvaIconsModule, DatePipe, BsAmountPipe],
   templateUrl: './notifications-page.html',
 })
 export class NotificationsPage implements OnInit, OnDestroy {
@@ -29,6 +30,7 @@ export class NotificationsPage implements OnInit, OnDestroy {
   notifications = signal<AppNotification[]>([]);
   sellers = signal<CompanyUser[]>([]);
   is_loading = signal(true);
+  deleting_id = signal<string | null>(null);
 
   filter_seller_id = signal<string | null>(null);
 
@@ -69,5 +71,37 @@ export class NotificationsPage implements OnInit, OnDestroy {
   onSellerFilterChange(seller_id: string | null): void {
     this.filter_seller_id.set(seller_id);
     this.load();
+  }
+
+  remove(notification: AppNotification): void {
+    if (this.deleting_id()) return;
+
+    this.deleting_id.set(notification.id);
+
+    this.notificationsService.deleteNotification(notification.id).subscribe({
+      next: () => {
+        this.deleting_id.set(null);
+        this.notifications.update((list) => list.filter((n) => n.id !== notification.id));
+      },
+      error: (err) => {
+        this.deleting_id.set(null);
+        this.toast.error(err?.error?.error ?? 'No pudimos eliminar la notificación.');
+      }
+    });
+  }
+
+  clearAll(): void {
+    if (this.notifications().length === 0) return;
+
+    const confirmed = confirm('¿Eliminar todas estas notificaciones? Esta acción no se puede deshacer.');
+    if (!confirmed) return;
+
+    this.notificationsService.deleteAll().subscribe({
+      next: () => {
+        this.notifications.set([]);
+        this.toast.success('Notificaciones eliminadas.');
+      },
+      error: (err) => this.toast.error(err?.error?.error ?? 'No pudimos eliminar las notificaciones.')
+    });
   }
 }

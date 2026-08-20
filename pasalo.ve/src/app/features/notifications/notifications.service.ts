@@ -28,4 +28,12 @@ export class NotificationsService {
 
     return this.http.get<AppNotification[]>(`${environment.host}/notifications`, { params });
   }
+
+  deleteNotification(id: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${environment.host}/notifications/${id}`);
+  }
+
+  deleteAll(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${environment.host}/notifications`);
+  }
 }

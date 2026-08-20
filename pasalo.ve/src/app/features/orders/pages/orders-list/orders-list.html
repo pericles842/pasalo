@@ -54,36 +54,47 @@
           </thead>
           <tbody>
             @for (order of orders(); track order.id) {
-            <tr class="border-b border-gray-100 last:border-0"
-              [class.bg-amber-50]="order.is_suspicious && order.status_id === 1">
+            <tr class="border-b border-gray-100 last:border-0" [class]="rowClass(order)">
               <td class="py-3 pr-4">
                 <div class="flex flex-col">
-                  <span class="font-semibold text-slate-900">
+                  <span class="font-semibold" [class]="rowTextClass(order) || 'text-slate-900'">
                     {{ order.first_name_client }} {{ order.last_name_client }}
                   </span>
-                  <span class="text-xs text-gray-500">{{ order.email_client }}</span>
+                  <span class="text-xs" [class]="rowTextClass(order) || 'text-gray-500'">{{ order.email_client }}</span>
                   @if (order.is_suspicious && order.status_id === 1) {
-                  <span class="mt-1 text-xs font-semibold text-amber-700">
-                    ⚠️ Pago sospechoso: revisa el comprobante
+                  <span class="mt-1 text-xs font-semibold text-amber-800">
+                    ⚠️ El monto no coincide: revisa el comprobante
                   </span>
+                  @if (isBsMethod(order)) {
+                  <span class="text-xs text-amber-800">
+                    Bs esperado: {{ order.amount | bsAmount: exchangeRate.rateOficial() }} · Bs en la foto:
+                    {{ order.extracted_amount | number: '1.2-2' }}
+                  </span>
+                  } @else {
+                  <span class="text-xs text-amber-800">
+                    $ esperado: {{ order.amount }} · $ en la foto: {{ order.extracted_amount }}
+                  </span>
+                  }
                   }
                 </div>
               </td>
-              <td class="py-3 pr-4 text-gray-600">{{ order.items_count }}</td>
+              <td class="py-3 pr-4" [class]="rowTextClass(order) || 'text-gray-600'">{{ order.items_count }}</td>
               <td class="py-3 pr-4">
                 <div class="flex flex-col">
-                  <span class="font-semibold text-slate-900">${{ order.amount }}</span>
+                  <span class="font-semibold" [class]="rowTextClass(order) || 'text-slate-900'">${{ order.amount }}</span>
                   @if (order.amount | bsAmount: exchangeRate.rateOficial(); as bs) {
-                  <span class="text-xs text-gray-500">Bs {{ bs }}</span>
+                  <span class="text-xs" [class]="rowTextClass(order) || 'text-gray-500'">Bs {{ bs }}</span>
                   }
                 </div>
               </td>
               @if (is_admin()) {
-              <td class="py-3 pr-4 text-gray-600">
+              <td class="py-3 pr-4" [class]="rowTextClass(order) || 'text-gray-600'">
                 {{ order.user_id === auth.session()?.user?.uuid ? 'Tú' : (order.seller_name ?? '—') }}
               </td>
               }
-              <td class="py-3 pr-4 text-gray-500">{{ order.createdAt | date: 'dd/MM/yy' }}</td>
+              <td class="py-3 pr-4" [class]="rowTextClass(order) || 'text-gray-500'">
+                {{ order.createdAt | date: 'dd/MM/yy' }}
+              </td>
               <td class="py-3">
                 <nb-select size="tiny" [selected]="order.status_id" scrollStrategy="reposition"
                   [disabled]="updating_order_id() === order.id"
@@ -116,6 +127,22 @@
             }
           </tbody>
         </table>
+      </div>
+
+      <div class="mt-4 flex items-center justify-between gap-4 border-t border-gray-100 pt-3">
+        <span class="text-xs text-gray-500">
+          Página {{ page() }} de {{ total_pages() }} · {{ total() }} orden{{ total() === 1 ? '' : 'es' }}
+        </span>
+        <div class="flex items-center gap-2">
+          <button nbButton size="small" appearance="outline" status="basic" type="button"
+            [disabled]="page() === 1" (click)="goToPage(page() - 1)">
+            Anterior
+          </button>
+          <button nbButton size="small" appearance="outline" status="basic" type="button"
+            [disabled]="page() === total_pages()" (click)="goToPage(page() + 1)">
+            Siguiente
+          </button>
+        </div>
       </div>
       }
     </nb-card-body>

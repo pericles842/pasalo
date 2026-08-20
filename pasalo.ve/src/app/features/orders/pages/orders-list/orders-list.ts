@@ -1,4 +1,4 @@
-import { DatePipe, isPlatformBrowser } from '@angular/common';
+import { DatePipe, DecimalPipe, isPlatformBrowser } from '@angular/common';
 import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NbButtonModule, NbCardModule, NbIconModule, NbSelectModule } from '@nebular/theme';
@@ -15,7 +15,7 @@ import { OrdersService } from '../../orders.service';
 
 @Component({
   selector: 'app-orders-list',
-  imports: [NbCardModule, NbSelectModule, NbButtonModule, NbIconModule, NbEvaIconsModule, DatePipe, RouterLink, BsAmountPipe],
+  imports: [NbCardModule, NbSelectModule, NbButtonModule, NbIconModule, NbEvaIconsModule, DatePipe, DecimalPipe, RouterLink, BsAmountPipe],
   templateUrl: './orders-list.html',
 })
 export class OrdersList implements OnInit, OnDestroy {
@@ -34,6 +34,12 @@ export class OrdersList implements OnInit, OnDestroy {
 
   is_loading = signal(true);
   updating_order_id = signal<string | null>(null);
+
+  /** Paginado: 10 ordenes por pagina */
+  readonly page_size = 10;
+  page = signal(1);
+  total_pages = signal(1);
+  total = signal(0);
 
   /** Filtrado simple: por vendedor (solo admin) y por estado */
   filter_seller_id = signal<string | null>(null);
@@ -69,10 +75,17 @@ export class OrdersList implements OnInit, OnDestroy {
     this.is_loading.set(true);
 
     this.ordersService
-      .getOrders({ seller_id: this.filter_seller_id(), status_id: this.filter_status_id() })
+      .getOrders({
+        seller_id: this.filter_seller_id(),
+        status_id: this.filter_status_id(),
+        page: this.page(),
+        limit: this.page_size
+      })
       .subscribe({
-        next: (orders) => {
-          this.orders.set(orders);
+        next: (response) => {
+          this.orders.set(response.orders);
+          this.total.set(response.total);
+          this.total_pages.set(response.total_pages);
           this.is_loading.set(false);
         },
         error: (err) => {
@@ -84,16 +97,51 @@ export class OrdersList implements OnInit, OnDestroy {
 
   onSellerFilterChange(seller_id: string | null): void {
     this.filter_seller_id.set(seller_id);
+    this.page.set(1);
     this.loadOrders();
   }
 
   onStatusFilterChange(status_id: number | null): void {
     this.filter_status_id.set(status_id);
+    this.page.set(1);
+    this.loadOrders();
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.total_pages() || page === this.page()) return;
+    this.page.set(page);
     this.loadOrders();
   }
 
   statusName(status_id: number): string {
     return this.statusMap().get(status_id)?.name ?? '—';
+  }
+
+  /** Fondo del renglon: sospechoso manda; si no, depende del estado */
+  rowClass(order: Order): string {
+    if (order.is_suspicious && order.status_id === 1) return 'bg-amber-50';
+
+    switch (order.status_id) {
+      case 2: return 'bg-green-50';
+      case 4: return 'bg-red-50';
+      default: return '';
+    }
+  }
+
+  /** Color del texto: mismo tono del fondo pero mas oscuro, para que contraste */
+  rowTextClass(order: Order): string {
+    if (order.is_suspicious && order.status_id === 1) return 'text-amber-800';
+
+    switch (order.status_id) {
+      case 2: return 'text-green-800';
+      case 4: return 'text-red-800';
+      default: return '';
+    }
+  }
+
+  /** El comprobante trae Bs si el metodo es en bolivares; si no, ya viene en USD */
+  isBsMethod(order: Order): boolean {
+    return order.payment_method_type === 'pagomovil' || order.payment_method_type === 'transferencia';
   }
 
   changeStatus(order: Order, status_id: number): void {

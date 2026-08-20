@@ -35,18 +35,12 @@ export class Dashboard implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.socket.connect();
 
-    // Le llega al vendedor dueño de la orden y, siempre, al administrador
+    // Le llega al vendedor dueño de la orden y, siempre, al administrador.
+    // Si el pago quedó sospechoso, eso se ve en el renglón de la orden (fondo
+    // amarillo), no hace falta un toast distinto para eso.
     this.socket.onOrderPaid((payload) => {
       const reference = payload.reference ? `referencia ${payload.reference}` : 'sin referencia detectada';
-
-      if (payload.is_suspicious) {
-        this.toast.warning(
-          `${payload.buyer_name} subió un comprobante pero el monto no coincide (${reference}). Revísalo antes de confirmar.`,
-          '⚠️ Pago sospechoso'
-        );
-      } else {
-        this.toast.success(`${payload.buyer_name} completó su pago (${reference}).`, '💰 Nuevo pago recibido');
-      }
+      this.toast.success(`${payload.buyer_name} subió su comprobante (${reference}).`, '💰 Nuevo pago');
     });
   }
 

@@ -7,6 +7,16 @@ import { CreateOrderPayload, CreateOrderResponse, Order, OrderDetail, OrderStatu
 export interface OrderFilters {
   seller_id?: string | null;
   status_id?: number | null;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedOrders {
+  orders: Order[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -21,12 +31,14 @@ export class OrdersService {
    * @param {OrderFilters} [filters]
    * @memberof OrdersService
    */
-  getOrders(filters?: OrderFilters): Observable<Order[]> {
+  getOrders(filters?: OrderFilters): Observable<PaginatedOrders> {
     let params = new HttpParams();
     if (filters?.seller_id) params = params.set('seller_id', filters.seller_id);
     if (filters?.status_id) params = params.set('status_id', filters.status_id);
+    if (filters?.page) params = params.set('page', filters.page);
+    if (filters?.limit) params = params.set('limit', filters.limit);
 
-    return this.http.get<Order[]>(`${environment.host}/orders`, { params });
+    return this.http.get<PaginatedOrders>(`${environment.host}/orders`, { params });
   }
 
   getStatuses(): Observable<OrderStatus[]> {

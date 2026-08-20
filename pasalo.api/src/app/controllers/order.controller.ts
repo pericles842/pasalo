@@ -131,13 +131,24 @@ export class OrderController {
 
             const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
+            const limit = Math.min(Number(req.query.limit) || 10, 50);
+            const page = Math.max(Number(req.query.page) || 1, 1);
+            const offset = (page - 1) * limit;
+
+            const [{ total }] = await tenantDb.query<{ total: number }>(
+                `SELECT COUNT(*) AS total FROM orders o ${whereClause}`,
+                { replacements, type: QueryTypes.SELECT }
+            );
+
             const orders = await tenantDb.query<any>(
-                `SELECT o.*, COUNT(oi.id) AS items_count
+                `SELECT o.*, pm.type AS payment_method_type, COUNT(oi.id) AS items_count
                  FROM orders o
                  LEFT JOIN order_items oi ON oi.order_id = o.id
+                 LEFT JOIN payment_methods pm ON pm.id = o.payment_method_id
                  ${whereClause}
                  GROUP BY o.id
-                 ORDER BY o.createdAt DESC`,
+                 ORDER BY o.createdAt DESC
+                 LIMIT ${limit} OFFSET ${offset}`,
                 { replacements, type: QueryTypes.SELECT }
             );
 
@@ -159,7 +170,13 @@ export class OrderController {
                 }
             }
 
-            res.json(orders);
+            res.json({
+                orders,
+                total: Number(total),
+                page,
+                limit,
+                total_pages: Math.max(1, Math.ceil(Number(total) / limit))
+            });
         } catch (err) {
             next(err);
         }
