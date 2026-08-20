@@ -7,13 +7,15 @@ import { AuthService } from 'src/app/features/auth/auth.service';
 import { UsersService } from 'src/app/features/users/users.service';
 import { CompanyUser } from 'src/app/features/users/interfaces/company-user';
 import { ToastService } from '@shared/services/toast.service';
+import { ExchangeRateService } from '@shared/services/exchange-rate.service';
+import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
 import { OrderPaidNotification, SocketService } from 'src/app/features/notifications/socket.service';
 import { Order, OrderStatus } from '../../interfaces/order';
 import { OrdersService } from '../../orders.service';
 
 @Component({
   selector: 'app-orders-list',
-  imports: [NbCardModule, NbSelectModule, NbButtonModule, NbIconModule, NbEvaIconsModule, DatePipe, RouterLink],
+  imports: [NbCardModule, NbSelectModule, NbButtonModule, NbIconModule, NbEvaIconsModule, DatePipe, RouterLink, BsAmountPipe],
   templateUrl: './orders-list.html',
 })
 export class OrdersList implements OnInit, OnDestroy {
@@ -21,6 +23,7 @@ export class OrdersList implements OnInit, OnDestroy {
   private ordersService = inject(OrdersService);
   private usersService = inject(UsersService);
   protected auth = inject(AuthService);
+  protected exchangeRate = inject(ExchangeRateService);
   private toast = inject(ToastService);
   private socket = inject(SocketService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));

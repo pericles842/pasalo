@@ -14,6 +14,10 @@
 
   <div class="flex items-center gap-3 rounded-2xl bg-blue/12 px-3 py-2.5">
 
+    <app-notification-bell></app-notification-bell>
+
+    <span class="hidden h-8 w-px bg-white/20 sm:block"></span>
+
     <div class="leading-tight flex flex-col items-end">
       <p class="text-sm font-semibold">{{ auth.full_name() }}</p>
       <p class="text-xs text-blue-100">{{ auth.session()?.role?.name }}</p>

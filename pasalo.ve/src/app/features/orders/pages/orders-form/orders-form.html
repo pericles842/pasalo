@@ -7,8 +7,11 @@
   <div class="flex flex-col gap-1">
     <span class="text-lg font-semibold text-green-800">¡Orden creada!</span>
     <span class="text-sm text-green-700">
-      Total: <strong>${{ result.order.amount }}</strong>. Comparte este link con el cliente para que suba su
-      comprobante de pago.
+      Total: <strong>${{ result.order.amount }}</strong>
+      @if (result.order.amount | bsAmount: exchangeRate.rateOficial(); as bs) {
+      <span class="text-green-600">(Bs {{ bs }})</span>
+      }
+      . Comparte este link con el cliente para que suba su comprobante de pago.
     </span>
   </div>
 
@@ -76,8 +79,13 @@
         <app-global-input class="col-span-12 md:col-span-3" [name]="'item_ref_' + $index" label="Referencia"
           placeholder="Ej. TK-100" [control]="item.controls.reference" />
 
-        <app-global-input class="col-span-9 md:col-span-3" [name]="'item_price_' + $index" label="Precio (USD)"
-          type="number" placeholder="0.00" [control]="item.controls.price" error="Debe ser mayor a 0" />
+        <div class="col-span-9 md:col-span-3 flex flex-col gap-1">
+          <app-global-input [name]="'item_price_' + $index" label="Precio (USD)" type="number" placeholder="0.00"
+            [control]="item.controls.price" error="Debe ser mayor a 0" />
+          @if (item.controls.price.value | bsAmount: exchangeRate.rateOficial(); as bs) {
+          <span class="text-xs text-gray-500">Bs {{ bs }}</span>
+          }
+        </div>
 
         <div class="col-span-3 md:col-span-1 flex items-end justify-end pb-1 md:pt-7">
           <button nbButton size="small" status="danger" appearance="ghost" type="button"
@@ -89,9 +97,14 @@
       }
     </div>
 
-    <div class="flex justify-end border-t border-gray-100 pt-3">
-      <span class="text-sm font-medium text-gray-500">Total:&nbsp;</span>
-      <span class="text-lg font-bold text-slate-900">${{ items_total() }}</span>
+    <div class="flex flex-col items-end gap-0.5 border-t border-gray-100 pt-3">
+      <div>
+        <span class="text-sm font-medium text-gray-500">Total:&nbsp;</span>
+        <span class="text-lg font-bold text-slate-900">${{ items_total() }}</span>
+      </div>
+      @if (items_total() | bsAmount: exchangeRate.rateOficial(); as bs) {
+      <span class="text-xs text-gray-500">Bs {{ bs }} <span class="text-gray-400">(tasa BCV)</span></span>
+      }
     </div>
   </section>
 

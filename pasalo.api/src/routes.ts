@@ -8,6 +8,8 @@ import { OrderController } from './app/controllers/order.controller';
 import { OrderStatusController } from './app/controllers/order_status.controller';
 import { PublicOrderController } from './app/controllers/public_order.controller';
 import { PaymentMethodController } from './app/controllers/payment_method.controller';
+import { ExchangeRateController } from './app/controllers/exchange_rate.controller';
+import { NotificationController } from './app/controllers/notification.controller';
 import { jwtMiddleware } from './middlewares/jwtMiddleware';
 import { tenantMiddleware } from './middlewares/tenantMiddleware';
 import { upload } from './middlewares/upload';
@@ -23,6 +25,9 @@ router.get('/auth/me', jwtMiddleware, AuthController.me);
 
 //*Plans
 router.get('/plans', PlansController.getAllPlans);
+
+//*Tasa de cambio (BCV / paralelo)
+router.get('/exchange-rate', ExchangeRateController.getRates);
 
 //*Company
 router.post('/company', CompanyController.registerCompanyProcess);
@@ -45,6 +50,9 @@ router.get('/orders', authTenant, OrderController.list);
 router.post('/orders', authTenant, OrderController.create);
 router.get('/orders/:id', authTenant, OrderController.getById);
 router.put('/orders/:id/status', authTenant, OrderController.updateStatus);
+
+//*Notificaciones
+router.get('/notifications', authTenant, NotificationController.list);
 
 //*Pantalla publica de pago (sin sesion, el token viaja en la url)
 router.get('/public/orders/:tenant_id/:token', PublicOrderController.getSummary);

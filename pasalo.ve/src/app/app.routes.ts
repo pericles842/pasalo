@@ -8,6 +8,7 @@ import { WebClient } from './layout/web-client/web-client';
 import { Login } from './features/auth/pages/login/login';
 import { UsersPage } from './features/users/pages/users-page/users-page';
 import { PaymentMethodsPage } from './features/payment-methods/pages/payment-methods-page/payment-methods-page';
+import { NotificationsPage } from './features/notifications/pages/notifications-page/notifications-page';
 import { PublicPayment } from './features/orders/pages/public-payment/public-payment';
 import { authGuard } from './features/auth/auth.guard';
 
@@ -32,6 +33,7 @@ export const routes: Routes = [
     children: [
       { path: 'users', component: UsersPage, title: 'Usuarios | Pásalo.ve' },
       { path: 'payment-methods', component: PaymentMethodsPage, title: 'Métodos de pago | Pásalo.ve' },
+      { path: 'notifications', component: NotificationsPage, title: 'Notificaciones | Pásalo.ve' },
       {
         path: '',
         loadChildren: () =>

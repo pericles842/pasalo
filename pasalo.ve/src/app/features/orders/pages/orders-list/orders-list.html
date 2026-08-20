@@ -64,7 +64,14 @@
                 </div>
               </td>
               <td class="py-3 pr-4 text-gray-600">{{ order.items_count }}</td>
-              <td class="py-3 pr-4 font-semibold text-slate-900">${{ order.amount }}</td>
+              <td class="py-3 pr-4">
+                <div class="flex flex-col">
+                  <span class="font-semibold text-slate-900">${{ order.amount }}</span>
+                  @if (order.amount | bsAmount: exchangeRate.rateOficial(); as bs) {
+                  <span class="text-xs text-gray-500">Bs {{ bs }}</span>
+                  }
+                </div>
+              </td>
               @if (is_admin()) {
               <td class="py-3 pr-4 text-gray-600">{{ order.user_id === auth.session()?.user?.uuid ? 'Tú' : '—' }}</td>
               }
@@ -80,7 +87,8 @@
               </td>
               <td class="py-3">
                 <button nbButton size="tiny" [appearance]="order.status_id === 2 ? 'outline' : 'ghost'"
-                  [status]="order.status_id === 2 ? 'primary' : 'basic'" type="button" [routerLink]="[order.id]"
+                  [status]="order.status_id === 2 ? 'primary' : 'basic'" type="button"
+                  [routerLink]="['/dashboard', order.id]"
                   [attr.aria-label]="order.status_id === 2 ? 'Ver comprobante' : 'Ver orden'"
                   [title]="order.status_id === 2 ? 'Ver comprobante y referencia' : 'Ver orden'">
                   <nb-icon icon="eye-outline"></nb-icon>

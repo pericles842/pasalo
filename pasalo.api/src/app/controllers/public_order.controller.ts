@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '../config/db';
 import { getTenantConnection } from '../config/tenant';
+import { randomUUID } from 'crypto';
 import { extractPaymentReference } from '../../utils/ocr';
 import { uploadFile } from '../../utils/storage';
 import { notifyOrderPaid } from '../config/socket';
@@ -92,7 +93,8 @@ export class PublicOrderController {
             const tenantDb = await getTenantConnection(tenant_id);
 
             const [order] = await tenantDb.query<any>(
-                `SELECT id, company_id, user_id, status_id FROM orders WHERE pay_url_token = :token`,
+                `SELECT id, company_id, user_id, status_id, amount, first_name_client, last_name_client
+                 FROM orders WHERE pay_url_token = :token`,
                 { replacements: { token }, type: QueryTypes.SELECT }
             );
 
@@ -127,8 +129,24 @@ export class PublicOrderController {
                 }
             );
 
+            const buyer_name = `${order.first_name_client} ${order.last_name_client}`.trim();
+
+            // Queda como historial persistente ademas del aviso en vivo por websocket
+            await tenantDb.getQueryInterface().bulkInsert('notifications', [{
+                id: randomUUID(),
+                company_id: order.company_id,
+                order_id: order.id,
+                seller_id: order.user_id,
+                buyer_name,
+                amount: order.amount,
+                reference,
+                createdAt: new Date()
+            }]);
+
             notifyOrderPaid(tenant_id, order.user_id, {
                 order_id: order.id,
+                buyer_name,
+                amount: order.amount,
                 reference,
                 receipt_url: uploaded.url
             });

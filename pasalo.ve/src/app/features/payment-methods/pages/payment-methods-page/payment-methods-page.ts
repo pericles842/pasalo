@@ -42,9 +42,13 @@ export class PaymentMethodsPage implements OnInit {
     correo: new FormControl(null),
   });
 
+  // FormControl.value no es una signal: sin esto, el computed de abajo
+  // se calcula una sola vez y nunca reacciona a que el usuario cambie el tipo
+  private selected_type = signal<PaymentMethodType | null>(null);
+
   /** Que campos de "datos" pedirle al usuario segun el tipo elegido */
   visibleFields = computed((): ('banco' | 'telefono' | 'numero_cuenta' | 'cedula' | 'correo')[] => {
-    switch (this.form.controls.type.value) {
+    switch (this.selected_type()) {
       case 'pagomovil':
         return ['banco', 'telefono', 'cedula'];
       case 'transferencia':
@@ -58,6 +62,9 @@ export class PaymentMethodsPage implements OnInit {
 
   ngOnInit(): void {
     if (!this.is_browser) return;
+
+    this.form.controls.type.valueChanges.subscribe((type) => this.selected_type.set(type));
+
     this.load();
   }
 

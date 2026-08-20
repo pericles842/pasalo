@@ -1,0 +1,79 @@
+import { NextFunction, Request, Response } from 'express';
+import { QueryTypes, Sequelize } from 'sequelize';
+import { sequelize } from '../config/db';
+import { SessionPayload } from '../../middlewares/jwtMiddleware';
+
+export class NotificationController {
+
+    private static session(req: Request): SessionPayload {
+        return (req as any).session as SessionPayload;
+    }
+
+    private static tenantDb(req: Request): Sequelize {
+        return (req as any).tenantDb as Sequelize;
+    }
+
+    /**
+     * Notificaciones de pago. El vendedor solo ve las suyas; el administrador
+     * ve todas y puede filtrar por vendedor. Con ?limit se acota (el panel
+     * de la campana pide las ultimas 5); sin limit, es el historial completo.
+     *
+     * @static
+     * @memberof NotificationController
+     */
+    static async list(req: Request, res: Response, next: NextFunction) {
+        try {
+            const session = NotificationController.session(req);
+            const tenantDb = NotificationController.tenantDb(req);
+            const is_admin = session.role === 'admin';
+
+            const where: string[] = [];
+            const replacements: Record<string, any> = {};
+
+            if (is_admin) {
+                if (req.query.seller_id) {
+                    where.push('n.seller_id = :seller_id');
+                    replacements.seller_id = req.query.seller_id;
+                }
+            } else {
+                where.push('n.seller_id = :seller_id');
+                replacements.seller_id = session.user.uuid;
+            }
+
+            const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+            const limit = Math.min(Number(req.query.limit) || 100, 100);
+
+            const notifications = await tenantDb.query<any>(
+                `SELECT n.*, o.pay_url_token
+                 FROM notifications n
+                 JOIN orders o ON o.id = n.order_id
+                 ${whereClause}
+                 ORDER BY n.createdAt DESC
+                 LIMIT ${limit}`,
+                { replacements, type: QueryTypes.SELECT }
+            );
+
+            // El admin ve notificaciones de varios vendedores: se resuelve el nombre
+            // contra la base master, que es donde vive users
+            if (is_admin && notifications.length) {
+                const seller_ids = [...new Set(notifications.map((n) => n.seller_id))];
+
+                const sellers = await sequelize.query<any>(
+                    `SELECT uuid, first_name, middle_name FROM users WHERE uuid IN (:seller_ids)`,
+                    { replacements: { seller_ids }, type: QueryTypes.SELECT }
+                );
+
+                const sellerNames = new Map(sellers.map((s) => [s.uuid, `${s.first_name} ${s.middle_name ?? ''}`.trim()]));
+
+                for (const n of notifications) {
+                    n.seller_name = sellerNames.get(n.seller_id) ?? null;
+                }
+            }
+
+            res.json(notifications);
+        } catch (err) {
+            next(err);
+        }
+    }
+}

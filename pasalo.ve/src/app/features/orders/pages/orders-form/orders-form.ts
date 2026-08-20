@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NbButtonModule, NbIconModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
@@ -7,12 +7,14 @@ import { Subscription } from 'rxjs';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { GeneralTitleForm } from '@shared/elements/general-title-form/general-title-form';
 import { ToastService } from '@shared/services/toast.service';
+import { ExchangeRateService } from '@shared/services/exchange-rate.service';
+import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
 import { BuyerForm, CreateOrderResponse, OrderItemForm } from '../../interfaces/order';
 import { OrdersService } from '../../orders.service';
 
 @Component({
   selector: 'app-orders-form',
-  imports: [ReactiveFormsModule, NbButtonModule, GlobalInput, NbEvaIconsModule, NbIconModule, GeneralTitleForm],
+  imports: [ReactiveFormsModule, NbButtonModule, GlobalInput, NbEvaIconsModule, NbIconModule, GeneralTitleForm, BsAmountPipe],
   templateUrl: './orders-form.html',
   styleUrl: './orders-form.scss',
 })
@@ -20,6 +22,7 @@ export class OrdersForm implements OnInit, OnDestroy {
 
   private ordersService = inject(OrdersService);
   private toast = inject(ToastService);
+  protected exchangeRate = inject(ExchangeRateService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   private items_subscription?: Subscription;

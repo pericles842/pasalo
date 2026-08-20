@@ -3,15 +3,17 @@ import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NbButtonModule, NbCardModule } from '@nebular/theme';
 import { ToastService } from '@shared/services/toast.service';
+import { ExchangeRateService } from '@shared/services/exchange-rate.service';
+import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { OrderDetail as OrderDetailModel } from '../../interfaces/order';
 import { OrdersService } from '../../orders.service';
 
-const STATUS_LABELS: Record<number, string> = { 1: 'En espera', 2: 'Pagado', 3: 'Atrasado' };
+const STATUS_LABELS: Record<number, string> = { 1: 'En espera', 2: 'Pagado', 3: 'Atrasado', 4: 'Rechazado' };
 
 @Component({
   selector: 'app-order-detail',
-  imports: [NbCardModule, NbButtonModule, RouterLink],
+  imports: [NbCardModule, NbButtonModule, RouterLink, BsAmountPipe],
   templateUrl: './order-detail.html',
 })
 export class OrderDetail implements OnInit {
@@ -20,6 +22,7 @@ export class OrderDetail implements OnInit {
   private ordersService = inject(OrdersService);
   private toast = inject(ToastService);
   private auth = inject(AuthService);
+  protected exchangeRate = inject(ExchangeRateService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   is_loading = signal(true);
@@ -45,6 +48,15 @@ export class OrderDetail implements OnInit {
 
   statusLabel(status_id: number): string {
     return STATUS_LABELS[status_id] ?? '—';
+  }
+
+  statusBadgeClass(status_id: number): string {
+    switch (status_id) {
+      case 2: return 'bg-green-100 text-green-700';
+      case 3: return 'bg-orange-100 text-orange-700';
+      case 4: return 'bg-red-100 text-red-700';
+      default: return 'bg-amber-100 text-amber-700';
+    }
   }
 
   /** Reconstruye el link publico para volver a compartirlo */

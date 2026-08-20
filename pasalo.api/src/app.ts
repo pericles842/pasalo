@@ -22,7 +22,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ['*'],
+    origin: ['http://localhost:4200'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // explícito
     allowedHeaders: ['Content-Type', 'Authorization', 'module_id'], // explícito

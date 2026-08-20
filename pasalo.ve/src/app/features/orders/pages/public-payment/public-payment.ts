@@ -3,18 +3,21 @@ import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angul
 import { ActivatedRoute } from '@angular/router';
 import { NbButtonModule, NbCardModule } from '@nebular/theme';
 import { ToastService } from '@shared/services/toast.service';
+import { ExchangeRateService } from '@shared/services/exchange-rate.service';
+import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
 import { PublicOrderSummary } from '../../interfaces/order';
 import { PublicOrderService } from '../../public-order.service';
 
 @Component({
   selector: 'app-public-payment',
-  imports: [NbCardModule, NbButtonModule],
+  imports: [NbCardModule, NbButtonModule, BsAmountPipe],
   templateUrl: './public-payment.html',
 })
 export class PublicPayment implements OnInit {
 
   private route = inject(ActivatedRoute);
   private publicOrderService = inject(PublicOrderService);
+  protected exchangeRate = inject(ExchangeRateService);
   private toast = inject(ToastService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 

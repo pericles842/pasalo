@@ -1,0 +1,49 @@
+<div class="relative">
+  <button class="relative grid h-9 w-9 place-items-center rounded-full text-primary cursor-pointer" type="button"
+    aria-label="Notificaciones" (click)="toggle()">
+    <nb-icon icon="bell-outline" [options]="{ width: 20, height: 20 }"></nb-icon>
+    @if (notifications().length > 0) {
+    <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500"></span>
+    }
+  </button>
+
+  @if (is_open()) {
+  <div class="fixed inset-0 z-40" (click)="close()"></div>
+
+  <div class="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-gray-100 bg-white shadow-lg">
+    <div class="border-b border-gray-100 px-4 py-3">
+      <span class="text-sm font-semibold text-slate-900">Notificaciones</span>
+    </div>
+
+    @if (notifications().length === 0) {
+    <p class="m-0 px-4 py-6 text-center text-sm text-gray-500">Todavía no hay pagos recibidos.</p>
+    } @else {
+    <div class="flex max-h-80 flex-col overflow-y-auto">
+      @for (n of notifications(); track n.id) {
+      <div class="flex flex-col gap-0.5 border-b border-gray-50 px-4 py-3 text-left last:border-0">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-sm font-semibold text-slate-900">{{ n.buyer_name }}</span>
+          <span class="text-sm font-semibold text-green-600">${{ n.amount }}</span>
+        </div>
+        @if (n.amount | bsAmount: exchangeRate.rateOficial(); as bs) {
+        <span class="text-xs text-gray-400">Bs {{ bs }}</span>
+        }
+        <div class="flex items-center justify-between gap-2 text-xs text-gray-500">
+          <span>{{ n.reference ? 'Ref. ' + n.reference : 'Sin referencia detectada' }}</span>
+          @if (n.seller_name) {
+          <span>{{ n.seller_name }}</span>
+          }
+        </div>
+      </div>
+      }
+    </div>
+    }
+
+    <div class="border-t border-gray-100 px-4 py-2.5 text-center">
+      <a routerLink="/dashboard/notifications" class="text-xs font-semibold text-blue-600" (click)="close()">
+        Ver más
+      </a>
+    </div>
+  </div>
+  }
+</div>
