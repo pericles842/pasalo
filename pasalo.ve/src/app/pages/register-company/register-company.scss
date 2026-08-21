@@ -1,0 +1,8 @@
+// En telefono usamos nuestro propio indicador de paso + barra fija de navegacion;
+// el header de pasos que trae Nebular por defecto no cabe en pantallas angostas
+// (sus labels no hacen wrap) y provoca scroll horizontal.
+:host ::ng-deep nb-stepper > .header {
+  @media (max-width: 767px) {
+    display: none;
+  }
+}

@@ -22,7 +22,7 @@
       </nb-card-header>
 
       <nb-card-body class="flex flex-col gap-4">
-        <div class="grid grid-cols-2 gap-3 text-sm">
+        <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
           <div class="flex flex-col gap-0.5">
             <span class="text-xs text-gray-500">Cliente</span>
             <span class="font-medium text-slate-900">
@@ -76,7 +76,7 @@
         @if (method.titular) {
         <span class="block text-xs text-gray-500">Titular: {{ method.titular }}</span>
         }
-        <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600">
+        <div class="mt-2 grid grid-cols-1 gap-x-4 gap-y-1 text-xs text-gray-600 sm:grid-cols-2">
           @for (field of parseDatos(method.datos); track field.label) {
           <span><strong>{{ field.label }}:</strong> {{ field.value }}</span>
           }

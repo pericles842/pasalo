@@ -2,13 +2,25 @@
   [description]="'Completa el formulario para registrar tu empresa en Pásalo.'">
 </app-general-title-form>
 
-<section class="mt-10">
-  <nb-stepper [disableStepNavigation]="false" #stepper orientation="horizontal">
+<!-- Indicador de paso: solo en telefono, el stepper de escritorio ya muestra los pasos -->
+<div class="sticky top-0 z-10 -mx-4 mt-4 border-b border-gray-100 bg-white/95 px-4 py-3 backdrop-blur sm:hidden">
+  <div class="flex items-center justify-between text-xs font-medium text-gray-500">
+    <span>Paso {{ current_step_index() + 1 }} de {{ step_labels.length }}</span>
+    <span class="font-semibold text-blue-600">{{ step_labels[current_step_index()] }}</span>
+  </div>
+  <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+    <div class="h-full rounded-full bg-blue-500 transition-all"
+      [style.width.%]="((current_step_index() + 1) / step_labels.length) * 100"></div>
+  </div>
+</div>
+
+<section class="mt-10 pb-24 sm:pb-0">
+  <nb-stepper [disableStepNavigation]="false" #stepper orientation="horizontal" (stepChange)="onStepChange($event)">
 
     <!-- Step 1: Datos de la empresa -->
     <nb-step label="Informacion de empresa">
       <app-company-form [form]="company_form"></app-company-form>
-      <div class="flex justify-end mt-6">
+      <div class="mt-6 hidden justify-end sm:flex">
         <button nbButton status="primary" nbStepperNext [disabled]="company_form.invalid">
           Siguiente
         </button>
@@ -18,7 +30,7 @@
     <!-- Step 2: Usuario master -->
     <nb-step label="Informacion de usuario">
       <app-users-info-form [form]="company_user"></app-users-info-form>
-      <div class="flex gap-4 justify-end mt-6">
+      <div class="mt-6 hidden justify-end gap-4 sm:flex">
         <button nbButton nbStepperPrevious>Anterior</button>
         <button nbButton status="primary" nbStepperNext [disabled]="company_user.invalid">
           Siguiente
@@ -48,7 +60,7 @@
       </p>
       }
 
-      <div class="flex gap-4 justify-end mt-6">
+      <div class="mt-6 hidden justify-end gap-4 sm:flex">
         <button nbButton nbStepperPrevious>Anterior</button>
         <button nbButton status="primary" (click)="continueFromPlan()" nbStepperNext
           [disabled]="selected_plan_index === null || is_saving">
@@ -135,3 +147,19 @@
   </nb-stepper>
 
 </section>
+
+<!-- Navegacion fija de telefono: solo para los pasos que avanzan con "Siguiente" -->
+@if (current_step_index() < 3) {
+<div
+  class="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-gray-100 bg-white px-4 py-3 shadow-[0_-4px_12px_rgba(15,23,42,0.08)] sm:hidden">
+  @if (current_step_index() > 0) {
+  <button nbButton appearance="outline" status="basic" type="button" (click)="stepper.previous()">
+    Anterior
+  </button>
+  }
+  <button nbButton status="primary" type="button" class="flex-1" [disabled]="!canGoToNextStep()"
+    (click)="goToNextStep()">
+    {{ current_step_index() === 2 && is_saving ? 'Registrando...' : 'Siguiente' }}
+  </button>
+</div>
+}

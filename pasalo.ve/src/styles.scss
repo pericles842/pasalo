@@ -2,3 +2,24 @@
 @use '@nebular/theme/styles/prebuilt/default';
 
 /* You can add global styles to this file, and also import other style files */
+
+// Red de seguridad: ningun elemento (propio o de una libreria de terceros como
+// Nebular) puede crear scroll horizontal a nivel de pagina. Los contenedores que
+// si necesitan scroll horizontal propio (ej. las tablas) lo declaran con su propio
+// overflow-x-auto, que sigue funcionando igual dentro de este limite.
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+// Nebular renderiza el toast (nb-toast) con un ancho fijo de 25rem (400px) sin
+// media query propia. En telefono eso empuja el viewport y crea scroll horizontal
+// en toda la pagina apenas aparece una notificacion. Se sobreescribe globalmente
+// porque el toast se monta fuera del arbol de componentes (CDK overlay en <body>).
+@media (max-width: 480px) {
+  nb-toast {
+    width: calc(100vw - 2rem) !important;
+    margin: 0.5rem 1rem !important;
+    box-sizing: border-box;
+  }
+}

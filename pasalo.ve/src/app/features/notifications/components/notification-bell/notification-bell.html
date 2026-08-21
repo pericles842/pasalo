@@ -10,7 +10,8 @@
   @if (is_open()) {
   <div class="fixed inset-0 z-40" (click)="close()"></div>
 
-  <div class="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-gray-100 bg-white shadow-lg">
+  <div
+    class="fixed left-3 right-3 top-16 z-50 rounded-xl border border-gray-100 bg-white shadow-lg sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80">
     <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3">
       <span class="text-sm font-semibold text-slate-900">Notificaciones</span>
       @if (notifications().length > 0) {

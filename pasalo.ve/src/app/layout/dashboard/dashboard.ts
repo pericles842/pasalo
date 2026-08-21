@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NbButtonModule } from '@nebular/theme';
 import { HeaderDashboard } from '@shared/components/header-dashboard/header-dashboard';
@@ -21,15 +22,25 @@ export class Dashboard implements OnInit, OnDestroy {
   /** Solo el usuario master administra los usuarios de la empresa */
   is_admin = computed(() => this.auth.session()?.role?.slug === 'admin');
 
+  private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
+
   /** Menu lateral en modo telefono: cerrado por defecto, siempre visible en desktop */
   is_menu_open = signal(false);
 
   toggleMenu(): void {
     this.is_menu_open.update((value) => !value);
+    this.syncBodyScroll();
   }
 
   closeMenu(): void {
     this.is_menu_open.set(false);
+    this.syncBodyScroll();
+  }
+
+  /** Evita que el fondo haga scroll mientras el menu overlay esta abierto en telefono */
+  private syncBodyScroll(): void {
+    if (!this.is_browser) return;
+    document.body.classList.toggle('overflow-hidden', this.is_menu_open());
   }
 
   ngOnInit(): void {
@@ -46,5 +57,6 @@ export class Dashboard implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.socket.disconnect();
+    if (this.is_browser) document.body.classList.remove('overflow-hidden');
   }
 }

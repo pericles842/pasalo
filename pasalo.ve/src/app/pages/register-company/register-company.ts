@@ -1,8 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NbButtonModule, NbCardModule, NbInputModule, NbStepperModule } from '@nebular/theme';
+import {
+  NbButtonModule,
+  NbCardModule,
+  NbInputModule,
+  NbStepChangeEvent,
+  NbStepperComponent,
+  NbStepperModule,
+} from '@nebular/theme';
 import { CardSubscriptionPlanComponent } from "@shared/components/card-subscription-plan/card-subscription-plan";
 import { GeneralTitleForm } from "@shared/elements/general-title-form/general-title-form";
 import { passwordMatchValidator } from '@shared/validators/password-match.validator';
@@ -63,6 +70,13 @@ export class RegisterCompany implements OnInit {
 
   company_registered = false;
 
+  @ViewChild('stepper') stepper!: NbStepperComponent;
+
+  /** Los pasos del stepper: en telefono se navega con la barra fija de abajo */
+  step_labels = ['Empresa', 'Usuario', 'Plan', 'Confirmar'];
+
+  current_step_index = signal(0);
+
   payment_form = new FormGroup({
     cardholder_name: new FormControl('', [Validators.required]),
     card_number: new FormControl('', [Validators.required, Validators.pattern(/^\d{16}$/)]),
@@ -75,6 +89,26 @@ export class RegisterCompany implements OnInit {
     private companyService: CompanyService,
     private toast: ToastService
   ) { }
+
+  onStepChange(event: NbStepChangeEvent): void {
+    this.current_step_index.set(event.index);
+  }
+
+  /** Habilita el boton "Siguiente" de la barra fija segun el paso actual */
+  canGoToNextStep(): boolean {
+    switch (this.current_step_index()) {
+      case 0: return !this.company_form.invalid;
+      case 1: return !this.company_user.invalid;
+      case 2: return this.selected_plan_index !== null && !this.is_saving;
+      default: return true;
+    }
+  }
+
+  /** Boton "Siguiente" de la barra fija movil: replica el click del boton de escritorio */
+  goToNextStep(): void {
+    if (this.current_step_index() === 2) this.continueFromPlan();
+    this.stepper.next();
+  }
 
   get selected_plan() {
     return this.selected_plan_index !== null ? this.plans[this.selected_plan_index] : null;

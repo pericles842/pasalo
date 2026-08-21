@@ -113,6 +113,24 @@ export class OrdersList implements OnInit, OnDestroy {
     this.loadOrders();
   }
 
+  /** Paginas a mostrar en el paginador: siempre primera/ultima y un rango alrededor de la actual */
+  visible_pages = computed<(number | '...')[]>(() => {
+    const total = this.total_pages();
+    const current = this.page();
+    const pages: (number | '...')[] = [];
+
+    let previous = 0;
+    for (let i = 1; i <= total; i++) {
+      if (i === 1 || i === total || Math.abs(i - current) <= 1) {
+        if (previous && i - previous > 1) pages.push('...');
+        pages.push(i);
+        previous = i;
+      }
+    }
+
+    return pages;
+  });
+
   statusName(status_id: number): string {
     return this.statusMap().get(status_id)?.name ?? '—';
   }
