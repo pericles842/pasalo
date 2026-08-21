@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { QueryTypes, Sequelize } from 'sequelize';
+import { sequelize } from '../config/db';
 import { SessionPayload } from '../../middlewares/jwtMiddleware';
 
 const VALID_TYPES = ['pagomovil', 'transferencia', 'billetera_digital'];
@@ -16,6 +17,41 @@ export class PaymentMethodController {
 
     private static isAdmin(req: Request): boolean {
         return PaymentMethodController.session(req).role === 'admin';
+    }
+
+    /**
+     * Métodos de pago usados vs. permitidos por el plan de la empresa.
+     * El conteo vive en la base del tenant, el plan en la base master.
+     *
+     * @static
+     * @param {string} company_id
+     * @param {Sequelize} tenantDb
+     * @memberof PaymentMethodController
+     */
+    private static async getUsage(company_id: string, tenantDb: Sequelize) {
+        const [used] = await tenantDb.query<{ total: number }>(
+            `SELECT COUNT(*) AS total FROM payment_methods WHERE company_id = :company_id`,
+            { replacements: { company_id }, type: QueryTypes.SELECT }
+        );
+
+        const [plan] = await sequelize.query<any>(
+            `SELECT p.* FROM companies_subscriptions cs
+             JOIN plans p ON p.id = cs.plan_id
+             WHERE cs.company_id = :company_id`,
+            { replacements: { company_id }, type: QueryTypes.SELECT }
+        );
+
+        const limit = plan?.payment_methods_limit ?? 0;
+        const total = Number(used.total);
+
+        return {
+            plan,
+            usage: {
+                used: total,
+                limit,
+                available: Math.max(0, limit - total)
+            }
+        };
     }
 
     /**
@@ -38,7 +74,9 @@ export class PaymentMethodController {
                 { replacements: { company_id: session.company.uuid }, type: QueryTypes.SELECT }
             );
 
-            res.json(methods);
+            const { plan, usage } = await PaymentMethodController.getUsage(session.company.uuid, tenantDb);
+
+            res.json({ methods, plan, usage });
         } catch (err) {
             next(err);
         }
@@ -65,6 +103,17 @@ export class PaymentMethodController {
                 return;
             }
 
+            const { plan, usage } = await PaymentMethodController.getUsage(session.company.uuid, tenantDb);
+
+            if (usage.available <= 0) {
+                res.status(409).json({
+                    message: 'Límite de métodos de pago alcanzado',
+                    error: `Tu ${plan?.name ?? 'plan'} permite ${usage.limit} ${usage.limit === 1 ? 'método de pago' : 'métodos de pago'} y ya los tienes ocupados. Cambia de plan para agregar más.`,
+                    usage
+                });
+                return;
+            }
+
             // payment_methods.id es INTEGER autoincrement; se relee tras insertar
             // para devolver el registro completo con el id que MySQL asignó
             await tenantDb.getQueryInterface().bulkInsert('payment_methods', [{
@@ -86,7 +135,9 @@ export class PaymentMethodController {
                 { replacements: { company_id: session.company.uuid }, type: QueryTypes.SELECT }
             );
 
-            res.status(201).json(created);
+            const refreshed = await PaymentMethodController.getUsage(session.company.uuid, tenantDb);
+
+            res.status(201).json({ method: created, usage: refreshed.usage });
         } catch (err) {
             next(err);
         }
@@ -109,7 +160,10 @@ export class PaymentMethodController {
             );
 
             void deleted;
-            res.json({ message: 'Método de pago eliminado' });
+
+            const { usage } = await PaymentMethodController.getUsage(session.company.uuid, tenantDb);
+
+            res.json({ message: 'Método de pago eliminado', usage });
         } catch (err) {
             next(err);
         }

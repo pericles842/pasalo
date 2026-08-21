@@ -19,6 +19,34 @@ export interface CreatePaymentMethodPayload {
   datos: Record<string, string>;
 }
 
+export interface PaymentMethodsPlanUsage {
+  used: number;
+  limit: number;
+  available: number;
+}
+
+export interface PaymentMethodsPlan {
+  id: number;
+  name: string;
+  payment_methods_limit: number;
+}
+
+export interface PaymentMethodsListResponse {
+  methods: PaymentMethod[];
+  plan: PaymentMethodsPlan | null;
+  usage: PaymentMethodsPlanUsage;
+}
+
+export interface CreatePaymentMethodResponse {
+  method: PaymentMethod;
+  usage: PaymentMethodsPlanUsage;
+}
+
+export interface DeletePaymentMethodResponse {
+  message: string;
+  usage: PaymentMethodsPlanUsage;
+}
+
 export interface PaymentMethodForm {
   name: FormControl<string | null>;
   type: FormControl<PaymentMethodType | null>;

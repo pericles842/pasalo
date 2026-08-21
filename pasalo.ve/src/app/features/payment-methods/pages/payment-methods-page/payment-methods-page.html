@@ -4,6 +4,11 @@
     <span class="text-sm text-gray-500">
       Esto es lo que tus clientes ven para elegir cómo pagarte en el link de la orden.
     </span>
+    @if (usage(); as u) {
+    <span class="text-xs font-medium" [class]="limit_reached() ? 'text-red-600' : 'text-gray-500'">
+      {{ u.used }} de {{ u.limit }} métodos de pago usados
+    </span>
+    }
   </div>
 
   <section class="grid gap-6 xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)] xl:items-start">
@@ -15,6 +20,11 @@
       </nb-card-header>
 
       <nb-card-body>
+        @if (limit_reached()) {
+        <p class="m-0 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          Ya alcanzaste el límite de métodos de pago de tu plan. Cambia de plan para agregar más.
+        </p>
+        } @else {
         <form [formGroup]="form" (submit)="$event.preventDefault(); submit()" class="flex flex-col gap-5">
 
           <app-global-input name="pm_name" label="Nombre" placeholder="Ej. Pago Móvil Banesco"
@@ -57,6 +67,7 @@
             {{ is_saving() ? 'Guardando...' : 'Agregar método de pago' }}
           </button>
         </form>
+        }
       </nb-card-body>
     </nb-card>
 

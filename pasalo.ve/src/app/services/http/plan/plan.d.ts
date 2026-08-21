@@ -3,6 +3,7 @@ export interface PlanInterface {
   color_theme: string
   description: string
   user_limit: number
+  payment_methods_limit: number
   name: string
   price: number
   createdAt?: Date

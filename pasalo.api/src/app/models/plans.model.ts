@@ -13,6 +13,8 @@ export class PlanModel extends Model<InferAttributes<PlanModel>, InferCreationAt
 
     // Campo con valor por defecto en la migración
     declare user_limit: CreationOptional<number>;
+    // Cuantos métodos de pago puede registrar la empresa con este plan
+    declare payment_methods_limit: CreationOptional<number>;
 
     // Timestamps automáticos mapeados para evitar errores de tipo
     declare createdAt: CreationOptional<Date>;
@@ -52,6 +54,11 @@ PlanModel.init(
             type: DataTypes.INTEGER,
             allowNull: false,
             defaultValue: 1
+        },
+        payment_methods_limit: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 3
         },
         color_theme: {
             type: DataTypes.STRING,

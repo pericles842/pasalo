@@ -4,7 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { NbButtonModule, NbCardModule, NbSelectModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { ToastService } from '@shared/services/toast.service';
-import { CreatePaymentMethodPayload, PaymentMethod, PaymentMethodForm, PaymentMethodType } from '../../interfaces/payment-method';
+import { CreatePaymentMethodPayload, PaymentMethod, PaymentMethodForm, PaymentMethodsPlanUsage, PaymentMethodType } from '../../interfaces/payment-method';
 import { PaymentMethodsService } from '../../payment-methods.service';
 
 const TYPE_LABELS: Record<PaymentMethodType, string> = {
@@ -25,9 +25,12 @@ export class PaymentMethodsPage implements OnInit {
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   methods = signal<PaymentMethod[]>([]);
+  usage = signal<PaymentMethodsPlanUsage | null>(null);
   is_loading = signal(true);
   is_saving = signal(false);
   deleting_id = signal<number | null>(null);
+
+  limit_reached = computed(() => (this.usage()?.available ?? 1) <= 0);
 
   typeLabels = TYPE_LABELS;
 
@@ -72,8 +75,9 @@ export class PaymentMethodsPage implements OnInit {
     this.is_loading.set(true);
 
     this.paymentMethodsService.getPaymentMethods().subscribe({
-      next: (methods) => {
+      next: ({ methods, usage }) => {
         this.methods.set(methods);
+        this.usage.set(usage);
         this.is_loading.set(false);
       },
       error: (err) => {
@@ -97,6 +101,11 @@ export class PaymentMethodsPage implements OnInit {
 
   submit(): void {
     if (this.is_saving()) return;
+
+    if (this.limit_reached()) {
+      this.toast.error('Ya alcanzaste el límite de métodos de pago de tu plan. Cambia de plan para agregar más.');
+      return;
+    }
 
     this.form.markAllAsTouched();
 
@@ -128,8 +137,9 @@ export class PaymentMethodsPage implements OnInit {
     this.is_saving.set(true);
 
     this.paymentMethodsService.createPaymentMethod(payload).subscribe({
-      next: () => {
+      next: ({ usage }) => {
         this.is_saving.set(false);
+        this.usage.set(usage);
         this.toast.success('Método de pago agregado.');
         this.form.reset();
         this.load();
@@ -150,9 +160,10 @@ export class PaymentMethodsPage implements OnInit {
     this.deleting_id.set(method.id);
 
     this.paymentMethodsService.deletePaymentMethod(method.id).subscribe({
-      next: () => {
+      next: ({ usage }) => {
         this.deleting_id.set(null);
         this.methods.update((methods) => methods.filter((m) => m.id !== method.id));
+        this.usage.set(usage);
         this.toast.success('Método de pago eliminado.');
       },
       error: (err) => {

@@ -24,6 +24,9 @@
       <p class="text-sm font-medium text-gray-600 mt-3 mb-0">
         Hasta {{ plan.user_limit }} {{ plan.user_limit === 1 ? 'usuario' : 'usuarios' }}
       </p>
+      <p class="text-sm font-medium text-gray-600 mt-1 mb-0">
+        Hasta {{ plan.payment_methods_limit }} {{ plan.payment_methods_limit === 1 ? 'método de pago' : 'métodos de pago' }}
+      </p>
     </nb-card-body>
 
     <nb-card-footer>
