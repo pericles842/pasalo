@@ -7,7 +7,13 @@ import { CompanyUserModel } from '../models/company_user.model';
 import { CompanyModel } from '../models/company.model';
 import { PlanModel } from '../models/plans.model';
 import { hashPassword } from '../../utils/auth';
+import { getExchangeRates } from '../../utils/exchangeRate';
 import { SessionPayload } from '../../middlewares/jwtMiddleware';
+
+/** id del status "Pendiente de verificación" en status_subscriptions */
+const PENDING_VERIFICATION_STATUS_ID = 4;
+/** id del status "Activo" en status_subscriptions */
+const ACTIVE_STATUS_ID = 1;
 
 export class CompanyUserController {
 
@@ -174,7 +180,13 @@ export class CompanyUserController {
     }
 
     /**
-     * Cambia el plan de la empresa y con el, el limite de usuarios
+     * Cambia el plan de la empresa.
+     *
+     * El plan gratuito se aplica al instante (no hay nada que cobrar). Un
+     * plan pago no se activa solo: queda como pending_plan_id con status
+     * "Pendiente de verificación" hasta que el pago se confirme por WhatsApp
+     * y se verifique a mano en la base de datos. El plan activo (y el cupo de
+     * usuarios) no cambia hasta ese momento.
      *
      * @static
      * @memberof CompanyUserController
@@ -186,13 +198,38 @@ export class CompanyUserController {
         }
 
         try {
-            const company_id = CompanyUserController.session(req).company.uuid;
+            const session = CompanyUserController.session(req);
+            const company_id = session.company.uuid;
             const { plan_id } = req.body;
 
             const plan = await PlanModel.findByPk(plan_id);
 
             if (!plan) {
                 res.status(404).json({ message: 'Plan no encontrado', error: 'El plan seleccionado no existe.' });
+                return;
+            }
+
+            if (Number(plan.price) > 0) {
+                // El plan pago corre sus 30 dias desde que se pide, aunque la
+                // verificacion del pago llegue despues (igual que en el registro)
+                await sequelize.query(
+                    `UPDATE companies_subscriptions
+                     SET pending_plan_id = :plan_id, status_id = :status_id,
+                         expires_at = DATE_ADD(NOW(), INTERVAL 30 DAY), updatedAt = NOW()
+                     WHERE company_id = :company_id`,
+                    { replacements: { plan_id: plan.id, status_id: PENDING_VERIFICATION_STATUS_ID, company_id } }
+                );
+
+                const rates = await getExchangeRates().catch(() => null);
+                const amount_usd = Number(plan.price);
+                const amount_bs = rates?.oficial ? Math.round(amount_usd * rates.oficial * 100) / 100 : null;
+
+                res.json({
+                    status: 'pending_verification',
+                    plan,
+                    amount_usd,
+                    amount_bs
+                });
                 return;
             }
 
@@ -210,8 +247,11 @@ export class CompanyUserController {
 
             await sequelize.transaction(async (transaction) => {
                 await sequelize.query(
-                    `UPDATE companies_subscriptions SET plan_id = :plan_id, updatedAt = NOW() WHERE company_id = :company_id`,
-                    { replacements: { plan_id: plan.id, company_id }, transaction }
+                    `UPDATE companies_subscriptions
+                     SET plan_id = :plan_id, pending_plan_id = NULL, status_id = :status_id,
+                         expires_at = NULL, updatedAt = NOW()
+                     WHERE company_id = :company_id`,
+                    { replacements: { plan_id: plan.id, status_id: ACTIVE_STATUS_ID, company_id }, transaction }
                 );
 
                 await CompanyModel.update(
@@ -222,7 +262,62 @@ export class CompanyUserController {
 
             const refreshed = await CompanyUserController.getUsage(company_id);
 
-            res.json({ plan, usage: refreshed.usage });
+            res.json({ status: 'active', plan, usage: refreshed.usage });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    /**
+     * Estado de la suscripción para el banner del dashboard: plan activo,
+     * plan pedido pendiente de verificar (si hay uno), y cuanto falta para
+     * que venza el plan pago actual.
+     *
+     * @static
+     * @memberof CompanyUserController
+     */
+    static async getSubscriptionStatus(req: Request, res: Response, next: NextFunction) {
+        try {
+            const company_id = CompanyUserController.session(req).company.uuid;
+
+            const [subscription] = await sequelize.query<any>(
+                `SELECT cs.status_id, cs.expires_at, cs.pending_plan_id,
+                        p.id AS plan_id, p.name AS plan_name, p.price AS plan_price,
+                        pp.id AS pending_plan_full_id, pp.name AS pending_plan_name, pp.price AS pending_plan_price,
+                        st.name AS status_name
+                 FROM companies_subscriptions cs
+                 JOIN plans p ON p.id = cs.plan_id
+                 LEFT JOIN plans pp ON pp.id = cs.pending_plan_id
+                 JOIN status_subscriptions st ON st.id = cs.status_id
+                 WHERE cs.company_id = :company_id`,
+                { replacements: { company_id }, type: QueryTypes.SELECT }
+            );
+
+            if (!subscription) {
+                res.status(404).json({ message: 'Suscripción no encontrada', error: 'Tu empresa no tiene una suscripción registrada.' });
+                return;
+            }
+
+            const days_remaining = subscription.expires_at
+                ? Math.ceil((new Date(subscription.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                : null;
+
+            res.json({
+                plan: {
+                    id: subscription.plan_id,
+                    name: subscription.plan_name,
+                    price: subscription.plan_price
+                },
+                pending_plan: subscription.pending_plan_id ? {
+                    id: subscription.pending_plan_full_id,
+                    name: subscription.pending_plan_name,
+                    price: subscription.pending_plan_price
+                } : null,
+                status_id: subscription.status_id,
+                status_name: subscription.status_name,
+                expires_at: subscription.expires_at,
+                days_remaining
+            });
         } catch (err) {
             next(err);
         }

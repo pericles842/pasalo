@@ -63,6 +63,16 @@ export class CompanyController {
             return;
         }
 
+        // Un plan pago no se activa solo: la empresa nace en el gratuito y el
+        // pedido queda pendiente de verificación (ver CompanyModel.createSubscription)
+        const is_free_plan = Number(plan.price) === 0;
+        const starting_plan = is_free_plan ? plan : await PlanModel.findByPk(1);
+
+        if (!starting_plan) {
+            res.status(500).json({ message: 'Plan gratuito no encontrado', error: 'El plan gratuito no está cargado en la base de datos.' });
+            return;
+        }
+
         const admin_role = await RoleModel.findBySlug(ROLE_ADMIN_SLUG);
 
         if (!admin_role) {
@@ -84,8 +94,9 @@ export class CompanyController {
                 domain: company_data.domain,
                 logo_url: company_data.logo ?? null,
                 tenant_id,
-                // El plan manda: define cuántos usuarios internos puede crear el master
-                user_limit: plan.user_limit
+                // El plan manda: define cuántos usuarios internos puede crear el master.
+                // Si el plan pedido es pago, todavía no está activo: se usa el del gratuito
+                user_limit: starting_plan.user_limit
             }, { transaction });
 
             // El usuario que registra la empresa siempre es el administrador
@@ -105,7 +116,7 @@ export class CompanyController {
                 user_id: user.uuid
             }, { transaction });
 
-            var subscription = await CompanyModel.createSubscription(company, plan.id, transaction);
+            var subscription = await CompanyModel.createSubscription(company, plan, transaction);
 
             await transaction.commit();
         } catch (err) {

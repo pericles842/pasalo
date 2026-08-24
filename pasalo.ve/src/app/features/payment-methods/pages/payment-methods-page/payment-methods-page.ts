@@ -8,6 +8,8 @@ import { ToastService } from '@shared/services/toast.service';
 import { ConfirmService } from '@shared/services/confirm.service';
 import { PlanInterface } from 'src/app/services/http/plan/plan';
 import { PlanService } from 'src/app/services/http/plan/plan.service';
+import { SubscriptionService } from 'src/app/features/company/subscription.service';
+import { AuthService } from 'src/app/features/auth/auth.service';
 import {
   CreatePaymentMethodPayload,
   PaymentMethod,
@@ -40,6 +42,8 @@ export class PaymentMethodsPage implements OnInit {
 
   private paymentMethodsService = inject(PaymentMethodsService);
   private planService = inject(PlanService);
+  private subscriptionService = inject(SubscriptionService);
+  private auth = inject(AuthService);
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -141,13 +145,20 @@ export class PaymentMethodsPage implements OnInit {
 
     this.is_changing_plan.set(true);
 
-    this.paymentMethodsService.changePlan(plan.id).subscribe({
-      next: () => {
+    this.subscriptionService.changePlan(plan.id).subscribe({
+      next: (response) => {
         this.is_changing_plan.set(false);
         this.show_plans.set(false);
-        this.toast.success(`Ahora tienes el ${plan.name}: hasta ${plan.payment_methods_limit} métodos de pago.`);
-        // El endpoint de cambio de plan devuelve el consumo de usuarios, no el
-        // de metodos de pago: se recarga para reflejar el cupo correcto.
+
+        if (response.status === 'pending_verification') {
+          const company_name = this.auth.session()?.company?.name ?? 'mi empresa';
+          window.open(this.subscriptionService.buildWhatsAppUrl(company_name, response), '_blank');
+          this.toast.success(`Solicitud enviada. Te escribiremos por WhatsApp para coordinar el pago del ${response.plan.name}.`);
+          return;
+        }
+
+        this.toast.success(`Ahora tienes el ${response.plan.name}.`);
+        // El plan gratuito ya esta activo: se recarga para reflejar el cupo correcto
         this.load();
       },
       error: (err) => {

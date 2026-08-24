@@ -36,21 +36,32 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
   }
 
   /**
-   * Registra la suscripción de la empresa al plan seleccionado
+   * Registra la suscripción de la empresa al plan seleccionado. Un plan pago
+   * no se activa solo: la empresa nace en el plan gratuito y el plan pedido
+   * queda en pending_plan_id hasta que se verifique el pago (por WhatsApp).
    *
    * @static
    * @param {CompanyModel} company
-   * @param {number} plan_id
+   * @param {PlanModel} plan
    * @param {Transaction} [transaction]
    * @memberof CompanyModel
    */
-  static async createSubscription(company: CompanyModel, plan_id: number, transaction?: Transaction) {
+  static async createSubscription(company: CompanyModel, plan: { id: number; price: number }, transaction?: Transaction) {
+    const FREE_PLAN_ID = 1;
+    const SUBSCRIPTION_PERIOD_DAYS = 30;
+    const is_free = Number(plan.price) === 0;
+
     await sequelize.getQueryInterface().bulkInsert('companies_subscriptions', [
       {
         uuid: randomUUID(),
         company_id: company.uuid,
-        plan_id: plan_id,
-        status_id: 1,
+        plan_id: is_free ? plan.id : FREE_PLAN_ID,
+        pending_plan_id: is_free ? null : plan.id,
+        // 1 = Activo, 4 = Pendiente de verificación
+        status_id: is_free ? 1 : 4,
+        // El gratuito no vence; un plan pago corre sus 30 dias desde que se
+        // pide, aunque la verificacion del pago llegue despues
+        expires_at: is_free ? null : new Date(Date.now() + SUBSCRIPTION_PERIOD_DAYS * 24 * 60 * 60 * 1000),
         createdAt: new Date(),
         updatedAt: new Date()
       }

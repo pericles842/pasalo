@@ -1,12 +1,15 @@
-import { isPlatformBrowser } from '@angular/common';
+import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { NbButtonModule, NbCardModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { Avatar } from '@shared/components/avatar/avatar';
 import { ToastService } from '@shared/services/toast.service';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { CompanyService } from '../../company-repository.service';
+import { SubscriptionService } from '../../subscription.service';
+import { SubscriptionStatus } from '../../interfaces/subscription';
 
 interface CompanyEditForm {
   name: FormControl<string | null>;
@@ -16,19 +19,21 @@ interface CompanyEditForm {
 
 @Component({
   selector: 'app-company-page',
-  imports: [ReactiveFormsModule, NbCardModule, NbButtonModule, GlobalInput, Avatar],
+  imports: [ReactiveFormsModule, NbCardModule, NbButtonModule, GlobalInput, Avatar, RouterLink, DatePipe],
   templateUrl: './company-page.html',
 })
 export class CompanyPage implements OnInit {
 
   protected auth = inject(AuthService);
   private companyService = inject(CompanyService);
+  private subscriptionService = inject(SubscriptionService);
   private toast = inject(ToastService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   is_saving = signal(false);
   logo_file = signal<File | null>(null);
   logo_preview = signal<string | null>(null);
+  subscription = signal<SubscriptionStatus | null>(null);
 
   form: FormGroup<CompanyEditForm> = new FormGroup<CompanyEditForm>({
     name: new FormControl<string | null>(null, [Validators.required]),
@@ -46,6 +51,11 @@ export class CompanyPage implements OnInit {
       name: company.name,
       rif: company.rif,
       domain: company.domain
+    });
+
+    this.subscriptionService.getStatus().subscribe({
+      next: (status) => this.subscription.set(status),
+      error: () => { }
     });
   }
 

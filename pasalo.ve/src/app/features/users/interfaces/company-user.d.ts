@@ -53,8 +53,3 @@ export interface CreateUserForm {
   password: FormControl<string | null>;
   password_confirmation: FormControl<string | null>;
 }
-
-export interface ChangePlanResponse {
-  plan: PlanInterface;
-  usage: PlanUsage;
-}

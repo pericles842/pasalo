@@ -1,0 +1,27 @@
+@if (status(); as s) {
+@if (is_pending()) {
+<div class="flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+  <p class="m-0 text-sm text-amber-800">
+    <strong>Estamos verificando tu pago</strong> para activar tu {{ s.pending_plan?.name }}.
+    Te avisaremos por WhatsApp en cuanto quede activo.
+  </p>
+  <a nbButton size="small" status="warning" appearance="outline" class="shrink-0 self-start sm:self-auto"
+    [href]="whatsapp_url()" target="_blank" rel="noopener noreferrer">
+    Contactar por WhatsApp
+  </a>
+</div>
+} @else if (is_expiring_soon()) {
+<div class="flex flex-col gap-1 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+  <p class="m-0 text-sm text-orange-800">
+    <strong>Tu {{ s.plan.name }} vence en {{ s.days_remaining }} {{ s.days_remaining === 1 ? 'día' : 'días' }}</strong>
+    ({{ s.expires_at | date: 'dd/MM/yyyy' }}). Renueva a tiempo para evitar interrupciones en tus links de pago.
+  </p>
+</div>
+} @else if (s.expires_at) {
+<div class="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-2.5 text-sm text-slate-700">
+  <span class="font-semibold text-slate-900">{{ s.plan.name }}</span>
+  <span class="text-gray-400">·</span>
+  <span>Activo hasta el {{ s.expires_at | date: 'dd/MM/yyyy' }} (quedan {{ s.days_remaining }} {{ s.days_remaining === 1 ? 'día' : 'días' }})</span>
+</div>
+}
+}

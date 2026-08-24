@@ -1,6 +1,6 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, computed, inject, signal, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   NbButtonModule,
@@ -14,6 +14,7 @@ import { CardSubscriptionPlanComponent } from "@shared/components/card-subscript
 import { GeneralTitleForm } from "@shared/elements/general-title-form/general-title-form";
 import { passwordMatchValidator } from '@shared/validators/password-match.validator';
 import { ToastService } from '@shared/services/toast.service';
+import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { CompanyService } from "src/app/features/company/company-repository.service";
 import { CompanyForm } from "src/app/features/company/components/company-form/company-form";
 import { UsersInfoForm } from "src/app/features/company/components/users-info-form/users-info-form";
@@ -21,6 +22,7 @@ import { CompanyControls } from 'src/app/features/company/interfaces/company';
 import { UserCompanyForm } from "src/app/features/company/interfaces/user";
 import { PlanInterface } from 'src/app/services/http/plan/plan';
 import { PlanService } from 'src/app/services/http/plan/plan.service';
+import { SubscriptionService } from 'src/app/features/company/subscription.service';
 
 @Component({
   selector: 'app-register-company',
@@ -77,16 +79,30 @@ export class RegisterCompany implements OnInit {
 
   current_step_index = signal(0);
 
-  payment_form = new FormGroup({
-    cardholder_name: new FormControl('', [Validators.required]),
-    card_number: new FormControl('', [Validators.required, Validators.pattern(/^\d{16}$/)]),
-    expiry: new FormControl('', [Validators.required, Validators.pattern(/^\d{2}\/\d{2}$/)]),
-    cvv: new FormControl('', [Validators.required, Validators.pattern(/^\d{3,4}$/)]),
+  private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  /** Link de WhatsApp con el plan pedido y su precio, listo para reabrirlo si el popup se bloqueó */
+  whatsapp_url = computed(() => {
+    const plan = this.selected_plan;
+    if (!plan || plan.id === 1) return '';
+
+    const rate = this.exchangeRate.rateOficial();
+    const amount_bs = rate ? Math.round(plan.price * rate * 100) / 100 : null;
+    const company_name = this.company_form.controls.name.value ?? 'mi empresa';
+
+    return this.subscriptionService.buildWhatsAppUrl(company_name, {
+      status: 'pending_verification',
+      plan: { id: plan.id, name: plan.name, price: plan.price },
+      amount_usd: plan.price,
+      amount_bs
+    });
   });
 
   constructor(
     private planService: PlanService,
     private companyService: CompanyService,
+    private subscriptionService: SubscriptionService,
+    protected exchangeRate: ExchangeRateService,
     private toast: ToastService
   ) { }
 
@@ -124,15 +140,20 @@ export class RegisterCompany implements OnInit {
   }
 
   ngOnInit() {
+    // En SSR no hay backend garantizado en ese instante: los planes se piden al hidratar en el navegador
+    if (!this.is_browser) return;
+
     this.planService.getFullPlan().subscribe((plans) => this.plans.set(plans));
   }
 
   /**
-   * Con el plan gratuito la empresa se registra de una vez;
-   * con un plan pago primero se cobra y luego se registra.
+   * La empresa se registra de una vez sin importar el plan: no se pide
+   * tarjeta ni se cobra nada en la app. Si el plan es pago, el pago se
+   * coordina por WhatsApp y la empresa queda pendiente de verificación
+   * (ver CompanyModel.createSubscription en el backend).
    */
   continueFromPlan(): void {
-    if (this.is_free_plan) this.registerCompany();
+    this.registerCompany();
   }
 
   registerCompany(): void {
@@ -154,6 +175,12 @@ export class RegisterCompany implements OnInit {
         next: () => {
           this.company_registered.set(true);
           this.is_saving.set(false);
+
+          // Plan pago: se manda a WhatsApp de una vez con el monto ya calculado
+          if (!this.is_free_plan) {
+            const url = this.whatsapp_url();
+            if (url) window.open(url, '_blank');
+          }
         },
         error: (err) => {
           this.toast.error(err?.error?.error ?? 'No pudimos registrar la empresa, intenta nuevamente.');

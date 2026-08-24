@@ -43,6 +43,7 @@ router.get('/company/users', jwtMiddleware, CompanyUserController.listUsers);
 router.post('/company/users', jwtMiddleware, CompanyUserController.createUser);
 router.delete('/company/users/:uuid', jwtMiddleware, CompanyUserController.deleteUser);
 router.put('/company/subscription', jwtMiddleware, CompanyUserController.changePlan);
+router.get('/company/subscription', jwtMiddleware, CompanyUserController.getSubscriptionStatus);
 
 //*Metodos de pago
 router.get('/company/payment-methods', authTenant, PaymentMethodController.list);

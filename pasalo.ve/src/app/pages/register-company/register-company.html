@@ -69,9 +69,24 @@
       </div>
     </nb-step>
 
-    <!-- Step 4: Confirmación o Pago -->
+    <!-- Step 4: Confirmación -->
     <nb-step label="Confirmar">
-      @if (is_free_plan) {
+      @if (!company_registered()) {
+      @if (is_saving()) {
+      <!-- Instante breve mientras se registra la empresa -->
+      <div class="flex flex-col items-center text-center py-16 px-4 gap-3">
+        <p class="m-0 text-gray-500">Registrando tu empresa...</p>
+      </div>
+      } @else {
+      <!-- El registro fallo: se ve el toast con el error, aca solo se ofrece reintentar -->
+      <div class="flex flex-col items-center text-center py-16 px-4 gap-4">
+        <p class="m-0 text-gray-500">No pudimos completar el registro. Intenta de nuevo.</p>
+        <button nbButton status="primary" type="button" (click)="registerCompany()">
+          Reintentar
+        </button>
+      </div>
+      }
+      } @else if (is_free_plan) {
       <!-- Plan gratis: pantalla de agradecimiento -->
       <div class="flex flex-col items-center text-center py-10 px-4 gap-4">
         <div class="text-6xl leading-none">🎉</div>
@@ -83,69 +98,32 @@
           Ya puedes comenzar a explorar la plataforma. Cuando estés listo, puedes
           actualizar tu plan desde el panel de administración.
         </p>
-        <button nbButton status="success" size="large" routerLink="/login" [disabled]="!company_registered()">
+        <button nbButton status="success" size="large" routerLink="/login">
           Ir al panel
         </button>
       </div>
       } @else {
-      @if (selected_plan) {
-      <!-- Plan de pago: formulario de pago -->
-      <div class="max-w-lg">
-        <h3 class="text-xl font-semibold mb-1">Datos de pago</h3>
-        <p class="text-gray-500 mb-6">
-          Plan seleccionado:
-
-          <strong>{{ selected_plan.name }}</strong> —
-          ${{selected_plan.price}}/mes
-          <br>
-          <span class="text-sm">
-            Incluye hasta {{ selected_plan.user_limit }}
-            {{ selected_plan.user_limit === 1 ? 'usuario' : 'usuarios' }}.
-          </span>
+      <!-- Plan pago: no se pide tarjeta, el pago se coordina por WhatsApp -->
+      <div class="flex flex-col items-center text-center py-10 px-4 gap-4">
+        <div class="text-6xl leading-none">📲</div>
+        <h2 class="text-3xl font-bold m-0">¡Ya casi! Falta confirmar tu pago</h2>
+        <p class="text-lg text-gray-500 m-0">
+          Tu empresa quedó registrada con el <strong>{{ selected_plan?.name }}</strong>
+          (${{ selected_plan?.price }}/mes). Te abrimos WhatsApp para coordinar el pago móvil
+          o la transferencia — en cuanto lo confirmemos, tu plan queda activo.
         </p>
-
-        @if (company_registered()) {
-        <div class="flex flex-col items-start gap-4">
-          <p class="text-green-600 font-semibold m-0">
-            ¡Listo! Tu empresa quedó registrada con el {{ selected_plan.name }}.
-          </p>
-          <button nbButton status="success" size="large" routerLink="/login">
+        <p class="max-w-md text-gray-500 m-0">
+          Mientras tanto, ya puedes entrar a tu panel con el Plan Gratuito.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <a nbButton status="success" size="large" [href]="whatsapp_url()" target="_blank" rel="noopener noreferrer">
+            Abrir WhatsApp
+          </a>
+          <button nbButton status="basic" appearance="outline" size="large" routerLink="/login">
             Ir al panel
           </button>
         </div>
-        } @else {
-        <form [formGroup]="payment_form" class="flex flex-col gap-5" (ngSubmit)="registerCompany()">
-          <div class="flex flex-col gap-1">
-            <label class="text-sm font-semibold">Nombre en la tarjeta</label>
-            <input nbInput fullWidth formControlName="cardholder_name" placeholder="Ej. Juan Pérez">
-          </div>
-
-          <div class="flex flex-col gap-1">
-            <label class="text-sm font-semibold">Número de tarjeta</label>
-            <input nbInput fullWidth formControlName="card_number" placeholder="1234567890123456" maxlength="16">
-          </div>
-
-          <div class="grid grid-cols-3 gap-4">
-            <div class="col-span-2 flex flex-col gap-1">
-              <label class="text-sm font-semibold">Vencimiento (MM/AA)</label>
-              <input nbInput fullWidth formControlName="expiry" placeholder="MM/AA" maxlength="5">
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="text-sm font-semibold">CVV</label>
-              <input nbInput fullWidth formControlName="cvv" placeholder="123" maxlength="4" type="password">
-            </div>
-          </div>
-
-          <div class="flex gap-4 justify-end mt-2">
-            <button nbButton nbStepperPrevious type="button">Anterior</button>
-            <button nbButton status="primary" type="submit" [disabled]="payment_form.invalid || is_saving()">
-              {{ is_saving() ? 'Procesando...' : 'Confirmar pago' }}
-            </button>
-          </div>
-        </form>
-        }
       </div>
-      }
       }
     </nb-step>
 

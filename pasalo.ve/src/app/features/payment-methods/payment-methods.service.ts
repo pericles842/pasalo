@@ -3,7 +3,6 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import {
-  ChangeCompanyPlanResponse,
   CreatePaymentMethodPayload,
   CreatePaymentMethodResponse,
   DeletePaymentMethodResponse,
@@ -25,10 +24,5 @@ export class PaymentMethodsService {
 
   deletePaymentMethod(id: number): Observable<DeletePaymentMethodResponse> {
     return this.http.delete<DeletePaymentMethodResponse>(`${environment.host}/company/payment-methods/${id}`);
-  }
-
-  /** Mismo endpoint que usa la seccion de usuarios para cambiar el plan de la empresa */
-  changePlan(plan_id: number): Observable<ChangeCompanyPlanResponse> {
-    return this.http.put<ChangeCompanyPlanResponse>(`${environment.host}/company/subscription`, { plan_id });
   }
 }

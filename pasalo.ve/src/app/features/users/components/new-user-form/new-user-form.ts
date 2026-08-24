@@ -1,4 +1,5 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, Input, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { NbSelectModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
@@ -18,6 +19,7 @@ import { UsersService } from '../../users.service';
 export class NewUserForm implements OnInit {
 
   private usersService = inject(UsersService);
+  private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   @Input({ required: true }) form!: FormGroup<CreateUserForm>;
 
@@ -25,6 +27,8 @@ export class NewUserForm implements OnInit {
   roles: Role[] = [];
 
   ngOnInit(): void {
+    if (!this.is_browser) return;
+
     this.usersService.getRoles().subscribe((roles) => (this.roles = roles));
   }
 }

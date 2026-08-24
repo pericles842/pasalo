@@ -4,13 +4,14 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NbButtonModule } from '@nebular/theme';
 import { HeaderDashboard } from '@shared/components/header-dashboard/header-dashboard';
 import { Copyright } from '@shared/components/copyright/copyright';
+import { SubscriptionStatusBanner } from '@shared/components/subscription-status-banner/subscription-status-banner';
 import { ToastService } from '@shared/services/toast.service';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { SocketService } from 'src/app/features/notifications/socket.service';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, NbButtonModule, HeaderDashboard, Copyright],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, NbButtonModule, HeaderDashboard, Copyright, SubscriptionStatusBanner],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

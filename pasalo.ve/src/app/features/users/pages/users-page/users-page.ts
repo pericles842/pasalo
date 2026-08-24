@@ -9,6 +9,7 @@ import { ConfirmService } from '@shared/services/confirm.service';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { PlanInterface } from 'src/app/services/http/plan/plan';
 import { PlanService } from 'src/app/services/http/plan/plan.service';
+import { SubscriptionService } from 'src/app/features/company/subscription.service';
 import { NewUserForm } from '../../components/new-user-form/new-user-form';
 import { CompanyUser, CreateUserForm, PlanUsage } from '../../interfaces/company-user';
 import { UsersService } from '../../users.service';
@@ -28,6 +29,7 @@ export class UsersPage implements OnInit {
 
   private usersService = inject(UsersService);
   private planService = inject(PlanService);
+  private subscriptionService = inject(SubscriptionService);
   private auth = inject(AuthService);
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);
@@ -130,13 +132,21 @@ export class UsersPage implements OnInit {
 
     this.is_changing_plan.set(true);
 
-    this.usersService.changePlan(plan.id).subscribe({
+    this.subscriptionService.changePlan(plan.id).subscribe({
       next: (response) => {
         this.is_changing_plan.set(false);
-        this.current_plan.set(response.plan);
-        this.usage.set(response.usage);
         this.show_plans.set(false);
-        this.toast.success(`Ahora tienes el ${response.plan.name}: hasta ${response.plan.user_limit} usuarios.`);
+
+        if (response.status === 'pending_verification') {
+          const company_name = this.auth.session()?.company?.name ?? 'mi empresa';
+          window.open(this.subscriptionService.buildWhatsAppUrl(company_name, response), '_blank');
+          this.toast.success(`Solicitud enviada. Te escribiremos por WhatsApp para coordinar el pago del ${response.plan.name}.`);
+          return;
+        }
+
+        // Plan gratuito: se aplico al instante, se recarga todo para reflejarlo
+        this.loadUsers();
+        this.toast.success(`Ahora tienes el ${response.plan.name}.`);
       },
       error: (err) => {
         this.is_changing_plan.set(false);
