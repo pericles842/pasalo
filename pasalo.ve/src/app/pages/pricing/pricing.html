@@ -1,0 +1,24 @@
+<section class="mx-auto flex max-w-6xl flex-col gap-8">
+  <div class="flex flex-col items-center gap-2 text-center">
+    <span class="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500">Precios</span>
+    <h1 class="text-3xl font-bold text-slate-900 sm:text-4xl">Un plan para cada etapa de tu negocio</h1>
+    <p class="max-w-xl text-sm text-gray-500">
+      Empieza gratis y sube de plan cuando tu equipo o tus métodos de pago crezcan. Sin permanencia.
+    </p>
+  </div>
+
+  @if (is_loading()) {
+  <p class="text-center text-sm text-gray-500">Cargando planes...</p>
+  } @else {
+  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    @for (plan of plans(); track plan.id) {
+    <app-card-subscription-plan [plan]="plan" [isSelected]="false" (planSelected)="goToRegister()" />
+    }
+  </div>
+  }
+
+  <p class="text-center text-sm text-gray-500">
+    ¿Ya tienes empresa registrada?
+    <a routerLink="/login" class="font-semibold text-blue-600">Inicia sesión</a>
+  </p>
+</section>

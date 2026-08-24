@@ -3,12 +3,13 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { NbButtonModule, NbCardModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
+import { Copyright } from '@shared/components/copyright/copyright';
 import { ToastService } from '@shared/services/toast.service';
 import { AuthService } from '../../auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, NbCardModule, NbButtonModule, GlobalInput, RouterLink],
+  imports: [ReactiveFormsModule, NbCardModule, NbButtonModule, GlobalInput, RouterLink, Copyright],
   templateUrl: './login.html',
 })
 export class Login {

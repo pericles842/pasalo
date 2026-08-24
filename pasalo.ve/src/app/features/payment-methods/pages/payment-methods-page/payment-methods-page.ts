@@ -3,8 +3,18 @@ import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angul
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NbButtonModule, NbCardModule, NbSelectModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
+import { CardSubscriptionPlanComponent } from '@shared/components/card-subscription-plan/card-subscription-plan';
 import { ToastService } from '@shared/services/toast.service';
-import { CreatePaymentMethodPayload, PaymentMethod, PaymentMethodForm, PaymentMethodsPlanUsage, PaymentMethodType } from '../../interfaces/payment-method';
+import { PlanInterface } from 'src/app/services/http/plan/plan';
+import { PlanService } from 'src/app/services/http/plan/plan.service';
+import {
+  CreatePaymentMethodPayload,
+  PaymentMethod,
+  PaymentMethodForm,
+  PaymentMethodsPlan,
+  PaymentMethodsPlanUsage,
+  PaymentMethodType,
+} from '../../interfaces/payment-method';
 import { PaymentMethodsService } from '../../payment-methods.service';
 
 const TYPE_LABELS: Record<PaymentMethodType, string> = {
@@ -15,22 +25,41 @@ const TYPE_LABELS: Record<PaymentMethodType, string> = {
 
 @Component({
   selector: 'app-payment-methods-page',
-  imports: [ReactiveFormsModule, NbCardModule, NbButtonModule, NbSelectModule, GlobalInput],
+  imports: [
+    ReactiveFormsModule,
+    NbCardModule,
+    NbButtonModule,
+    NbSelectModule,
+    GlobalInput,
+    CardSubscriptionPlanComponent,
+  ],
   templateUrl: './payment-methods-page.html',
 })
 export class PaymentMethodsPage implements OnInit {
 
   private paymentMethodsService = inject(PaymentMethodsService);
+  private planService = inject(PlanService);
   private toast = inject(ToastService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   methods = signal<PaymentMethod[]>([]);
   usage = signal<PaymentMethodsPlanUsage | null>(null);
+  current_plan = signal<PaymentMethodsPlan | null>(null);
+  plans = signal<PlanInterface[]>([]);
+  show_plans = signal(false);
   is_loading = signal(true);
   is_saving = signal(false);
+  is_changing_plan = signal(false);
   deleting_id = signal<number | null>(null);
 
-  limit_reached = computed(() => (this.usage()?.available ?? 1) <= 0);
+  /** Sin cupo disponible no se puede crear: hay que cambiar de plan */
+  has_room = computed(() => (this.usage()?.available ?? 0) > 0);
+
+  usage_percent = computed(() => {
+    const u = this.usage();
+    if (!u || u.limit <= 0) return 100;
+    return Math.min(100, Math.round((u.used / u.limit) * 100));
+  });
 
   typeLabels = TYPE_LABELS;
 
@@ -69,14 +98,16 @@ export class PaymentMethodsPage implements OnInit {
     this.form.controls.type.valueChanges.subscribe((type) => this.selected_type.set(type));
 
     this.load();
+    this.planService.getFullPlan().subscribe((plans) => this.plans.set(plans));
   }
 
   load(): void {
     this.is_loading.set(true);
 
     this.paymentMethodsService.getPaymentMethods().subscribe({
-      next: ({ methods, usage }) => {
+      next: ({ methods, plan, usage }) => {
         this.methods.set(methods);
+        this.current_plan.set(plan);
         this.usage.set(usage);
         this.is_loading.set(false);
       },
@@ -99,10 +130,35 @@ export class PaymentMethodsPage implements OnInit {
     }
   }
 
+  togglePlans(): void {
+    this.show_plans.update((value) => !value);
+  }
+
+  changePlan(plan: PlanInterface): void {
+    if (this.is_changing_plan() || plan.id === this.current_plan()?.id) return;
+
+    this.is_changing_plan.set(true);
+
+    this.paymentMethodsService.changePlan(plan.id).subscribe({
+      next: () => {
+        this.is_changing_plan.set(false);
+        this.show_plans.set(false);
+        this.toast.success(`Ahora tienes el ${plan.name}: hasta ${plan.payment_methods_limit} métodos de pago.`);
+        // El endpoint de cambio de plan devuelve el consumo de usuarios, no el
+        // de metodos de pago: se recarga para reflejar el cupo correcto.
+        this.load();
+      },
+      error: (err) => {
+        this.is_changing_plan.set(false);
+        this.toast.error(err?.error?.error ?? 'No pudimos cambiar el plan.');
+      }
+    });
+  }
+
   submit(): void {
     if (this.is_saving()) return;
 
-    if (this.limit_reached()) {
+    if (!this.has_room()) {
       this.toast.error('Ya alcanzaste el límite de métodos de pago de tu plan. Cambia de plan para agregar más.');
       return;
     }

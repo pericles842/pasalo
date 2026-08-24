@@ -1,7 +1,24 @@
 @use 'tailwindcss';
-@use '@nebular/theme/styles/prebuilt/default';
+@use 'nebular-theme';
 
 /* You can add global styles to this file, and also import other style files */
+
+// Azul de marca Pásalo (#045fde): reemplaza la escala "blue" por defecto de
+// Tailwind para que bg-blue-*/text-blue-*/border-blue-* etc. (usadas en toda
+// la app) reflejen el color de marca sin tener que tocar cada plantilla.
+@theme {
+  --color-blue-50: #f0f6ff;
+  --color-blue-100: #dcebfe;
+  --color-blue-200: #b9d7fe;
+  --color-blue-300: #88b8fc;
+  --color-blue-400: #4892f9;
+  --color-blue-500: #1071f9;
+  --color-blue-600: #045fde;
+  --color-blue-700: #034ab5;
+  --color-blue-800: #073888;
+  --color-blue-900: #08275e;
+  --color-blue-950: #061737;
+}
 
 // Red de seguridad: ningun elemento (propio o de una libreria de terceros como
 // Nebular) puede crear scroll horizontal a nivel de pagina. Los contenedores que

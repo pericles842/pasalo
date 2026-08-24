@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { NbButtonModule, NbIconModule } from '@nebular/theme';
+import { NbButtonModule, NbIconModule, NbTooltipModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { NotificationBell } from 'src/app/features/notifications/components/notification-bell/notification-bell';
@@ -8,7 +8,7 @@ import { NotificationBell } from 'src/app/features/notifications/components/noti
 @Component({
   selector: 'app-header-dashboard',
   templateUrl: './header-dashboard.html',
-  imports: [NbButtonModule, NbIconModule, NbEvaIconsModule, NotificationBell],
+  imports: [NbButtonModule, NbIconModule, NbEvaIconsModule, NbTooltipModule, NotificationBell],
 })
 export class HeaderDashboard {
 

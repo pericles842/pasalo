@@ -1,0 +1,15 @@
+<div [class]="variant === 'subtle'
+  ? 'border-t border-blue-100 bg-blue-50 px-6 py-3'
+  : 'border-t border-white/10 bg-blue-600 px-6 py-4 lg:px-8'">
+  <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 text-xs sm:flex-row"
+    [class]="variant === 'subtle' ? 'text-blue-600' : 'text-white'">
+    <span>&copy; {{ current_year }} Pásalo.ve. Todos los derechos reservados.</span>
+    <span>
+      Desarrollado por
+      <a href="https://coffeecode.es" target="_blank" rel="noopener noreferrer"
+        [class]="variant === 'subtle'
+          ? 'font-semibold text-blue-600! no-underline! hover:opacity-80!'
+          : 'font-semibold text-white! no-underline! hover:opacity-80!'">CoffeeCode</a>
+    </span>
+  </div>
+</div>

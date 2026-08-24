@@ -1,4 +1,5 @@
 import { FormControl } from '@angular/forms';
+import { PlanInterface } from 'src/app/services/http/plan/plan';
 
 export type PaymentMethodType = 'pagomovil' | 'transferencia' | 'billetera_digital';
 
@@ -45,6 +46,16 @@ export interface CreatePaymentMethodResponse {
 export interface DeletePaymentMethodResponse {
   message: string;
   usage: PaymentMethodsPlanUsage;
+}
+
+/**
+ * La API de /company/subscription es compartida con la seccion de usuarios:
+ * el "usage" que devuelve es de usuarios, no de metodos de pago, por eso no
+ * se usa aqui (se refresca el consumo de metodos de pago aparte).
+ */
+export interface ChangeCompanyPlanResponse {
+  plan: PlanInterface;
+  usage: { used: number; limit: number; available: number };
 }
 
 export interface PaymentMethodForm {

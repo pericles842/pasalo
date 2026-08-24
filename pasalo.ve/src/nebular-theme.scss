@@ -1,0 +1,34 @@
+// Tema Nebular de Pásalo: parte del tema "default" de la libreria y le
+// sobreescribe unicamente la paleta "primary" con el azul de marca (#045fde).
+// Sigue el mismo patron que node_modules/@nebular/theme/styles/prebuilt/default.scss,
+// pero registrando nuestra paleta antes de instalar los componentes.
+@use '@nebular/theme/styles/theming-variables' as theming-variables;
+@use '@nebular/theme/styles/core/theming/register' as register;
+@use '@nebular/theme/styles/all' as *;
+
+$pasalo-primary: (
+  color-primary-100: #dcebfe,
+  color-primary-200: #b9d7fe,
+  color-primary-300: #88b8fc,
+  color-primary-400: #4892f9,
+  color-primary-500: #045fde,
+  color-primary-600: #034ab5,
+  color-primary-700: #073888,
+  color-primary-800: #08275e,
+  color-primary-900: #061737,
+  color-primary-transparent-100: rgba(4, 95, 222, 0.08),
+  color-primary-transparent-200: rgba(4, 95, 222, 0.16),
+  color-primary-transparent-300: rgba(4, 95, 222, 0.24),
+  color-primary-transparent-400: rgba(4, 95, 222, 0.32),
+  color-primary-transparent-500: rgba(4, 95, 222, 0.4),
+  color-primary-transparent-600: rgba(4, 95, 222, 0.48),
+);
+
+theming-variables.$nb-themes: register.nb-register-theme($pasalo-primary, default, default);
+
+$nb-enabled-themes: (default);
+$nb-enable-css-custom-properties: false;
+
+@include nb-install() {
+  @include nb-theme-global();
+}

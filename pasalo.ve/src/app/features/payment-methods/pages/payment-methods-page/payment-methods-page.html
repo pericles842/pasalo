@@ -4,12 +4,57 @@
     <span class="text-sm text-gray-500">
       Esto es lo que tus clientes ven para elegir cómo pagarte en el link de la orden.
     </span>
-    @if (usage(); as u) {
-    <span class="text-xs font-medium" [class]="limit_reached() ? 'text-red-600' : 'text-gray-500'">
-      {{ u.used }} de {{ u.limit }} métodos de pago usados
-    </span>
-    }
   </div>
+
+  <!-- Consumo del plan -->
+  <div class="rounded-xl border border-blue-100 bg-blue-50/60 p-5">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div class="flex flex-col gap-1">
+        <span class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">Tu plan</span>
+        <span class="text-xl font-bold text-slate-900">{{ current_plan()?.name ?? '—' }}</span>
+        @if (usage(); as u) {
+        <span class="text-sm text-gray-500">
+          {{ u.used }} de {{ u.limit }}
+          {{ u.limit === 1 ? 'método de pago' : 'métodos de pago' }} en uso
+          @if (has_room()) {
+          · quedan {{ u.available }} por crear
+          } @else {
+          · sin cupo disponible
+          }
+        </span>
+        }
+      </div>
+
+      <button nbButton size="small" status="primary" [appearance]="show_plans() ? 'filled' : 'outline'"
+        (click)="togglePlans()">
+        {{ show_plans() ? 'Ocultar planes' : 'Cambiar plan' }}
+      </button>
+    </div>
+
+    <div class="mt-4 h-2 w-full overflow-hidden rounded-full bg-blue-100">
+      <div class="h-full rounded-full transition-all"
+        [class]="has_room() ? 'bg-blue-500' : 'bg-red-500'"
+        [style.width.%]="usage_percent()"></div>
+    </div>
+  </div>
+
+  <!-- Cambio de plan -->
+  @if (show_plans()) {
+  <div class="rounded-xl border border-blue-100 p-5">
+    <h3 class="mb-1 text-lg font-semibold">Cambia tu plan</h3>
+    <p class="mb-5 text-sm text-gray-500">
+      Al subir de plan amplías el cupo de métodos de pago de inmediato.
+    </p>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      @for (plan of plans(); track plan.id) {
+      <app-card-subscription-plan [plan]="plan" [isSelected]="plan.id === current_plan()?.id"
+        (planSelected)="changePlan(plan)">
+      </app-card-subscription-plan>
+      }
+    </div>
+  </div>
+  }
 
   <section class="grid gap-6 xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)] xl:items-start">
 
@@ -20,10 +65,16 @@
       </nb-card-header>
 
       <nb-card-body>
-        @if (limit_reached()) {
-        <p class="m-0 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-          Ya alcanzaste el límite de métodos de pago de tu plan. Cambia de plan para agregar más.
-        </p>
+        @if (!has_room()) {
+        <div class="flex flex-col gap-3 rounded-lg bg-amber-50 px-4 py-4 text-sm text-amber-800">
+          <span>
+            Ya ocupaste los {{ usage()?.limit }}
+            {{ usage()?.limit === 1 ? 'método de pago' : 'métodos de pago' }} de tu {{ current_plan()?.name }}.
+          </span>
+          <button nbButton size="small" status="primary" (click)="togglePlans()">
+            Cambiar de plan para agregar más
+          </button>
+        </div>
         } @else {
         <form [formGroup]="form" (submit)="$event.preventDefault(); submit()" class="flex flex-col gap-5">
 

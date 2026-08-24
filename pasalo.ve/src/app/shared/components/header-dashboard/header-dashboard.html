@@ -5,6 +5,8 @@
       <nb-icon icon="menu-2-outline" [options]="{ width: 22, height: 22 }"></nb-icon>
     </button>
 
+    <img src="/pasalo-logo.png" alt="Pásalo" class="h-9 w-auto shrink-0 sm:h-10" />
+
     <div class="min-w-0 space-y-1">
       <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
         <h1 class="truncate text-sm font-semibold sm:text-base">{{ auth.session()?.company?.name ?? 'Pásalo' }}</h1>
@@ -30,8 +32,9 @@
 
     <span class="hidden h-8 w-px bg-white/20 sm:block"></span>
 
-    <button nbButton size="small" status="basic" (click)="logout()">
-      Salir
+    <button nbButton size="small" shape="round" appearance="ghost" status="danger"  (click)="logout()" aria-label="Salir"
+      nbTooltip="Salir" nbTooltipStatus="danger" nbTooltipPlacement="bottom">
+      <nb-icon icon="power-outline" [options]="{ width: 18, height: 18 }"></nb-icon>
     </button>
   </div>
 </header>
