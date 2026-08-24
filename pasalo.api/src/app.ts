@@ -64,7 +64,8 @@ const server = app.listen(port, async () => {
     await sequelize.authenticate();
     initSocket(server);
     const address = getLocalIp();
-    const actualPort = (server.address() as any).port;
+    const server_address = server.address();
+    const actualPort = typeof server_address === 'object' && server_address ? server_address.port : port;
 
     console.log(chalk.hex('#FF69B4')('🟢 Conectado a Mysql'));
     console.log(chalk.hex('#FF69B4')(`🟢 Servidor listo en http://${address}:${actualPort}`));

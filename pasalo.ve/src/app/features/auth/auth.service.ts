@@ -3,7 +3,8 @@ import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core
 import { isPlatformBrowser } from '@angular/common';
 import { Observable, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { LoginResponse, Session } from './interfaces/auth';
+import { getInitials } from '@shared/utils/initials';
+import { LoginResponse, Session, SessionCompany, SessionRole, SessionUser } from './interfaces/auth';
 
 const TOKEN_KEY = 'pasalo_token';
 const SESSION_KEY = 'pasalo_session';
@@ -26,8 +27,9 @@ export class AuthService {
   readonly initials = computed(() => {
     const user = this.session_signal()?.user;
     if (!user) return '';
-    return `${user.first_name.charAt(0)}${(user.middle_name ?? '').charAt(0)}`.toUpperCase();
+    return getInitials(`${user.first_name} ${user.middle_name ?? ''}`);
   });
+  readonly company_initials = computed(() => getInitials(this.session_signal()?.company?.name));
 
   /**
    * Inicia sesión y guarda el token de la empresa
@@ -40,6 +42,20 @@ export class AuthService {
     return this.http
       .post<LoginResponse>(`${environment.host}/auth/login`, { email, password })
       .pipe(tap((response) => this.saveSession(response)));
+  }
+
+  /**
+   * Reemplaza el usuario/rol/empresa de la sesion actual sin tocar el token,
+   * usado tras editar el perfil propio o los datos de la empresa.
+   */
+  refreshSession(user: SessionUser, role: SessionRole, company: SessionCompany): void {
+    const session: Session = { user, role, company };
+
+    if (this.is_browser) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    }
+
+    this.session_signal.set(session);
   }
 
   logout(): void {

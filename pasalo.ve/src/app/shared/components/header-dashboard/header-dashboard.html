@@ -8,7 +8,9 @@
     <img src="/pasalo-logo.png" alt="Pásalo" class="h-9 w-auto shrink-0 sm:h-10" />
 
     <div class="min-w-0 space-y-1">
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <app-avatar [photoUrl]="auth.session()?.company?.logo_url ?? null" [initialsText]="auth.company_initials()"
+          sizeClass="h-7 w-7 text-xs"></app-avatar>
         <h1 class="truncate text-sm font-semibold sm:text-base">{{ auth.session()?.company?.name ?? 'Pásalo' }}</h1>
       </div>
     </div>
@@ -25,10 +27,7 @@
       <p class="text-xs text-blue-100">{{ auth.session()?.role?.name }}</p>
     </div>
 
-    <span
-      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-sm font-semibold text-blue-700">
-      {{ auth.initials() }}
-    </span>
+    <app-avatar [photoUrl]="auth.session()?.user?.photo_url ?? null" [initialsText]="auth.initials()"></app-avatar>
 
     <span class="hidden h-8 w-px bg-white/20 sm:block"></span>
 

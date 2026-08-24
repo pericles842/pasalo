@@ -13,6 +13,8 @@ import { UsersPage } from './features/users/pages/users-page/users-page';
 import { PaymentMethodsPage } from './features/payment-methods/pages/payment-methods-page/payment-methods-page';
 import { NotificationsPage } from './features/notifications/pages/notifications-page/notifications-page';
 import { PublicPayment } from './features/orders/pages/public-payment/public-payment';
+import { ProfilePage } from './features/profile/pages/profile-page/profile-page';
+import { CompanyPage } from './features/company/pages/company-page/company-page';
 import { authGuard } from './features/auth/auth.guard';
 
 export const routes: Routes = [
@@ -37,6 +39,8 @@ export const routes: Routes = [
     title: 'Dashboard',
     canActivate: [authGuard],
     children: [
+      { path: 'profile', component: ProfilePage, title: 'Mi perfil | Pásalo.ve' },
+      { path: 'company', component: CompanyPage, title: 'Empresa | Pásalo.ve' },
       { path: 'users', component: UsersPage, title: 'Usuarios | Pásalo.ve' },
       { path: 'payment-methods', component: PaymentMethodsPage, title: 'Métodos de pago | Pásalo.ve' },
       { path: 'notifications', component: NotificationsPage, title: 'Notificaciones | Pásalo.ve' },

@@ -3,7 +3,8 @@ import { UserModel } from '../models/user.model';
 import { RoleModel } from '../models/role.model';
 import { CompanyUserModel } from '../models/company_user.model';
 import { CompanyModel } from '../models/company.model';
-import { comparePassword, generateToken, JWT_EXPIRES_IN } from '../../utils/auth';
+import { comparePassword, generateToken, hashPassword, JWT_EXPIRES_IN } from '../../utils/auth';
+import { uploadFile } from '../../utils/storage';
 
 export class AuthController {
 
@@ -93,6 +94,70 @@ export class AuthController {
                 res.status(401).json({ message: 'Sesión inválida', error: 'Vuelve a iniciar sesión.' });
                 return;
             }
+
+            const role = await RoleModel.findByPk(user.role_id);
+            const company = await CompanyModel.findByPk(session.company.uuid);
+
+            res.json({ user, role, company });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    /**
+     * Cada usuario edita su propio nombre, foto y (opcionalmente) su contraseña.
+     *
+     * @static
+     * @memberof AuthController
+     */
+    static async updateMe(req: Request, res: Response, next: NextFunction) {
+        try {
+            const session = (req as any).session;
+            const { first_name, middle_name, current_password, new_password, new_password_confirmation } = req.body;
+
+            if (!first_name) {
+                res.status(400).json({ message: 'Datos incompletos', error: 'El nombre es requerido.' });
+                return;
+            }
+
+            const user = await UserModel.findByPk(session.user.uuid);
+
+            if (!user) {
+                res.status(401).json({ message: 'Sesión inválida', error: 'Vuelve a iniciar sesión.' });
+                return;
+            }
+
+            // El cambio de contraseña es opcional: solo si el usuario llenó los campos
+            if (new_password || current_password || new_password_confirmation) {
+                if (!current_password || !new_password || !new_password_confirmation) {
+                    res.status(400).json({ message: 'Datos incompletos', error: 'Completa la contraseña actual y la nueva contraseña para cambiarla.' });
+                    return;
+                }
+
+                if (!(await comparePassword(current_password, user.password))) {
+                    res.status(401).json({ message: 'Contraseña incorrecta', error: 'Tu contraseña actual no es correcta.' });
+                    return;
+                }
+
+                if (new_password !== new_password_confirmation) {
+                    res.status(400).json({ message: 'Contraseña inválida', error: 'La confirmación de la nueva contraseña no coincide.' });
+                    return;
+                }
+
+                user.password = await hashPassword(new_password);
+            }
+
+            user.first_name = first_name;
+            user.middle_name = middle_name ?? null;
+
+            const file = (req as any).file;
+
+            if (file) {
+                const { url } = await uploadFile(file, `avatars/${session.company.tenant_id}`, 'webp', { width: 512, height: 512, fit: 'inside' });
+                user.photo_url = url;
+            }
+
+            await user.save();
 
             const role = await RoleModel.findByPk(user.role_id);
             const company = await CompanyModel.findByPk(session.company.uuid);

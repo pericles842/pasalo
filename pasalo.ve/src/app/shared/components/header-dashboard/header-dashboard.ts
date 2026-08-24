@@ -4,11 +4,12 @@ import { NbButtonModule, NbIconModule, NbTooltipModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { NotificationBell } from 'src/app/features/notifications/components/notification-bell/notification-bell';
+import { Avatar } from '@shared/components/avatar/avatar';
 
 @Component({
   selector: 'app-header-dashboard',
   templateUrl: './header-dashboard.html',
-  imports: [NbButtonModule, NbIconModule, NbEvaIconsModule, NbTooltipModule, NotificationBell],
+  imports: [NbButtonModule, NbIconModule, NbEvaIconsModule, NbTooltipModule, NotificationBell, Avatar],
 })
 export class HeaderDashboard {
 

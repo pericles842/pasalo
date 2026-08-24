@@ -23,6 +23,7 @@ const authTenant = [jwtMiddleware, tenantMiddleware];
 //*Auth
 router.post('/auth/login', AuthController.login);
 router.get('/auth/me', jwtMiddleware, AuthController.me);
+router.put('/auth/me', jwtMiddleware, upload.single('photo'), AuthController.updateMe);
 
 //*Plans
 router.get('/plans', PlansController.getAllPlans);
@@ -34,6 +35,7 @@ router.post('/exchange-rate/sync', internalTokenMiddleware, ExchangeRateControll
 
 //*Company
 router.post('/company', CompanyController.registerCompanyProcess);
+router.put('/company', jwtMiddleware, upload.single('logo'), CompanyController.updateCompany);
 
 //*Usuarios de la empresa
 router.get('/roles', jwtMiddleware, CompanyUserController.listRoles);

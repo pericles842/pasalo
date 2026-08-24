@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { Op } from 'sequelize';
 import { PlanModel } from '../models/plans.model';
 import { CompanyModel } from '../models/company.model';
 import { UserModel } from '../models/user.model';
@@ -6,8 +7,19 @@ import { CompanyUserModel } from '../models/company_user.model';
 import { ROLE_ADMIN_SLUG, RoleModel } from '../models/role.model';
 import { sequelize } from '../config/db';
 import { hashPassword } from '../../utils/auth';
+import { uploadFile } from '../../utils/storage';
+import { SessionPayload } from '../../middlewares/jwtMiddleware';
 
 export class CompanyController {
+
+    private static session(req: Request): SessionPayload {
+        return (req as any).session as SessionPayload;
+    }
+
+    /** Solo el usuario master edita los datos de la empresa */
+    private static isAdmin(req: Request): boolean {
+        return CompanyController.session(req).role === 'admin';
+    }
 
     private static parserDomain(domain: string): string {
         if (!domain) return '';
@@ -120,5 +132,67 @@ export class CompanyController {
             subscription,
             plan
         });
+    }
+
+    /**
+     * Edita nombre, RIF, dominio y logo de la empresa. Solo el usuario master.
+     *
+     * @static
+     * @memberof CompanyController
+     */
+    static async updateCompany(req: Request, res: Response, next: NextFunction) {
+        if (!CompanyController.isAdmin(req)) {
+            res.status(403).json({ message: 'Acceso denegado', error: 'Solo el administrador puede editar los datos de la empresa.' });
+            return;
+        }
+
+        try {
+            const session = CompanyController.session(req);
+            const { name, domain } = req.body;
+
+            if (!name || !domain) {
+                res.status(400).json({ message: 'Datos incompletos', error: 'El nombre y el dominio de la empresa son requeridos.' });
+                return;
+            }
+
+            const company = await CompanyModel.findByPk(session.company.uuid);
+
+            if (!company) {
+                res.status(404).json({ message: 'Empresa no encontrada', error: 'Tu empresa no existe.' });
+                return;
+            }
+
+            // Vacio se guarda como null: con unique:true, dos empresas con rif:'' chocarian entre si, pero varias con null no
+            const rif = typeof req.body.rif === 'string' ? req.body.rif.trim() || null : null;
+
+            if (rif) {
+                const rif_taken = await CompanyModel.findOne({ where: { rif, uuid: { [Op.ne]: company.uuid } } });
+
+                if (rif_taken) {
+                    res.status(409).json({ message: 'RIF en uso', error: `El RIF ${rif} ya está registrado en Pásalo, verifica los datos.` });
+                    return;
+                }
+            }
+
+            company.name = name;
+            company.rif = rif;
+            company.domain = domain;
+
+            const file = (req as any).file;
+
+            if (file) {
+                const { url } = await uploadFile(file, `logos/${company.tenant_id}`, 'webp', { width: 512, height: 512, fit: 'inside' });
+                company.logo_url = url;
+            }
+
+            await company.save();
+
+            const user = await UserModel.findByPk(session.user.uuid);
+            const role = await RoleModel.findByPk(user!.role_id);
+
+            res.json({ user, role, company });
+        } catch (err) {
+            next(err);
+        }
     }
 }

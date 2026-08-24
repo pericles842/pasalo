@@ -31,7 +31,17 @@
               Crear Orden
             </button>
 
+            <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="profile"
+              routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
+              Perfil
+            </button>
+
             @if (is_admin()) {
+            <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="company"
+              routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
+              Empresa
+            </button>
+
             <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="users"
               routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
               Usuarios
