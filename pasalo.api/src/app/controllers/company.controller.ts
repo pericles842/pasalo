@@ -65,7 +65,9 @@ export class CompanyController {
         try {
             company = await CompanyModel.create({
                 name: company_data.name,
-                rif: company_data.rif,
+                // Vacio se guarda como null: con unique:true, dos empresas con
+                // rif:'' chocarian entre si, pero varias con null no
+                rif: company_data.rif?.trim() || null,
                 email: company_data.email,
                 domain: company_data.domain,
                 logo_url: company_data.logo ?? null,

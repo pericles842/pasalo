@@ -15,7 +15,7 @@
 </div>
 
 <section class="mt-10 pb-24 sm:pb-0">
-  <nb-stepper [disableStepNavigation]="false" #stepper orientation="horizontal" (stepChange)="onStepChange($event)">
+  <nb-stepper [disableStepNavigation]="true" #stepper orientation="horizontal" (stepChange)="onStepChange($event)">
 
     <!-- Step 1: Datos de la empresa -->
     <nb-step label="Informacion de empresa">
@@ -45,8 +45,8 @@
         El plan define cuántos usuarios internos podrás agregar desde tu panel.
       </p>
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        @for (plan of plans; track plan.id) {
-        <app-card-subscription-plan [plan]="plan" [isSelected]="selected_plan_index === $index"
+        @for (plan of plans(); track plan.id) {
+        <app-card-subscription-plan [plan]="plan" [isSelected]="selected_plan_index() === $index"
           (planSelected)="selectPlan($index)">
         </app-card-subscription-plan>
         }
@@ -63,8 +63,8 @@
       <div class="mt-6 hidden justify-end gap-4 sm:flex">
         <button nbButton nbStepperPrevious>Anterior</button>
         <button nbButton status="primary" (click)="continueFromPlan()" nbStepperNext
-          [disabled]="selected_plan_index === null || is_saving">
-          {{ is_saving ? 'Registrando...' : 'Siguiente' }}
+          [disabled]="selected_plan_index() === null || is_saving()">
+          {{ is_saving() ? 'Registrando...' : 'Siguiente' }}
         </button>
       </div>
     </nb-step>
@@ -83,7 +83,7 @@
           Ya puedes comenzar a explorar la plataforma. Cuando estés listo, puedes
           actualizar tu plan desde el panel de administración.
         </p>
-        <button nbButton status="success" size="large" routerLink="/login" [disabled]="!company_registered">
+        <button nbButton status="success" size="large" routerLink="/login" [disabled]="!company_registered()">
           Ir al panel
         </button>
       </div>
@@ -104,10 +104,15 @@
           </span>
         </p>
 
-        @if (company_registered) {
-        <p class="text-green-600 font-semibold">
-          ¡Listo! Tu empresa quedó registrada con el {{ selected_plan.name }}.
-        </p>
+        @if (company_registered()) {
+        <div class="flex flex-col items-start gap-4">
+          <p class="text-green-600 font-semibold m-0">
+            ¡Listo! Tu empresa quedó registrada con el {{ selected_plan.name }}.
+          </p>
+          <button nbButton status="success" size="large" routerLink="/login">
+            Ir al panel
+          </button>
+        </div>
         } @else {
         <form [formGroup]="payment_form" class="flex flex-col gap-5" (ngSubmit)="registerCompany()">
           <div class="flex flex-col gap-1">
@@ -133,8 +138,8 @@
 
           <div class="flex gap-4 justify-end mt-2">
             <button nbButton nbStepperPrevious type="button">Anterior</button>
-            <button nbButton status="primary" type="submit" [disabled]="payment_form.invalid || is_saving">
-              {{ is_saving ? 'Procesando...' : 'Confirmar pago' }}
+            <button nbButton status="primary" type="submit" [disabled]="payment_form.invalid || is_saving()">
+              {{ is_saving() ? 'Procesando...' : 'Confirmar pago' }}
             </button>
           </div>
         </form>
@@ -159,7 +164,7 @@
   }
   <button nbButton status="primary" type="button" class="flex-1" [disabled]="!canGoToNextStep()"
     (click)="goToNextStep()">
-    {{ current_step_index() === 2 && is_saving ? 'Registrando...' : 'Siguiente' }}
+    {{ current_step_index() === 2 && is_saving() ? 'Registrando...' : 'Siguiente' }}
   </button>
 </div>
 }

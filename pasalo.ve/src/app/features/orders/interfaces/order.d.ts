@@ -23,7 +23,7 @@ export interface Order {
   email_client: string;
   ci_client: string;
   phone_client: string;
-  address_client: string;
+  address_client: string | null;
   notes: string | null;
   amount: number;
   status_id: number;
@@ -97,7 +97,7 @@ export interface CreateOrderPayload {
     email: string;
     ci: string;
     phone: string;
-    address: string;
+    address: string | null;
   };
   items: OrderItem[];
   notes: string | null;

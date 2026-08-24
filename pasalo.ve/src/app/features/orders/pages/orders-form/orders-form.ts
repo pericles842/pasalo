@@ -4,23 +4,26 @@ import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } fr
 import { NbButtonModule, NbIconModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { Subscription } from 'rxjs';
+import { RouterLink } from '@angular/router';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { GeneralTitleForm } from '@shared/elements/general-title-form/general-title-form';
 import { ToastService } from '@shared/services/toast.service';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
+import { PaymentMethodsService } from 'src/app/features/payment-methods/payment-methods.service';
 import { BuyerForm, CreateOrderResponse, OrderItemForm } from '../../interfaces/order';
 import { OrdersService } from '../../orders.service';
 
 @Component({
   selector: 'app-orders-form',
-  imports: [ReactiveFormsModule, NbButtonModule, GlobalInput, NbEvaIconsModule, NbIconModule, GeneralTitleForm, BsAmountPipe],
+  imports: [ReactiveFormsModule, NbButtonModule, GlobalInput, NbEvaIconsModule, NbIconModule, GeneralTitleForm, BsAmountPipe, RouterLink],
   templateUrl: './orders-form.html',
   styleUrl: './orders-form.scss',
 })
 export class OrdersForm implements OnInit, OnDestroy {
 
   private ordersService = inject(OrdersService);
+  private paymentMethodsService = inject(PaymentMethodsService);
   private toast = inject(ToastService);
   protected exchangeRate = inject(ExchangeRateService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -28,6 +31,10 @@ export class OrdersForm implements OnInit, OnDestroy {
   private items_subscription?: Subscription;
 
   is_saving = signal(false);
+
+  /** Sin metodos de pago el cliente nunca podria pagar el link que se genera */
+  is_checking_payment_methods = signal(true);
+  has_payment_methods = signal(false);
 
   /** La orden recien creada: se muestra el link de pago para copiarlo */
   created_order = signal<CreateOrderResponse | null>(null);
@@ -38,7 +45,7 @@ export class OrdersForm implements OnInit, OnDestroy {
     email: new FormControl(null, [Validators.required, Validators.email]),
     ci: new FormControl(null, [Validators.required]),
     phone: new FormControl(null, [Validators.required]),
-    address: new FormControl(null, [Validators.required]),
+    address: new FormControl(null),
   });
 
   items = new FormArray<FormGroup<OrderItemForm>>([this.buildItem()]);
@@ -54,6 +61,21 @@ export class OrdersForm implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.items_subscription = this.items.valueChanges.subscribe(() => this.recalculateTotal());
     this.recalculateTotal();
+
+    if (!this.is_browser) return;
+
+    this.paymentMethodsService.getPaymentMethods().subscribe({
+      next: ({ methods }) => {
+        this.has_payment_methods.set(methods.length > 0);
+        this.is_checking_payment_methods.set(false);
+      },
+      error: () => {
+        // Si falla la verificacion no bloqueamos la pantalla: el backend igual
+        // rechaza la creacion si de verdad no hay metodos de pago cargados
+        this.has_payment_methods.set(true);
+        this.is_checking_payment_methods.set(false);
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -123,7 +145,7 @@ export class OrdersForm implements OnInit, OnDestroy {
           email: buyer.email!,
           ci: buyer.ci!,
           phone: buyer.phone!,
-          address: buyer.address!,
+          address: buyer.address,
         },
         items: this.items.getRawValue().map((item) => ({
           name: item.name!,

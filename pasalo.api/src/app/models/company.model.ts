@@ -9,7 +9,7 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
   declare uuid: CreationOptional<string>;
 
   declare name: string;
-  declare rif: string;
+  declare rif: CreationOptional<string | null>;
   declare email: string;
   declare tenant_id: string;
   declare domain: string;
@@ -168,10 +168,7 @@ CompanyModel.init(
     },
     rif: {
       type: DataTypes.STRING(255),
-      allowNull: false,
-      validate: {
-        notEmpty: { msg: 'El RIF es requerido' }
-      },
+      allowNull: true,
       unique: true
     },
     email: {

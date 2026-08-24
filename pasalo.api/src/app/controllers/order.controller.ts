@@ -28,7 +28,7 @@ export class OrderController {
             const tenantDb = OrderController.tenantDb(req);
             const { buyer, items, notes } = req.body;
 
-            if (!buyer?.first_name || !buyer?.last_name || !buyer?.email || !buyer?.ci || !buyer?.phone || !buyer?.address) {
+            if (!buyer?.first_name || !buyer?.last_name || !buyer?.email || !buyer?.ci || !buyer?.phone) {
                 res.status(400).json({ message: 'Datos incompletos', error: 'Completa todos los datos del comprador.' });
                 return;
             }
@@ -45,6 +45,20 @@ export class OrderController {
                 }
             }
 
+            // Sin metodos de pago el cliente nunca podria pagar el link que se genera
+            const [{ total: payment_methods_total }] = await tenantDb.query<{ total: number }>(
+                `SELECT COUNT(*) AS total FROM payment_methods WHERE company_id = :company_id`,
+                { replacements: { company_id: session.company.uuid }, type: QueryTypes.SELECT }
+            );
+
+            if (Number(payment_methods_total) === 0) {
+                res.status(409).json({
+                    message: 'Sin métodos de pago',
+                    error: 'Agrega al menos un método de pago antes de crear una orden.'
+                });
+                return;
+            }
+
             const order_id = randomUUID();
             const pay_url_token = randomUUID();
             const amount = items.reduce((total: number, item: any) => total + Number(item.price), 0);
@@ -58,7 +72,7 @@ export class OrderController {
                 email_client: buyer.email,
                 ci_client: buyer.ci,
                 phone_client: buyer.phone,
-                address_client: buyer.address,
+                address_client: buyer.address?.trim() || null,
                 notes: notes ?? null,
                 amount,
                 status_id: 1,

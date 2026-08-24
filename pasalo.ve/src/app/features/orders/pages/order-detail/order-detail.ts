@@ -1,4 +1,4 @@
-import { isPlatformBrowser } from '@angular/common';
+import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NbButtonModule, NbCardModule, NbIconModule } from '@nebular/theme';
@@ -14,7 +14,7 @@ const STATUS_LABELS: Record<number, string> = { 1: 'En espera', 2: 'Pagado', 3: 
 
 @Component({
   selector: 'app-order-detail',
-  imports: [NbCardModule, NbButtonModule, NbIconModule, NbEvaIconsModule, RouterLink, BsAmountPipe],
+  imports: [NbCardModule, NbButtonModule, NbIconModule, NbEvaIconsModule, RouterLink, BsAmountPipe, DatePipe],
   templateUrl: './order-detail.html',
 })
 export class OrderDetail implements OnInit {

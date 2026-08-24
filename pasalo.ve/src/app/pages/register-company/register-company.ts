@@ -46,7 +46,7 @@ export class RegisterCompany implements OnInit {
   company_form: FormGroup<CompanyControls> = new FormGroup<CompanyControls>({
     name: new FormControl(null, [Validators.required, Validators.minLength(5)]),
     logo: new FormControl(null),
-    rif: new FormControl(null, [Validators.required]),
+    rif: new FormControl(null),
     email: new FormControl(null, [Validators.required, Validators.email]),
     domain: new FormControl(null, [Validators.required])
   });
@@ -62,13 +62,13 @@ export class RegisterCompany implements OnInit {
     password_confirmation: new FormControl(null, [Validators.required])
   }, { validators: passwordMatchValidator() });
 
-  plans: PlanInterface[] = []
+  plans = signal<PlanInterface[]>([]);
 
-  selected_plan_index: number | null = null;
+  selected_plan_index = signal<number | null>(null);
 
-  is_saving = false;
+  is_saving = signal(false);
 
-  company_registered = false;
+  company_registered = signal(false);
 
   @ViewChild('stepper') stepper!: NbStepperComponent;
 
@@ -99,7 +99,7 @@ export class RegisterCompany implements OnInit {
     switch (this.current_step_index()) {
       case 0: return !this.company_form.invalid;
       case 1: return !this.company_user.invalid;
-      case 2: return this.selected_plan_index !== null && !this.is_saving;
+      case 2: return this.selected_plan_index() !== null && !this.is_saving();
       default: return true;
     }
   }
@@ -111,7 +111,8 @@ export class RegisterCompany implements OnInit {
   }
 
   get selected_plan() {
-    return this.selected_plan_index !== null ? this.plans[this.selected_plan_index] : null;
+    const index = this.selected_plan_index();
+    return index !== null ? this.plans()[index] : null;
   }
 
   get is_free_plan(): boolean {
@@ -119,11 +120,11 @@ export class RegisterCompany implements OnInit {
   }
 
   selectPlan(index: number): void {
-    this.selected_plan_index = index;
+    this.selected_plan_index.set(index);
   }
 
   ngOnInit() {
-    this.planService.getFullPlan().subscribe((plans) => this.plans = plans)
+    this.planService.getFullPlan().subscribe((plans) => this.plans.set(plans));
   }
 
   /**
@@ -135,7 +136,7 @@ export class RegisterCompany implements OnInit {
   }
 
   registerCompany(): void {
-    if (!this.selected_plan || this.is_saving || this.company_registered) return;
+    if (!this.selected_plan || this.is_saving() || this.company_registered()) return;
 
     this.company_form.markAllAsTouched();
     this.company_user.markAllAsTouched();
@@ -145,18 +146,18 @@ export class RegisterCompany implements OnInit {
       return;
     }
 
-    this.is_saving = true;
+    this.is_saving.set(true);
 
     this.companyService
       .createCompany(this.company_form.getRawValue(), this.company_user.getRawValue(), this.selected_plan.id)
       .subscribe({
         next: () => {
-          this.company_registered = true;
-          this.is_saving = false;
+          this.company_registered.set(true);
+          this.is_saving.set(false);
         },
         error: (err) => {
           this.toast.error(err?.error?.error ?? 'No pudimos registrar la empresa, intenta nuevamente.');
-          this.is_saving = false;
+          this.is_saving.set(false);
         }
       });
   }

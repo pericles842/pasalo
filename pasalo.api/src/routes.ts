@@ -12,6 +12,7 @@ import { ExchangeRateController } from './app/controllers/exchange_rate.controll
 import { NotificationController } from './app/controllers/notification.controller';
 import { jwtMiddleware } from './middlewares/jwtMiddleware';
 import { tenantMiddleware } from './middlewares/tenantMiddleware';
+import { internalTokenMiddleware } from './middlewares/internalTokenMiddleware';
 import { upload } from './middlewares/upload';
 
 const router = Router();
@@ -28,6 +29,8 @@ router.get('/plans', PlansController.getAllPlans);
 
 //*Tasa de cambio (BCV / paralelo)
 router.get('/exchange-rate', ExchangeRateController.getRates);
+// La ejecuta un demonio externo cada cierto tiempo, no el frontend
+router.post('/exchange-rate/sync', internalTokenMiddleware, ExchangeRateController.sync);
 
 //*Company
 router.post('/company', CompanyController.registerCompanyProcess);
