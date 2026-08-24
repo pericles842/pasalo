@@ -99,8 +99,18 @@
       <nb-card-header>Comprobante de pago</nb-card-header>
       <nb-card-body>
         @if (result.order.receipt_url) {
-        <img [src]="result.order.receipt_url" alt="Comprobante"
-          class="w-full rounded-lg border border-gray-100 object-contain" />
+        <button type="button"
+          class="group relative block w-full cursor-zoom-in overflow-hidden rounded-lg border border-gray-100 p-0"
+          (click)="openReceiptViewer()" aria-label="Ver comprobante en grande" title="Ver comprobante en grande">
+          <img [src]="result.order.receipt_url" alt="Comprobante" class="w-full object-contain" />
+          <span
+            class="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/30">
+            <span
+              class="grid h-11 w-11 place-items-center rounded-full bg-white/90 opacity-0 shadow transition-opacity group-hover:opacity-100">
+              <nb-icon icon="search-outline" status="basic"></nb-icon>
+            </span>
+          </span>
+        </button>
 
         <div class="mt-4 flex flex-col gap-2 text-sm">
           <div class="flex justify-between">
@@ -140,6 +150,19 @@
             (click)="confirmPayment()" title="Confirmar que este pago es válido a pesar de la diferencia detectada">
             <nb-icon icon="checkmark-outline"></nb-icon>
             {{ is_confirming() ? 'Confirmando...' : 'Confirmar pago' }}
+          </button>
+        </div>
+        }
+
+        @if (result.order.status_id === 2) {
+        <div class="mt-4 flex flex-col gap-3 rounded-lg bg-blue-50 px-4 py-3">
+          <span class="text-sm font-semibold text-blue-800">
+            Revisa el comprobante y verifica que el pago sea correcto
+          </span>
+          <button nbButton size="small" status="success" type="button" class="self-start" [disabled]="is_verifying()"
+            (click)="verifyPayment()" title="Marcar este pago como verificado">
+            <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
+            {{ is_verifying() ? 'Verificando...' : 'Verificar pago' }}
           </button>
         </div>
         }

@@ -113,7 +113,8 @@ export class PublicOrderController {
                 return;
             }
 
-            if (order.status_id === 2) {
+            // 2 = pagado, 5 = verificado por el vendedor
+            if (order.status_id === 2 || order.status_id === 5) {
                 res.status(409).json({ message: 'Ya pagado', error: 'Esta orden ya tiene un comprobante registrado.' });
                 return;
             }

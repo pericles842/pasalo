@@ -3,7 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 export interface OrderStatus {
   id: number;
   name: string;
-  slug: 'pendiente' | 'pagado' | 'atrasado' | 'rechazado';
+  slug: 'pendiente' | 'pagado' | 'atrasado' | 'rechazado' | 'verificado';
   description: string | null;
 }
 

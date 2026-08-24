@@ -5,6 +5,7 @@ import { NbButtonModule, NbCardModule } from '@nebular/theme';
 import { CardSubscriptionPlanComponent } from '@shared/components/card-subscription-plan/card-subscription-plan';
 import { passwordMatchValidator } from '@shared/validators/password-match.validator';
 import { ToastService } from '@shared/services/toast.service';
+import { ConfirmService } from '@shared/services/confirm.service';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { PlanInterface } from 'src/app/services/http/plan/plan';
 import { PlanService } from 'src/app/services/http/plan/plan.service';
@@ -29,6 +30,7 @@ export class UsersPage implements OnInit {
   private planService = inject(PlanService);
   private auth = inject(AuthService);
   private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   // Estado en signals: la app corre en zoneless y asi la vista se refresca sola
@@ -146,22 +148,27 @@ export class UsersPage implements OnInit {
   deleteUser(user: CompanyUser): void {
     if (this.deleting_uuid()) return;
 
-    const confirmed = confirm(`¿Eliminar a ${user.first_name} ${user.middle_name ?? ''}? Esta acción no se puede deshacer.`);
-    if (!confirmed) return;
+    this.confirm.ask({
+      title: 'Eliminar usuario',
+      message: `¿Eliminar a ${user.first_name} ${user.middle_name ?? ''}? Esta acción no se puede deshacer.`,
+      confirmLabel: 'Eliminar',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
 
-    this.deleting_uuid.set(user.uuid);
+      this.deleting_uuid.set(user.uuid);
 
-    this.usersService.deleteUser(user.uuid).subscribe({
-      next: (response) => {
-        this.deleting_uuid.set(null);
-        this.users.update((users) => users.filter((u) => u.uuid !== user.uuid));
-        this.usage.set(response.usage);
-        this.toast.success(`${user.first_name} fue eliminado de la empresa.`);
-      },
-      error: (err) => {
-        this.deleting_uuid.set(null);
-        this.toast.error(err?.error?.error ?? 'No pudimos eliminar el usuario.');
-      }
+      this.usersService.deleteUser(user.uuid).subscribe({
+        next: (response) => {
+          this.deleting_uuid.set(null);
+          this.users.update((users) => users.filter((u) => u.uuid !== user.uuid));
+          this.usage.set(response.usage);
+          this.toast.success(`${user.first_name} fue eliminado de la empresa.`);
+        },
+        error: (err) => {
+          this.deleting_uuid.set(null);
+          this.toast.error(err?.error?.error ?? 'No pudimos eliminar el usuario.');
+        }
+      });
     });
   }
 

@@ -7,6 +7,7 @@ import { AuthService } from 'src/app/features/auth/auth.service';
 import { UsersService } from 'src/app/features/users/users.service';
 import { CompanyUser } from 'src/app/features/users/interfaces/company-user';
 import { ToastService } from '@shared/services/toast.service';
+import { ConfirmService } from '@shared/services/confirm.service';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
 import { OrderPaidNotification, SocketService } from 'src/app/features/notifications/socket.service';
@@ -25,6 +26,7 @@ export class OrdersList implements OnInit, OnDestroy {
   protected auth = inject(AuthService);
   protected exchangeRate = inject(ExchangeRateService);
   private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
   private socket = inject(SocketService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
@@ -135,13 +137,26 @@ export class OrdersList implements OnInit, OnDestroy {
     return this.statusMap().get(status_id)?.name ?? '—';
   }
 
+  /**
+   * "Verificado" solo se puede elegir desde el selector si la orden ya esta
+   * en "Pagado" (o ya esta verificada, para que la opcion actual siga
+   * apareciendo). Nunca se ofrece saltar directo desde En espera/Atrasado/
+   * Rechazado: eso solo se hace a mano desde la pantalla de la orden.
+   */
+  selectableStatuses(order: Order): OrderStatus[] {
+    return this.statuses().filter(
+      (status) => status.id !== this.VERIFIED_STATUS_ID || order.status_id === 2 || order.status_id === this.VERIFIED_STATUS_ID
+    );
+  }
+
   /** Fondo del renglon: sospechoso manda; si no, depende del estado */
   rowClass(order: Order): string {
     if (order.is_suspicious && order.status_id === 1) return 'bg-amber-50';
 
     switch (order.status_id) {
-      case 2: return 'bg-green-50';
+      case 2: return 'bg-blue-50';
       case 4: return 'bg-red-50';
+      case 5: return 'bg-green-50';
       default: return '';
     }
   }
@@ -151,8 +166,9 @@ export class OrdersList implements OnInit, OnDestroy {
     if (order.is_suspicious && order.status_id === 1) return 'text-amber-800';
 
     switch (order.status_id) {
-      case 2: return 'text-green-800';
+      case 2: return 'text-blue-800';
       case 4: return 'text-red-800';
+      case 5: return 'text-green-800';
       default: return '';
     }
   }
@@ -162,9 +178,28 @@ export class OrdersList implements OnInit, OnDestroy {
     return order.payment_method_type === 'pagomovil' || order.payment_method_type === 'transferencia';
   }
 
+  /** Pasar a "Verificado" (id 5) es sensible: no se puede deshacer desde aca */
+  private readonly VERIFIED_STATUS_ID = 5;
+
   changeStatus(order: Order, status_id: number): void {
     if (status_id === order.status_id) return;
 
+    if (status_id === this.VERIFIED_STATUS_ID) {
+      this.confirm.ask({
+        title: 'Verificar pago',
+        message: `¿Confirmas que verificaste el pago de ${order.first_name_client} ${order.last_name_client}? Esta acción no se puede deshacer.`,
+        confirmLabel: 'Verificar pago',
+        status: 'success',
+      }).subscribe((confirmed) => {
+        if (confirmed) this.applyStatusChange(order, status_id);
+      });
+      return;
+    }
+
+    this.applyStatusChange(order, status_id);
+  }
+
+  private applyStatusChange(order: Order, status_id: number): void {
     this.updating_order_id.set(order.id);
 
     this.ordersService.updateStatus(order.id, status_id).subscribe({

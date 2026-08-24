@@ -37,8 +37,11 @@ export class PublicPayment implements OnInit {
   submitted = signal(false);
   extracted_reference = signal<string | null>(null);
 
-  /** El pago ya fue registrado antes de que este cliente entrara al link */
-  already_paid = computed(() => this.summary()?.order.status_id === 2);
+  /** El pago ya fue registrado antes de que este cliente entrara al link (2 = pagado, 5 = verificado) */
+  already_paid = computed(() => {
+    const status_id = this.summary()?.order.status_id;
+    return status_id === 2 || status_id === 5;
+  });
 
   can_submit = computed(() => !!this.selected_method_id() && !!this.receipt_file() && !this.is_submitting());
 

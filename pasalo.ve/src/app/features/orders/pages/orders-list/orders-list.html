@@ -99,7 +99,7 @@
                 <nb-select size="tiny" [selected]="order.status_id" scrollStrategy="reposition"
                   [disabled]="updating_order_id() === order.id"
                   (selectedChange)="changeStatus(order, $event)">
-                  @for (status of statuses(); track status.id) {
+                  @for (status of selectableStatuses(order); track status.id) {
                   <nb-option [value]="status.id">{{ status.name }}</nb-option>
                   }
                 </nb-select>
@@ -114,11 +114,11 @@
                     Confirmar pago
                   </button>
                   }
-                  <button nbButton size="tiny" [appearance]="order.status_id === 2 ? 'outline' : 'ghost'"
-                    [status]="order.status_id === 2 ? 'primary' : 'basic'" type="button"
+                  <button nbButton size="tiny" [appearance]="order.status_id === 2 || order.status_id === 5 ? 'outline' : 'ghost'"
+                    [status]="order.status_id === 2 || order.status_id === 5 ? 'primary' : 'basic'" type="button"
                     [routerLink]="['/dashboard', order.id]"
-                    [attr.aria-label]="order.status_id === 2 ? 'Ver comprobante' : 'Ver orden'"
-                    [title]="order.status_id === 2 ? 'Ver comprobante y referencia' : 'Ver orden'">
+                    [attr.aria-label]="order.status_id === 2 || order.status_id === 5 ? 'Ver comprobante' : 'Ver orden'"
+                    [title]="order.status_id === 2 || order.status_id === 5 ? 'Ver comprobante y referencia' : 'Ver orden'">
                     <nb-icon icon="eye-outline"></nb-icon>
                   </button>
                 </div>

@@ -5,6 +5,7 @@ import { NbButtonModule, NbCardModule, NbSelectModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { CardSubscriptionPlanComponent } from '@shared/components/card-subscription-plan/card-subscription-plan';
 import { ToastService } from '@shared/services/toast.service';
+import { ConfirmService } from '@shared/services/confirm.service';
 import { PlanInterface } from 'src/app/services/http/plan/plan';
 import { PlanService } from 'src/app/services/http/plan/plan.service';
 import {
@@ -40,6 +41,7 @@ export class PaymentMethodsPage implements OnInit {
   private paymentMethodsService = inject(PaymentMethodsService);
   private planService = inject(PlanService);
   private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   methods = signal<PaymentMethod[]>([]);
@@ -210,9 +212,16 @@ export class PaymentMethodsPage implements OnInit {
   remove(method: PaymentMethod): void {
     if (this.deleting_id()) return;
 
-    const confirmed = confirm(`¿Eliminar "${method.name}"? Los clientes ya no podrán elegirlo para pagar.`);
-    if (!confirmed) return;
+    this.confirm.ask({
+      title: 'Eliminar método de pago',
+      message: `¿Eliminar "${method.name}"? Los clientes ya no podrán elegirlo para pagar.`,
+      confirmLabel: 'Eliminar',
+    }).subscribe((confirmed) => {
+      if (confirmed) this.doRemove(method);
+    });
+  }
 
+  private doRemove(method: PaymentMethod): void {
     this.deleting_id.set(method.id);
 
     this.paymentMethodsService.deletePaymentMethod(method.id).subscribe({

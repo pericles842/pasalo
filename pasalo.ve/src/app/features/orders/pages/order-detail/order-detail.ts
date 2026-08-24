@@ -1,16 +1,18 @@
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { NbButtonModule, NbCardModule, NbIconModule } from '@nebular/theme';
+import { NbButtonModule, NbCardModule, NbDialogService, NbIconModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { ToastService } from '@shared/services/toast.service';
+import { ConfirmService } from '@shared/services/confirm.service';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
+import { ImageViewerDialog } from '@shared/components/image-viewer-dialog/image-viewer-dialog';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { OrderDetail as OrderDetailModel } from '../../interfaces/order';
 import { OrdersService } from '../../orders.service';
 
-const STATUS_LABELS: Record<number, string> = { 1: 'En espera', 2: 'Pagado', 3: 'Atrasado', 4: 'Rechazado' };
+const STATUS_LABELS: Record<number, string> = { 1: 'En espera', 2: 'Pagado', 3: 'Atrasado', 4: 'Rechazado', 5: 'Verificado' };
 
 @Component({
   selector: 'app-order-detail',
@@ -22,12 +24,15 @@ export class OrderDetail implements OnInit {
   private route = inject(ActivatedRoute);
   private ordersService = inject(OrdersService);
   private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
+  private dialogService = inject(NbDialogService);
   private auth = inject(AuthService);
   protected exchangeRate = inject(ExchangeRateService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   is_loading = signal(true);
   is_confirming = signal(false);
+  is_verifying = signal(false);
   data = signal<OrderDetailModel | null>(null);
 
   ngOnInit(): void {
@@ -54,9 +59,10 @@ export class OrderDetail implements OnInit {
 
   statusBadgeClass(status_id: number): string {
     switch (status_id) {
-      case 2: return 'bg-green-100 text-green-700';
+      case 2: return 'bg-blue-100 text-blue-700';
       case 3: return 'bg-orange-100 text-orange-700';
       case 4: return 'bg-red-100 text-red-700';
+      case 5: return 'bg-green-100 text-green-700';
       default: return 'bg-amber-100 text-amber-700';
     }
   }
@@ -96,6 +102,53 @@ export class OrderDetail implements OnInit {
         this.is_confirming.set(false);
         this.toast.error(err?.error?.error ?? 'No pudimos confirmar el pago.');
       }
+    });
+  }
+
+  /**
+   * Segundo chequeo del vendedor sobre un pago ya marcado como "Pagado":
+   * pasa a "Verificado". Es un proceso sensible (no se puede deshacer desde
+   * la pantalla), por eso pide confirmación antes de aplicarlo.
+   */
+  verifyPayment(): void {
+    const order = this.data()?.order;
+    if (!order || this.is_verifying()) return;
+
+    this.confirm.ask({
+      title: 'Verificar pago',
+      message: `¿Confirmas que verificaste el pago de ${order.first_name_client} ${order.last_name_client}? Esta acción no se puede deshacer.`,
+      confirmLabel: 'Verificar pago',
+      status: 'success',
+    }).subscribe((confirmed) => {
+      if (confirmed) this.doVerifyPayment(order.id);
+    });
+  }
+
+  private doVerifyPayment(order_id: string): void {
+    this.is_verifying.set(true);
+
+    this.ordersService.updateStatus(order_id, 5).subscribe({
+      next: () => {
+        this.is_verifying.set(false);
+        this.data.update((current) => current && { ...current, order: { ...current.order, status_id: 5 } });
+        this.toast.success('Pago verificado.');
+      },
+      error: (err) => {
+        this.is_verifying.set(false);
+        this.toast.error(err?.error?.error ?? 'No pudimos verificar el pago.');
+      }
+    });
+  }
+
+  /** Abre el comprobante en un visor con zoom, rotacion y arrastre */
+  openReceiptViewer(): void {
+    const url = this.data()?.order?.receipt_url;
+    if (!url) return;
+
+    this.dialogService.open(ImageViewerDialog, {
+      context: { src: url, alt: 'Comprobante de pago' },
+      closeOnBackdropClick: true,
+      hasScroll: false,
     });
   }
 }

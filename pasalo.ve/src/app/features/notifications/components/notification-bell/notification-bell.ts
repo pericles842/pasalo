@@ -6,6 +6,7 @@ import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
 import { ToastService } from '@shared/services/toast.service';
+import { ConfirmService } from '@shared/services/confirm.service';
 import { AppNotification } from '../../interfaces/notification';
 import { NotificationsService } from '../../notifications.service';
 import { OrderPaidNotification, SocketService } from '../../socket.service';
@@ -22,6 +23,7 @@ export class NotificationBell implements OnInit, OnDestroy {
   private notificationsService = inject(NotificationsService);
   private socket = inject(SocketService);
   private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
   protected exchangeRate = inject(ExchangeRateService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
@@ -79,15 +81,20 @@ export class NotificationBell implements OnInit, OnDestroy {
     event.stopPropagation();
     if (this.notifications().length === 0) return;
 
-    const confirmed = confirm('¿Eliminar todas tus notificaciones? Esta acción no se puede deshacer.');
-    if (!confirmed) return;
+    this.confirm.ask({
+      title: 'Eliminar notificaciones',
+      message: '¿Eliminar todas tus notificaciones? Esta acción no se puede deshacer.',
+      confirmLabel: 'Eliminar todas',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
 
-    this.notificationsService.deleteAll().subscribe({
-      next: () => {
-        this.notifications.set([]);
-        this.toast.success('Notificaciones eliminadas.');
-      },
-      error: (err) => this.toast.error(err?.error?.error ?? 'No pudimos eliminar las notificaciones.')
+      this.notificationsService.deleteAll().subscribe({
+        next: () => {
+          this.notifications.set([]);
+          this.toast.success('Notificaciones eliminadas.');
+        },
+        error: (err) => this.toast.error(err?.error?.error ?? 'No pudimos eliminar las notificaciones.')
+      });
     });
   }
 }
