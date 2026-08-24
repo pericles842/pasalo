@@ -1,8 +1,19 @@
-<header
-  class="flex items-center justify-between gap-3 px-3 py-3 transition-[background-color,box-shadow] duration-200 sm:gap-4 sm:px-6 lg:px-8"
-  [class]="is_scrolled() ? 'bg-white/65 shadow-sm shadow-blue-900/5 backdrop-blur-md' : 'bg-transparent'">
+<header class="relative flex items-center justify-between gap-3 px-3 py-3 sm:gap-4 sm:px-6 lg:px-8">
 
-  <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+  <!--
+    El glass va en su propia capa y no como clases del <header>. Asi el
+    backdrop-filter esta siempre presente en el arbol y solo se le anima la
+    opacidad: el navegador no tiene que crear y destruir la capa de composicion
+    cada vez (que es lo que hacia vibrar el header en telefono) y la transicion
+    la resuelve el compositor sola. Es hermana del contenido, no ancestro, para
+    no volverse contenedor de los `fixed` que viven adentro (el panel de
+    notificaciones) ni desenfocar el texto del header.
+  -->
+  <div aria-hidden="true"
+    class="pointer-events-none absolute inset-0 bg-white/65 shadow-sm shadow-blue-900/5 backdrop-blur-md transition-opacity duration-200"
+    [class]="is_pinned() ? 'opacity-100' : 'opacity-0'"></div>
+
+  <div class="relative flex min-w-0 items-center gap-2 sm:gap-3">
     <button class="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-lg text-blue-600 lg:hidden"
       type="button" aria-label="Abrir menú" (click)="menuToggle.emit()">
       <nb-icon icon="menu-2-outline" [options]="{ width: 22, height: 22 }"></nb-icon>
@@ -18,7 +29,7 @@
     </div>
   </div>
 
-  <div class="flex shrink-0 items-center gap-1.5 sm:gap-3">
+  <div class="relative flex shrink-0 items-center gap-1.5 sm:gap-3">
 
     <span class="hidden h-8 w-8 shrink-0 items-center justify-center sm:flex">
       <img src="/pasalo-logo.png" alt="Pásalo" class="h-full w-full object-contain" />

@@ -1,14 +1,10 @@
-import { isPlatformBrowser } from '@angular/common';
-import { Component, DestroyRef, EventEmitter, Output, PLATFORM_ID, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, EventEmitter, Output, afterNextRender, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { NbButtonModule, NbIconModule, NbTooltipModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { NotificationBell } from 'src/app/features/notifications/components/notification-bell/notification-bell';
 import { Avatar } from '@shared/components/avatar/avatar';
-
-/** Pixeles de scroll a partir de los cuales el header deja de ser transparente */
-const SCROLL_THRESHOLD = 8;
 
 @Component({
   selector: 'app-header-dashboard',
@@ -24,36 +20,36 @@ export class HeaderDashboard {
 
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
-  private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
+  private host = inject(ElementRef<HTMLElement>);
 
   /** El menu lateral en modo telefono vive en el Dashboard; aca solo se avisa */
   @Output() menuToggle = new EventEmitter<void>();
 
-  is_scrolled = signal(false);
+  /** El header dejo de estar en su sitio y quedo anclado arriba: recien ahi va el glass */
+  is_pinned = signal(false);
 
   constructor() {
-    if (!this.is_browser) return;
+    // No se escucha el scroll a proposito. Lo que interesa no es cuanto se bajo,
+    // sino el momento exacto en que el sticky se despega de su lugar y queda
+    // anclado arriba, y eso el navegador lo puede avisar solo.
+    //
+    // El truco: se observa el propio header contra un viewport recortado 1px
+    // desde arriba (rootMargin). Mientras esta en su sitio se ve entero
+    // (ratio 1); apenas se ancla en top:0 ese 1px lo tapa y el ratio baja de 1.
+    //
+    // Frente a un listener de scroll esto es mejor en telefono por dos razones:
+    // el navegador lo resuelve fuera del camino del scroll (no hay trabajo por
+    // frame), y como la app es zoneless, el callback nativo no dispara change
+    // detection: solo la dispara el signal, que cambia dos veces y no mas.
+    afterNextRender(() => {
+      const observer = new IntersectionObserver(
+        ([entry]) => this.is_pinned.set(entry.intersectionRatio < 1),
+        { threshold: [1], rootMargin: '-1px 0px 0px 0px' },
+      );
 
-    // El listener se registra a mano (y no con @HostListener) a proposito: la app
-    // es zoneless, y un host listener le avisa al scheduler en *cada* evento de
-    // scroll, disparando change detection decenas de veces por segundo. Un
-    // listener nativo no notifica nada; solo lo hace el signal, y como `set` con
-    // el mismo valor no emite, la CD corre unicamente en los dos cambios reales.
-    // El rAF ademas limita la lectura de scrollY a una por frame.
-    let ticking = false;
-
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-
-      requestAnimationFrame(() => {
-        ticking = false;
-        this.is_scrolled.set(window.scrollY > SCROLL_THRESHOLD);
-      });
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    this.destroyRef.onDestroy(() => window.removeEventListener('scroll', onScroll));
+      observer.observe(this.host.nativeElement);
+      this.destroyRef.onDestroy(() => observer.disconnect());
+    });
   }
 
   logout(): void {
