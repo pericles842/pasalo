@@ -14,4 +14,7 @@ export class Avatar {
   @Input() initialsText = '';
   @Input() sizeClass = 'h-9 w-9 text-sm';
   @Input() bubbleClass = 'bg-white text-blue-700';
+  /** 'rounded-full' da la burbuja circular de siempre; otras clases (ej. 'rounded-lg') para logos sin recortar */
+  @Input() shapeClass = 'rounded-full';
+  @Input() fitClass = 'object-cover';
 }

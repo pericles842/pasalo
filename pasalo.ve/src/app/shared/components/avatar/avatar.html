@@ -1,7 +1,7 @@
 @if (photoUrl) {
-<img [src]="photoUrl" alt="" class="{{ sizeClass }} shrink-0 rounded-full object-cover" />
+<img [src]="photoUrl" alt="" class="{{ sizeClass }} {{ shapeClass }} {{ fitClass }} shrink-0" />
 } @else {
-<span class="{{ sizeClass }} {{ bubbleClass }} flex shrink-0 items-center justify-center rounded-full font-semibold">
+<span class="{{ sizeClass }} {{ bubbleClass }} {{ shapeClass }} flex shrink-0 items-center justify-center font-semibold">
   {{ initialsText }}
 </span>
 }
