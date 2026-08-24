@@ -1,0 +1,55 @@
+<section class="flex flex-col gap-6">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div class="flex flex-col gap-1">
+      <span class="text-xl font-bold text-slate-900">Estadísticas</span>
+      <span class="text-sm text-gray-500">Resumen de ventas, clientes y equipo de la empresa.</span>
+    </div>
+
+    <div class="flex flex-wrap items-end gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-gray-600">Desde</label>
+        <input type="date" [value]="date_from() ?? ''" (change)="onDateFromChange($event)"
+          class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm" />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-gray-600">Hasta</label>
+        <input type="date" [value]="date_to() ?? ''" (change)="onDateToChange($event)"
+          class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm" />
+      </div>
+
+      @if (date_from() || date_to()) {
+      <button nbButton size="small" status="basic" appearance="outline" type="button" (click)="clearFilter()">
+        Quitar filtro
+      </button>
+      }
+    </div>
+  </div>
+
+  @if (is_loading()) {
+  <p class="m-0 text-sm text-gray-500">Cargando estadísticas...</p>
+  } @else if (stats(); as s) {
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <app-stat-card label="Total de ventas" [value]="(s.total_ventas | currency: 'USD' : 'symbol' : '1.2-2') ?? '$0.00'"
+      icon="trending-up-outline" iconBgClass="bg-green-50 text-green-600" />
+
+    <app-stat-card label="Total de clientes" [value]="(s.total_clientes | number) ?? '0'" icon="people-outline"
+      iconBgClass="bg-blue-50 text-blue-600" />
+
+    <app-stat-card label="Total de órdenes" [value]="(s.total_ordenes | number) ?? '0'" icon="shopping-bag-outline"
+      iconBgClass="bg-indigo-50 text-indigo-600" />
+
+    <app-stat-card label="Órdenes rechazadas" [value]="(s.total_rechazadas | number) ?? '0'" icon="close-circle-outline"
+      iconBgClass="bg-red-50 text-red-600" />
+
+    <app-stat-card label="Órdenes completadas" [value]="(s.total_completadas | number) ?? '0'"
+      icon="checkmark-circle-2-outline" iconBgClass="bg-green-50 text-green-600" />
+
+    <app-stat-card label="Vendedores con completadas" [value]="(s.total_vendedores_completadas | number) ?? '0'"
+      icon="award-outline" iconBgClass="bg-amber-50 text-amber-600" />
+
+    <app-stat-card label="Métodos de pago" [value]="(s.payment_methods_count | number) ?? '0'" icon="credit-card-outline"
+      iconBgClass="bg-blue-50 text-blue-600" />
+  </div>
+  }
+</section>

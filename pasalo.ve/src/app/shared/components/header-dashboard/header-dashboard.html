@@ -1,38 +1,44 @@
-<header class="flex items-center justify-between gap-2 px-3 py-2.5 text-white shadow-blue-900/15 sm:gap-4 sm:px-4 sm:py-3">
+<header
+  class="flex items-center justify-between gap-3 px-3 py-3 transition-[background-color,box-shadow] duration-200 sm:gap-4 sm:px-6 lg:px-8"
+  [class]="is_scrolled() ? 'bg-white/65 shadow-sm shadow-blue-900/5 backdrop-blur-md' : 'bg-transparent'">
+
   <div class="flex min-w-0 items-center gap-2 sm:gap-3">
-    <button class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-primary cursor-pointer lg:hidden" type="button"
-      aria-label="Abrir menú" (click)="menuToggle.emit()">
+    <button class="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-lg text-blue-600 lg:hidden"
+      type="button" aria-label="Abrir menú" (click)="menuToggle.emit()">
       <nb-icon icon="menu-2-outline" [options]="{ width: 22, height: 22 }"></nb-icon>
     </button>
 
     <div class="flex min-w-0 items-center gap-2.5">
       <app-avatar class="hidden sm:block" [photoUrl]="auth.session()?.company?.logo_url ?? null"
         [initialsText]="auth.company_initials()" sizeClass="h-10 w-10 text-base sm:h-11 sm:w-11"
-        shapeClass="rounded-lg" fitClass="object-contain" bubbleClass="bg-white text-blue-700"></app-avatar>
-      <h1 class="min-w-0 truncate text-sm font-semibold sm:text-base">{{ auth.session()?.company?.name ?? 'Pásalo' }}</h1>
+        shapeClass="rounded-lg" fitClass="object-contain" bubbleClass="bg-blue-600 text-white"></app-avatar>
+      <h1 class="min-w-0 truncate text-sm font-semibold text-slate-900 sm:text-base">
+        {{ auth.session()?.company?.name ?? 'Pásalo' }}
+      </h1>
     </div>
   </div>
 
-  <div class="flex shrink-0 items-center gap-1.5 rounded-2xl bg-blue/12 px-2 py-1.5 sm:gap-3 sm:px-3 sm:py-2.5">
+  <div class="flex shrink-0 items-center gap-1.5 sm:gap-3">
 
-    <span class="hidden h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white p-1 sm:flex">
+    <span class="hidden h-8 w-8 shrink-0 items-center justify-center sm:flex">
       <img src="/pasalo-logo.png" alt="Pásalo" class="h-full w-full object-contain" />
     </span>
 
     <app-notification-bell></app-notification-bell>
 
-    <span class="hidden h-8 w-px bg-white/20 sm:block"></span>
+    <span class="hidden h-8 w-px bg-slate-200 sm:block"></span>
 
     <div class="hidden leading-tight sm:flex sm:flex-col sm:items-end">
-      <p class="text-sm font-semibold">{{ auth.full_name() }}</p>
-      <p class="text-xs text-blue-100">{{ auth.session()?.role?.name }}</p>
+      <p class="text-sm font-semibold text-slate-900">{{ auth.full_name() }}</p>
+      <p class="text-xs text-slate-500">{{ auth.session()?.role?.name }}</p>
     </div>
 
-    <app-avatar [photoUrl]="auth.session()?.user?.photo_url ?? null" [initialsText]="auth.initials()"></app-avatar>
+    <app-avatar [photoUrl]="auth.session()?.user?.photo_url ?? null" [initialsText]="auth.initials()"
+      bubbleClass="bg-blue-600 text-white"></app-avatar>
 
-    <span class="hidden h-8 w-px bg-white/20 sm:block"></span>
+    <span class="hidden h-8 w-px bg-slate-200 sm:block"></span>
 
-    <button nbButton size="small" shape="round" appearance="ghost" status="danger"  (click)="logout()" aria-label="Salir"
+    <button nbButton size="small" shape="round" appearance="ghost" status="danger" (click)="logout()" aria-label="Salir"
       nbTooltip="Salir" nbTooltipStatus="danger" nbTooltipPlacement="bottom">
       <nb-icon icon="power-outline" [options]="{ width: 18, height: 18 }"></nb-icon>
     </button>

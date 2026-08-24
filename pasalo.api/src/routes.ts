@@ -54,6 +54,8 @@ router.delete('/company/payment-methods/:id', authTenant, PaymentMethodControlle
 router.get('/order-statuses', jwtMiddleware, OrderStatusController.listStatuses);
 router.get('/orders', authTenant, OrderController.list);
 router.post('/orders', authTenant, OrderController.create);
+// Antes de /orders/:id: si no, Express lo confunde con un id
+router.get('/orders/stats', authTenant, OrderController.stats);
 router.get('/orders/:id', authTenant, OrderController.getById);
 router.put('/orders/:id/status', authTenant, OrderController.updateStatus);
 

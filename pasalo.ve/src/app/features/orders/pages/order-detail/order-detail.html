@@ -20,7 +20,13 @@
   <div class="flex flex-col gap-6">
     <!-- Comprador -->
     <nb-card class="m-0">
-      <nb-card-header>Datos del comprador</nb-card-header>
+      <nb-card-header class="flex items-center justify-between gap-3">
+        <span>Datos del comprador</span>
+        <button nbButton size="tiny" appearance="outline" status="primary" type="button" (click)="copyBuyerData()"
+          aria-label="Copiar datos del comprador" nbTooltip="Copiar datos del comprador" nbTooltipPlacement="left">
+          <nb-icon icon="copy-outline"></nb-icon>
+        </button>
+      </nb-card-header>
       <nb-card-body>
         <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
           <div class="flex flex-col gap-0.5">
@@ -52,7 +58,13 @@
 
     <!-- Productos -->
     <nb-card class="m-0">
-      <nb-card-header>Productos</nb-card-header>
+      <nb-card-header class="flex items-center justify-between gap-3">
+        <span>Productos</span>
+        <button nbButton size="tiny" appearance="outline" status="primary" type="button" (click)="copyProductsData()"
+          aria-label="Copiar productos" nbTooltip="Copiar productos" nbTooltipPlacement="left">
+          <nb-icon icon="copy-outline"></nb-icon>
+        </button>
+      </nb-card-header>
       <nb-card-body>
         <table class="w-full border-collapse text-left text-sm">
           <thead>

@@ -19,6 +19,16 @@ export interface PaginatedOrders {
   total_pages: number;
 }
 
+export interface OrderStats {
+  total_ventas: number;
+  total_clientes: number;
+  total_ordenes: number;
+  total_rechazadas: number;
+  total_completadas: number;
+  total_vendedores_completadas: number;
+  payment_methods_count: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OrdersService {
 
@@ -43,6 +53,15 @@ export class OrdersService {
 
   getStatuses(): Observable<OrderStatus[]> {
     return this.http.get<OrderStatus[]>(`${environment.host}/order-statuses`);
+  }
+
+  /** Tarjetas informativas del admin. Sin fechas, trae el historico completo. */
+  getStats(date_from?: string | null, date_to?: string | null): Observable<OrderStats> {
+    let params = new HttpParams();
+    if (date_from) params = params.set('date_from', date_from);
+    if (date_to) params = params.set('date_to', date_to);
+
+    return this.http.get<OrderStats>(`${environment.host}/orders/stats`, { params });
   }
 
   createOrder(payload: CreateOrderPayload): Observable<CreateOrderResponse> {

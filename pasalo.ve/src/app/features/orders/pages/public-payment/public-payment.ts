@@ -5,12 +5,13 @@ import { NbButtonModule, NbCardModule } from '@nebular/theme';
 import { ToastService } from '@shared/services/toast.service';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
+import { Copyright } from '@shared/components/copyright/copyright';
 import { PublicOrderSummary } from '../../interfaces/order';
 import { PublicOrderService } from '../../public-order.service';
 
 @Component({
   selector: 'app-public-payment',
-  imports: [NbCardModule, NbButtonModule, BsAmountPipe],
+  imports: [NbCardModule, NbButtonModule, BsAmountPipe, Copyright],
   templateUrl: './public-payment.html',
 })
 export class PublicPayment implements OnInit {

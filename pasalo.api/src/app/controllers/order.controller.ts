@@ -283,4 +283,63 @@ export class OrderController {
             next(err);
         }
     }
+
+    /**
+     * Tarjetas informativas del admin: ventas, clientes, ordenes, rechazadas,
+     * completadas (verificadas) y vendedores con al menos una completada.
+     * Todo se filtra por rango de fecha de creacion de la orden, salvo la
+     * cantidad de metodos de pago (eso es configuracion actual, no historico).
+     *
+     * @static
+     * @memberof OrderController
+     */
+    static async stats(req: Request, res: Response, next: NextFunction) {
+        if (OrderController.session(req).role !== 'admin') {
+            res.status(403).json({ message: 'Acceso denegado', error: 'Solo el administrador puede ver las estadísticas.' });
+            return;
+        }
+
+        try {
+            const session = OrderController.session(req);
+            const tenantDb = OrderController.tenantDb(req);
+            const { date_from, date_to } = req.query;
+
+            const replacements = {
+                date_from: date_from || null,
+                date_to: date_to || null
+            };
+
+            // 5 = verificado, 4 = rechazado
+            const [stats] = await tenantDb.query<any>(
+                `SELECT
+                    COALESCE(SUM(CASE WHEN status_id = 5 THEN amount ELSE 0 END), 0) AS total_ventas,
+                    COUNT(DISTINCT email_client) AS total_clientes,
+                    COUNT(*) AS total_ordenes,
+                    COUNT(CASE WHEN status_id = 4 THEN 1 END) AS total_rechazadas,
+                    COUNT(CASE WHEN status_id = 5 THEN 1 END) AS total_completadas,
+                    COUNT(DISTINCT CASE WHEN status_id = 5 THEN user_id END) AS total_vendedores_completadas
+                 FROM orders
+                 WHERE (:date_from IS NULL OR createdAt >= :date_from)
+                   AND (:date_to IS NULL OR createdAt <= :date_to)`,
+                { replacements, type: QueryTypes.SELECT }
+            );
+
+            const [{ total: payment_methods_count }] = await tenantDb.query<{ total: number }>(
+                `SELECT COUNT(*) AS total FROM payment_methods WHERE company_id = :company_id`,
+                { replacements: { company_id: session.company.uuid }, type: QueryTypes.SELECT }
+            );
+
+            res.json({
+                total_ventas: Number(stats.total_ventas),
+                total_clientes: Number(stats.total_clientes),
+                total_ordenes: Number(stats.total_ordenes),
+                total_rechazadas: Number(stats.total_rechazadas),
+                total_completadas: Number(stats.total_completadas),
+                total_vendedores_completadas: Number(stats.total_vendedores_completadas),
+                payment_methods_count: Number(payment_methods_count)
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
 }

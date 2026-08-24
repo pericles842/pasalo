@@ -24,8 +24,13 @@
 // Nebular) puede crear scroll horizontal a nivel de pagina. Los contenedores que
 // si necesitan scroll horizontal propio (ej. las tablas) lo declaran con su propio
 // overflow-x-auto, que sigue funcionando igual dentro de este limite.
+//
+// Se usa `clip` y no `hidden` a proposito: con `hidden` el eje contrario pasa a
+// comportarse como scroll container, y eso rompe `position: sticky` en todos los
+// descendientes (ej. el header del dashboard). `clip` recorta igual pero no crea
+// scroll container, asi el sticky sigue funcionando.
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100%;
 }
 

@@ -1,7 +1,7 @@
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { NbButtonModule, NbCardModule, NbDialogService, NbIconModule } from '@nebular/theme';
+import { NbButtonModule, NbCardModule, NbDialogService, NbIconModule, NbTooltipModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { ToastService } from '@shared/services/toast.service';
 import { ConfirmService } from '@shared/services/confirm.service';
@@ -16,7 +16,7 @@ const STATUS_LABELS: Record<number, string> = { 1: 'En espera', 2: 'Pagado', 3: 
 
 @Component({
   selector: 'app-order-detail',
-  imports: [NbCardModule, NbButtonModule, NbIconModule, NbEvaIconsModule, RouterLink, BsAmountPipe, DatePipe],
+  imports: [NbCardModule, NbButtonModule, NbIconModule, NbEvaIconsModule, NbTooltipModule, RouterLink, BsAmountPipe, DatePipe],
   templateUrl: './order-detail.html',
 })
 export class OrderDetail implements OnInit {
@@ -80,9 +80,41 @@ export class OrderDetail implements OnInit {
     const url = this.payUrl();
     if (!url) return;
 
-    navigator.clipboard.writeText(url).then(
-      () => this.toast.success('Link de pago copiado.'),
-      () => this.toast.error('No pudimos copiar el link.')
+    this.copyToClipboard(url, 'Link de pago copiado.');
+  }
+
+  copyBuyerData(): void {
+    const order = this.data()?.order;
+    if (!order) return;
+
+    const lines = [
+      `Nombre: ${order.first_name_client} ${order.last_name_client}`,
+      `Correo: ${order.email_client}`,
+      `Cédula: ${order.ci_client}`,
+      `Teléfono: ${order.phone_client}`,
+      `Ubicación: ${order.address_client ?? '—'}`,
+    ];
+    if (order.notes) lines.push(`Observaciones: ${order.notes}`);
+
+    this.copyToClipboard(lines.join('\n'), 'Datos del comprador copiados.');
+  }
+
+  copyProductsData(): void {
+    const result = this.data();
+    if (!result) return;
+
+    const lines = result.items.map((item) => `${item.name} (Ref: ${item.reference ?? '—'}) - $${item.price}`);
+    lines.push(`Total: $${result.order.amount}`);
+
+    this.copyToClipboard(lines.join('\n'), 'Productos copiados.');
+  }
+
+  private copyToClipboard(text: string, successMessage: string): void {
+    if (!this.is_browser) return;
+
+    navigator.clipboard.writeText(text).then(
+      () => this.toast.success(successMessage),
+      () => this.toast.error('No pudimos copiar.')
     );
   }
 
