@@ -6,3 +6,18 @@
     display: none;
   }
 }
+
+// El mismo degradado sutil del dashboard y el login. Se cancela con margen
+// negativo el padding que le pone `.web-client-layout` (16px / 50px en md+)
+// para que el fondo llegue borde a borde y no quede una franja blanca alrededor.
+:host {
+  display: block;
+  margin: -16px;
+  padding: 16px;
+  background: linear-gradient(to bottom, #dcebfe 0%, #ffffff 40%, #fdf2f8 100%);
+
+  @media (min-width: 768px) {
+    margin: -50px;
+    padding: 50px;
+  }
+}
