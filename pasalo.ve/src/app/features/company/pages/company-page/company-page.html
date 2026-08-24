@@ -36,54 +36,50 @@
   </nb-card>
   }
 
-  <nb-card class="m-0">
-    <nb-card-header>
-      <span class="font-semibold">Empresa</span>
-    </nb-card-header>
+  <div class="flex flex-col gap-4">
+    <span class="text-lg font-semibold text-slate-900">Empresa</span>
 
-    <nb-card-body>
-      <form [formGroup]="form" (submit)="$event.preventDefault(); save()" class="flex flex-col gap-6">
+    <form [formGroup]="form" (submit)="$event.preventDefault(); save()" class="flex flex-col gap-6">
 
-        <div class="flex items-center gap-4">
-          <label class="group relative cursor-pointer">
-            <app-avatar [photoUrl]="logo_preview() ?? auth.session()?.company?.logo_url ?? null"
-              [initialsText]="auth.company_initials()" sizeClass="h-20 w-20 text-2xl"
-              bubbleClass="bg-blue-50 text-blue-700"></app-avatar>
-            <span
-              class="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 text-xs font-semibold text-transparent transition-colors group-hover:bg-black/40 group-hover:text-white">
-              Cambiar
-            </span>
-            <input type="file" accept="image/*" class="hidden" (change)="onLogoSelected($event)" />
-          </label>
+      <div class="flex items-center gap-4">
+        <label class="group relative cursor-pointer">
+          <app-avatar [photoUrl]="logo_preview() ?? auth.session()?.company?.logo_url ?? null"
+            [initialsText]="auth.company_initials()" sizeClass="h-20 w-20 text-2xl"
+            bubbleClass="bg-blue-50 text-blue-700"></app-avatar>
+          <span
+            class="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 text-xs font-semibold text-transparent transition-colors group-hover:bg-black/40 group-hover:text-white">
+            Cambiar
+          </span>
+          <input type="file" accept="image/*" class="hidden" (change)="onLogoSelected($event)" />
+        </label>
 
-          <div class="flex flex-col">
-            <span class="text-sm font-semibold text-slate-900">Logo de la empresa</span>
-            <span class="text-xs text-gray-500">Opcional. Si no subes uno, se muestran las iniciales.</span>
-          </div>
+        <div class="flex flex-col">
+          <span class="text-sm font-semibold text-slate-900">Logo de la empresa</span>
+          <span class="text-xs text-gray-500">Opcional. Si no subes uno, se muestran las iniciales.</span>
         </div>
+      </div>
 
-        <section class="grid grid-cols-12 gap-4">
-          <app-global-input class="col-span-12 md:col-span-6" name="company_name" label="Nombre de la empresa"
-            [control]="form.controls.name" placeholder="Ej. Empresa S.A." error="El nombre es requerido" />
+      <section class="grid grid-cols-12 gap-4">
+        <app-global-input class="col-span-12 md:col-span-6" name="company_name" label="Nombre de la empresa"
+          [control]="form.controls.name" placeholder="Ej. Empresa S.A." error="El nombre es requerido" />
 
-          <app-global-input class="col-span-12 md:col-span-6" name="company_rif" label="RIF"
-            [control]="form.controls.rif" placeholder="Ej. J-1234567897" hint="Opcional" />
+        <app-global-input class="col-span-12 md:col-span-6" name="company_rif" label="RIF"
+          [control]="form.controls.rif" placeholder="Ej. J-1234567897" hint="Opcional" />
 
-          <app-global-input class="col-span-12 md:col-span-6" name="company_domain" label="Dominio"
-            [control]="form.controls.domain" placeholder="empresa.com" error="El dominio es requerido" />
+        <app-global-input class="col-span-12 md:col-span-6" name="company_domain" label="Dominio"
+          [control]="form.controls.domain" placeholder="empresa.com" error="El dominio es requerido" />
 
-          <div class="col-span-12 flex flex-col gap-1.5 md:col-span-6">
-            <label class="text-sm font-medium text-gray-600">Correo de la empresa</label>
-            <input type="email" disabled [value]="auth.session()?.company?.email"
-              class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500" />
-            <span class="text-xs text-gray-400">Para cambiarlo, contacta a soporte.</span>
-          </div>
-        </section>
+        <div class="col-span-12 flex flex-col gap-1.5 md:col-span-6">
+          <label class="text-sm font-medium text-gray-600">Correo de la empresa</label>
+          <input type="email" disabled [value]="auth.session()?.company?.email"
+            class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500" />
+          <span class="text-xs text-gray-400">Para cambiarlo, contacta a soporte.</span>
+        </div>
+      </section>
 
-        <button nbButton status="primary" fullWidth type="submit" [disabled]="is_saving()">
-          {{ is_saving() ? 'Guardando...' : 'Guardar cambios' }}
-        </button>
-      </form>
-    </nb-card-body>
-  </nb-card>
+      <button nbButton status="primary" fullWidth type="submit" [disabled]="is_saving()">
+        {{ is_saving() ? 'Guardando...' : 'Guardar cambios' }}
+      </button>
+    </form>
+  </div>
 </section>

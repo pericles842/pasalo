@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NbButtonModule, NbCardModule } from '@nebular/theme';
+import { NbButtonModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { Avatar } from '@shared/components/avatar/avatar';
 import { ToastService } from '@shared/services/toast.service';
@@ -19,7 +19,7 @@ interface ProfileForm {
 
 @Component({
   selector: 'app-profile-page',
-  imports: [ReactiveFormsModule, NbCardModule, NbButtonModule, GlobalInput, Avatar],
+  imports: [ReactiveFormsModule, NbButtonModule, GlobalInput, Avatar],
   templateUrl: './profile-page.html',
 })
 export class ProfilePage implements OnInit {

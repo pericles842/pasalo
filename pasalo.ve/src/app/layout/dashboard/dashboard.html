@@ -22,37 +22,48 @@
             <p class="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500">Navegacion</p>
           </div>
 
-          <nav class="grid gap-3" (click)="closeMenu()">
-            <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="list"
-              routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
-              Ordenes
-            </button>
+          <nav class="grid gap-1" (click)="closeMenu()">
+            <a routerLink="list" routerLinkActive #rlaList="routerLinkActive" ariaCurrentWhenActive="page"
+              [class]="rlaList.isActive ? NAV_LINK_ACTIVE_CLASS : NAV_LINK_CLASS">
+              <nb-icon icon="list-outline" [options]="{ width: 20, height: 20 }"></nb-icon>
+              <span class="flex-1">Ordenes</span>
+              @if (paid_orders_count() > 0) {
+              <span class="grid h-5 min-w-5 place-items-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-white!">
+                {{ paid_orders_count() }}
+              </span>
+              }
+            </a>
 
-            <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="form"
-              routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
-              Crear Orden
-            </button>
+            <a routerLink="form" routerLinkActive #rlaForm="routerLinkActive" ariaCurrentWhenActive="page"
+              [class]="rlaForm.isActive ? NAV_LINK_ACTIVE_CLASS : NAV_LINK_CLASS">
+              <nb-icon icon="plus-circle-outline" [options]="{ width: 20, height: 20 }"></nb-icon>
+              <span class="flex-1">Crear Orden</span>
+            </a>
 
-            <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="profile"
-              routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
-              Perfil
-            </button>
+            <a routerLink="profile" routerLinkActive #rlaProfile="routerLinkActive" ariaCurrentWhenActive="page"
+              [class]="rlaProfile.isActive ? NAV_LINK_ACTIVE_CLASS : NAV_LINK_CLASS">
+              <nb-icon icon="person-outline" [options]="{ width: 20, height: 20 }"></nb-icon>
+              <span class="flex-1">Perfil</span>
+            </a>
 
             @if (is_admin()) {
-            <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="company"
-              routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
-              Empresa
-            </button>
+            <a routerLink="company" routerLinkActive #rlaCompany="routerLinkActive" ariaCurrentWhenActive="page"
+              [class]="rlaCompany.isActive ? NAV_LINK_ACTIVE_CLASS : NAV_LINK_CLASS">
+              <nb-icon icon="briefcase-outline" [options]="{ width: 20, height: 20 }"></nb-icon>
+              <span class="flex-1">Empresa</span>
+            </a>
 
-            <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="users"
-              routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
-              Usuarios
-            </button>
+            <a routerLink="users" routerLinkActive #rlaUsers="routerLinkActive" ariaCurrentWhenActive="page"
+              [class]="rlaUsers.isActive ? NAV_LINK_ACTIVE_CLASS : NAV_LINK_CLASS">
+              <nb-icon icon="people-outline" [options]="{ width: 20, height: 20 }"></nb-icon>
+              <span class="flex-1">Usuarios</span>
+            </a>
 
-            <button nbButton [status]="'primary'" [appearance]="'outline'" routerLink="payment-methods"
-              routerLinkActive="appearance=solid" ariaCurrentWhenActive="page">
-              Métodos de pago
-            </button>
+            <a routerLink="payment-methods" routerLinkActive #rlaPayments="routerLinkActive" ariaCurrentWhenActive="page"
+              [class]="rlaPayments.isActive ? NAV_LINK_ACTIVE_CLASS : NAV_LINK_CLASS">
+              <nb-icon icon="credit-card-outline" [options]="{ width: 20, height: 20 }"></nb-icon>
+              <span class="flex-1">Métodos de pago</span>
+            </a>
             }
           </nav>
         </div>
