@@ -3,9 +3,9 @@ import { Component, Input } from '@angular/core';
 type Variant = 'dark' | 'subtle' | 'light';
 
 const CONTAINER_CLASS: Record<Variant, string> = {
-  dark: 'border-t border-white/10 bg-blue-600 px-6 py-4 lg:px-8',
-  subtle: 'border-t border-blue-100 bg-blue-50 px-6 py-3',
-  light: 'border-t border-blue-100 bg-white px-6 py-3',
+  dark: 'px-6 py-4 lg:px-8',
+  subtle: 'px-6 py-3',
+  light: 'px-6 py-3',
 };
 
 const TEXT_CLASS: Record<Variant, string> = {
