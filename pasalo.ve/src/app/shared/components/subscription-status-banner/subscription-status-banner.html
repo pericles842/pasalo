@@ -18,7 +18,7 @@
   </p>
 </div>
 } @else if (s.expires_at) {
-<div class="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-2.5 text-sm text-slate-700">
+<div class="flex items-center gap-2 py-3 text-sm text-slate-700">
   <span class="font-semibold text-slate-900">{{ s.plan.name }}</span>
   <span class="text-gray-400">·</span>
   <span>Activo hasta el {{ s.expires_at | date: 'dd/MM/yyyy' }} (quedan {{ s.days_remaining }} {{ s.days_remaining === 1 ? 'día' : 'días' }})</span>

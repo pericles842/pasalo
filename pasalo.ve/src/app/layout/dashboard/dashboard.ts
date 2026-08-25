@@ -6,6 +6,7 @@ import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { HeaderDashboard } from '@shared/components/header-dashboard/header-dashboard';
 import { Copyright } from '@shared/components/copyright/copyright';
 import { SubscriptionStatusBanner } from '@shared/components/subscription-status-banner/subscription-status-banner';
+import { AdSlot } from '@shared/components/ad-slot/ad-slot';
 import { ToastService } from '@shared/services/toast.service';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { SocketService } from 'src/app/features/notifications/socket.service';
@@ -16,7 +17,7 @@ const PAID_STATUS_ID = 2;
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, NbIconModule, NbEvaIconsModule, HeaderDashboard, Copyright, SubscriptionStatusBanner],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, NbIconModule, NbEvaIconsModule, HeaderDashboard, Copyright, SubscriptionStatusBanner, AdSlot],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

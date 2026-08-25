@@ -1,4 +1,4 @@
-<header class="relative flex items-center justify-between gap-3 px-3 py-3 sm:gap-4 sm:px-6 lg:px-8">
+<header class="relative flex items-center gap-3 px-3 py-3 sm:gap-4 sm:px-6 lg:px-8">
 
   <!--
     El glass va en su propia capa y no como clases del <header>. Asi el
@@ -26,6 +26,12 @@
       <h1 class="min-w-0 truncate text-sm font-semibold text-slate-900 sm:text-base">
         {{ auth.session()?.company?.name ?? 'Pásalo' }}
       </h1>
+    </div>
+  </div>
+
+  <div class="relative hidden min-w-0 flex-1 justify-center md:flex">
+    <div class="h-14 w-full max-w-sm py-1.5 sm:h-16">
+      <app-ad-slot placement="header"></app-ad-slot>
     </div>
   </div>
 

@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 
 import { Home } from './pages/home/home';
 import { Pricing } from './pages/pricing/pricing';
+import { Ads } from './pages/ads/ads';
 import { Terms } from './pages/terms/terms';
 import { Privacy } from './pages/privacy/privacy';
 import { RegisterCompany } from './pages/register-company/register-company';
@@ -24,6 +25,7 @@ export const routes: Routes = [
     children: [
       { path: '', component: Home, title: 'Pásalo.ve' },
       { path: 'precios', component: Pricing, title: 'Precios | Pásalo.ve' },
+      { path: 'publicidad', component: Ads, title: 'Publicidad | Pásalo.ve' },
       { path: 'terminos-y-condiciones', component: Terms, title: 'Términos y condiciones | Pásalo.ve' },
       { path: 'politica-de-privacidad', component: Privacy, title: 'Política de privacidad | Pásalo.ve' },
       { path: 'create-company', component: RegisterCompany, title: 'Pásalo.ve' },

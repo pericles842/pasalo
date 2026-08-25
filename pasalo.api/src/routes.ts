@@ -10,6 +10,7 @@ import { PublicOrderController } from './app/controllers/public_order.controller
 import { PaymentMethodController } from './app/controllers/payment_method.controller';
 import { ExchangeRateController } from './app/controllers/exchange_rate.controller';
 import { NotificationController } from './app/controllers/notification.controller';
+import { AdsController } from './app/controllers/ads.controller';
 import { jwtMiddleware } from './middlewares/jwtMiddleware';
 import { tenantMiddleware } from './middlewares/tenantMiddleware';
 import { internalTokenMiddleware } from './middlewares/internalTokenMiddleware';
@@ -32,7 +33,53 @@ const authTenant = [jwtMiddleware, tenantMiddleware];
  *   - name: Orders
  *   - name: Notifications
  *   - name: PublicOrders
+ *   - name: Ads
  */
+
+/**
+ * @swagger
+ * /ads/plans:
+ *   get:
+ *     tags: [Ads]
+ *     summary: Lista los planes de publicidad activos (tarifario para anunciantes)
+ *     responses:
+ *       200: { description: Lista de planes de publicidad }
+ */
+router.get('/ads/plans', AdsController.getPlans);
+
+/**
+ * @swagger
+ * /ads/{placement}:
+ *   get:
+ *     tags: [Ads]
+ *     summary: Sortea un anuncio activo para un placement (header, footer, sidebar, dashboard_static, modal)
+ *     parameters:
+ *       - in: path
+ *         name: placement
+ *         required: true
+ *         schema: { type: string, enum: [header, footer, sidebar, dashboard_static, modal] }
+ *     responses:
+ *       200: { description: Anuncio seleccionado }
+ *       204: { description: No hay anuncios activos para ese placement }
+ */
+router.get('/ads/:placement', AdsController.getAdForPlacement);
+
+/**
+ * @swagger
+ * /ads/{id}/click:
+ *   post:
+ *     tags: [Ads]
+ *     summary: Registra un click sobre un anuncio
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       204: { description: Click registrado }
+ *       404: { description: Anuncio no encontrado }
+ */
+router.post('/ads/:id/click', AdsController.registerClick);
 
 /**
  * @swagger

@@ -4,12 +4,13 @@ import { Router, RouterLink } from '@angular/router';
 import { NbButtonModule, NbCardModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { Copyright } from '@shared/components/copyright/copyright';
+import { AdSlot } from '@shared/components/ad-slot/ad-slot';
 import { ToastService } from '@shared/services/toast.service';
 import { AuthService } from '../../auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, NbCardModule, NbButtonModule, GlobalInput, RouterLink, Copyright],
+  imports: [ReactiveFormsModule, NbCardModule, NbButtonModule, GlobalInput, RouterLink, Copyright, AdSlot],
   templateUrl: './login.html',
 })
 export class Login {
