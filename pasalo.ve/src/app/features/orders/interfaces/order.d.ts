@@ -18,11 +18,12 @@ export interface Order {
   company_id: string;
   user_id: string;
   seller_name?: string | null;
-  first_name_client: string;
-  last_name_client: string;
-  email_client: string;
-  ci_client: string;
-  phone_client: string;
+  /** Nulos hasta que el cliente llena el paso 1 del link publico de pago */
+  first_name_client: string | null;
+  last_name_client: string | null;
+  email_client: string | null;
+  ci_client: string | null;
+  phone_client: string | null;
   address_client: string | null;
   notes: string | null;
   amount: number;
@@ -54,8 +55,9 @@ export interface PublicOrderSummary {
     id: string;
     amount: number;
     status_id: number;
-    first_name_client: string;
-    last_name_client: string;
+    /** Nulos hasta que el cliente completa el paso 1 (sus datos) */
+    first_name_client: string | null;
+    last_name_client: string | null;
     items_count: number;
     seller_name: string | null;
     seller_photo_url: string | null;
@@ -76,6 +78,16 @@ export interface SubmitPaymentResponse {
   extracted_reference: string | null;
 }
 
+/** Payload del paso 1 del link publico: el cliente llena sus propios datos */
+export interface PublicBuyerPayload {
+  first_name: string;
+  last_name: string;
+  email: string;
+  ci: string;
+  phone: string;
+  address: string | null;
+}
+
 /** Renglon de producto dentro del formulario de creacion */
 export interface OrderItemForm {
   name: FormControl<string | null>;
@@ -93,14 +105,6 @@ export interface BuyerForm {
 }
 
 export interface CreateOrderPayload {
-  buyer: {
-    first_name: string;
-    last_name: string;
-    email: string;
-    ci: string;
-    phone: string;
-    address: string | null;
-  };
   items: OrderItem[];
   notes: string | null;
 }

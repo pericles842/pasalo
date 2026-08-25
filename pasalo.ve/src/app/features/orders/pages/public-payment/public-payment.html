@@ -33,12 +33,14 @@
 
       <nb-card-body class="flex flex-col gap-4">
         <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+          @if (data.order.first_name_client) {
           <div class="flex flex-col gap-0.5">
             <span class="text-xs text-gray-500">Cliente</span>
             <span class="font-medium text-slate-900">
               {{ data.order.first_name_client }} {{ data.order.last_name_client }}
             </span>
           </div>
+          }
           <div class="flex flex-col gap-0.5">
             <span class="text-xs text-gray-500">Vendedor</span>
             <div class="flex items-center gap-2">
@@ -78,9 +80,58 @@
     </div>
     } @else {
 
-    <!-- Metodo de pago -->
-    <div class="mt-4 flex flex-col gap-3">
-      <span class="text-sm font-semibold text-slate-900">1. Elige el método de pago</span>
+    <!-- Indicador de pasos -->
+    <div class="mt-4 flex items-center gap-2">
+      @for (label of ['Tus datos', 'Método de pago', 'Comprobante']; track label; let i = $index) {
+      <div class="flex flex-1 flex-col items-center gap-1.5">
+        <span class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold"
+          [class]="step() === i + 1 ? 'bg-blue-600 text-white' : (step() > i + 1 ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400')">
+          @if (step() > i + 1) { ✓ } @else { {{ i + 1 }} }
+        </span>
+        <span class="text-center text-[11px] leading-tight"
+          [class]="step() >= i + 1 ? 'font-medium text-slate-700' : 'text-gray-400'">{{ label }}</span>
+      </div>
+      @if (i < 2) {
+      <div class="mb-4 h-0.5 flex-1" [class]="step() > i + 1 ? 'bg-blue-300' : 'bg-gray-200'"></div>
+      }
+      }
+    </div>
+
+    @if (step() === 1) {
+    <!-- Paso 1: tus datos -->
+    <div class="mt-5 flex flex-col gap-3">
+      <span class="text-sm font-semibold text-slate-900">Paso 1 de 3: Llena tus datos</span>
+      <span class="-mt-2 text-xs text-gray-500">Así el vendedor sabe quién le está pagando.</span>
+
+      <div class="grid grid-cols-12 gap-4" [formGroup]="buyer_form">
+        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_first_name" label="Nombre"
+          placeholder="Ej. Jose" [control]="buyer_form.controls.first_name" error="El nombre es requerido" />
+
+        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_last_name" label="Apellido"
+          placeholder="Ej. Bustamante" [control]="buyer_form.controls.last_name" error="El apellido es requerido" />
+
+        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_email" label="Correo" type="email"
+          placeholder="tucorreo@correo.com" [control]="buyer_form.controls.email" error="Ingresa un correo válido" />
+
+        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_ci" label="Cédula"
+          placeholder="Ej. V-12345678" [control]="buyer_form.controls.ci" error="La cédula es requerida" />
+
+        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_phone" label="Teléfono"
+          placeholder="Ej. 0414-1234567" [control]="buyer_form.controls.phone" error="El teléfono es requerido" />
+
+        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_address" label="Ubicación"
+          placeholder="Ej. Caracas, Venezuela" [control]="buyer_form.controls.address" hint="Opcional" />
+      </div>
+
+      <button nbButton status="primary" fullWidth class="mt-2!" type="button" [disabled]="is_submitting_buyer()"
+        (click)="submitBuyer()">
+        {{ is_submitting_buyer() ? 'Guardando...' : 'Continuar' }}
+      </button>
+    </div>
+    } @else if (step() === 2) {
+    <!-- Paso 2: metodo de pago -->
+    <div class="mt-5 flex flex-col gap-3">
+      <span class="text-sm font-semibold text-slate-900">Paso 2 de 3: Elige el método de pago</span>
 
       @for (method of data.payment_methods; track method.id) {
       <button type="button" class="rounded-xl border p-4 text-left transition-colors"
@@ -101,11 +152,21 @@
       @if (data.payment_methods.length === 0) {
       <p class="text-sm text-gray-500">Esta empresa todavía no tiene métodos de pago configurados.</p>
       }
-    </div>
 
-    <!-- Comprobante -->
-    <div class="mt-6 flex flex-col gap-3">
-      <span class="text-sm font-semibold text-slate-900">2. Sube la foto de tu comprobante</span>
+      <div class="mt-2 flex gap-2">
+        <button nbButton appearance="ghost" status="basic" type="button" (click)="backToStep(1)">
+          Atrás
+        </button>
+        <button nbButton status="primary" fullWidth class="flex-1" type="button" [disabled]="!selected_method_id()"
+          (click)="continueToReceipt()">
+          Continuar
+        </button>
+      </div>
+    </div>
+    } @else {
+    <!-- Paso 3: comprobante -->
+    <div class="mt-5 flex flex-col gap-3">
+      <span class="text-sm font-semibold text-slate-900">Paso 3 de 3: Sube la foto de tu comprobante</span>
 
       <label
         class="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-gray-300 p-6 text-center hover:border-blue-400">
@@ -116,12 +177,18 @@
         }
         <input type="file" accept="image/*" class="hidden" (change)="onFileSelected($event)" />
       </label>
-    </div>
 
-    <button nbButton status="primary" fullWidth class="mt-8!" type="button" [disabled]="!can_submit()"
-      (click)="submit()">
-      {{ is_submitting() ? 'Enviando...' : 'Acepto, ya pagué' }}
-    </button>
+      <div class="mt-2 flex gap-2">
+        <button nbButton appearance="ghost" status="basic" type="button" (click)="backToStep(2)">
+          Atrás
+        </button>
+        <button nbButton status="primary" fullWidth class="flex-1" type="button" [disabled]="!can_submit()"
+          (click)="submit()">
+          {{ is_submitting() ? 'Enviando...' : 'Acepto, ya pagué' }}
+        </button>
+      </div>
+    </div>
+    }
     }
     }
   </div>

@@ -1,5 +1,5 @@
 <app-general-title-form [title]="'Crear orden'"
-  [description]="'Registra la venta con los datos del comprador y los productos.'">
+  [description]="'Agrega los productos de la venta. El cliente llenará sus propios datos al pagar.'">
 </app-general-title-form>
 
 @if (created_order(); as result) {
@@ -44,31 +44,6 @@
 </div>
 } @else {
 <form (submit)="$event.preventDefault(); onSubmit()" class="mt-6 flex flex-col gap-8">
-
-  <!-- Datos del comprador -->
-  <section class="flex flex-col gap-4">
-    <h3 class="text-base font-semibold text-slate-900">Datos del comprador</h3>
-
-    <div class="grid grid-cols-12 gap-4" [formGroup]="buyer_form">
-      <app-global-input class="col-span-12 md:col-span-6" name="buyer_first_name" label="Nombre"
-        placeholder="Ej. Louis" [control]="buyer_form.controls.first_name" error="El nombre es requerido" />
-
-      <app-global-input class="col-span-12 md:col-span-6" name="buyer_last_name" label="Apellido"
-        placeholder="Ej. Sarmiento" [control]="buyer_form.controls.last_name" error="El apellido es requerido" />
-
-      <app-global-input class="col-span-12 md:col-span-6" name="buyer_email" label="Correo" type="email"
-        placeholder="cliente@correo.com" [control]="buyer_form.controls.email" error="Ingresa un correo válido" />
-
-      <app-global-input class="col-span-12 md:col-span-6" name="buyer_ci" label="Cédula" placeholder="Ej. V-12345678"
-        [control]="buyer_form.controls.ci" error="La cédula es requerida" />
-
-      <app-global-input class="col-span-12 md:col-span-6" name="buyer_phone" label="Teléfono"
-        placeholder="Ej. 0414-1234567" [control]="buyer_form.controls.phone" error="El teléfono es requerido" />
-
-      <app-global-input class="col-span-12 md:col-span-6" name="buyer_address" label="Ubicación"
-        placeholder="Ej. Caracas, Venezuela" [control]="buyer_form.controls.address" hint="Opcional" />
-    </div>
-  </section>
 
   <!-- Productos -->
   <section class="flex flex-col gap-4">

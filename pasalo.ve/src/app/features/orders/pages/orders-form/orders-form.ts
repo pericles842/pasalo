@@ -11,7 +11,7 @@ import { ToastService } from '@shared/services/toast.service';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
 import { PaymentMethodsService } from 'src/app/features/payment-methods/payment-methods.service';
-import { BuyerForm, CreateOrderResponse, OrderItemForm } from '../../interfaces/order';
+import { CreateOrderResponse, OrderItemForm } from '../../interfaces/order';
 import { OrdersService } from '../../orders.service';
 
 @Component({
@@ -38,15 +38,6 @@ export class OrdersForm implements OnInit, OnDestroy {
 
   /** La orden recien creada: se muestra el link de pago para copiarlo */
   created_order = signal<CreateOrderResponse | null>(null);
-
-  buyer_form = new FormGroup<BuyerForm>({
-    first_name: new FormControl(null, [Validators.required]),
-    last_name: new FormControl(null, [Validators.required]),
-    email: new FormControl(null, [Validators.required, Validators.email]),
-    ci: new FormControl(null, [Validators.required]),
-    phone: new FormControl(null, [Validators.required]),
-    address: new FormControl(null),
-  });
 
   items = new FormArray<FormGroup<OrderItemForm>>([this.buildItem()]);
 
@@ -116,7 +107,6 @@ export class OrdersForm implements OnInit, OnDestroy {
 
   createAnother(): void {
     this.created_order.set(null);
-    this.buyer_form.reset();
     this.notes.reset();
     while (this.items.length > 1) this.items.removeAt(0);
     this.items.at(0).reset();
@@ -125,28 +115,17 @@ export class OrdersForm implements OnInit, OnDestroy {
   onSubmit(): void {
     if (this.is_saving()) return;
 
-    this.buyer_form.markAllAsTouched();
     this.items.markAllAsTouched();
 
-    if (this.buyer_form.invalid || this.items.invalid) {
-      this.toast.error('Revisa los datos del comprador y de los productos.');
+    if (this.items.invalid) {
+      this.toast.error('Revisa los datos de los productos.');
       return;
     }
 
     this.is_saving.set(true);
 
-    const buyer = this.buyer_form.getRawValue();
-
     this.ordersService
       .createOrder({
-        buyer: {
-          first_name: buyer.first_name!,
-          last_name: buyer.last_name!,
-          email: buyer.email!,
-          ci: buyer.ci!,
-          phone: buyer.phone!,
-          address: buyer.address,
-        },
         items: this.items.getRawValue().map((item) => ({
           name: item.name!,
           reference: item.reference,

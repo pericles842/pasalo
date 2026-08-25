@@ -16,7 +16,9 @@ export class OrderController {
     }
 
     /**
-     * Crea la orden (la venta) con sus renglones de productos.
+     * Crea la orden (la venta) con sus renglones de productos. El vendedor
+     * solo carga los productos: los datos del comprador los llena el cliente
+     * despues, en el paso 1 del link publico de pago.
      * Se asigna siempre al vendedor que la crea.
      *
      * @static
@@ -26,12 +28,7 @@ export class OrderController {
         try {
             const session = OrderController.session(req);
             const tenantDb = OrderController.tenantDb(req);
-            const { buyer, items, notes } = req.body;
-
-            if (!buyer?.first_name || !buyer?.last_name || !buyer?.email || !buyer?.ci || !buyer?.phone) {
-                res.status(400).json({ message: 'Datos incompletos', error: 'Completa todos los datos del comprador.' });
-                return;
-            }
+            const { items, notes } = req.body;
 
             if (!Array.isArray(items) || items.length === 0) {
                 res.status(400).json({ message: 'Datos incompletos', error: 'Agrega al menos un producto a la orden.' });
@@ -67,12 +64,6 @@ export class OrderController {
                 id: order_id,
                 company_id: session.company.uuid,
                 user_id: session.user.uuid,
-                first_name_client: buyer.first_name,
-                last_name_client: buyer.last_name,
-                email_client: buyer.email,
-                ci_client: buyer.ci,
-                phone_client: buyer.phone,
-                address_client: buyer.address?.trim() || null,
                 notes: notes ?? null,
                 amount,
                 status_id: 1,

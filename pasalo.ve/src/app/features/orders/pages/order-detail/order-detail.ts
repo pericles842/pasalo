@@ -85,7 +85,7 @@ export class OrderDetail implements OnInit {
 
   copyBuyerData(): void {
     const order = this.data()?.order;
-    if (!order) return;
+    if (!order || !order.first_name_client) return;
 
     const lines = [
       `Nombre: ${order.first_name_client} ${order.last_name_client}`,
@@ -146,9 +146,11 @@ export class OrderDetail implements OnInit {
     const order = this.data()?.order;
     if (!order || this.is_verifying()) return;
 
+    const buyer_name = order.first_name_client ? `${order.first_name_client} ${order.last_name_client}` : 'el cliente';
+
     this.confirm.ask({
       title: 'Verificar pago',
-      message: `¿Confirmas que verificaste el pago de ${order.first_name_client} ${order.last_name_client}? Esta acción no se puede deshacer.`,
+      message: `¿Confirmas que verificaste el pago de ${buyer_name}? Esta acción no se puede deshacer.`,
       confirmLabel: 'Verificar pago',
       status: 'success',
     }).subscribe((confirmed) => {

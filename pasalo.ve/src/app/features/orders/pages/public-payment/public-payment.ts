@@ -1,5 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { NbButtonModule, NbCardModule } from '@nebular/theme';
 import { ToastService } from '@shared/services/toast.service';
@@ -7,13 +8,17 @@ import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
 import { Copyright } from '@shared/components/copyright/copyright';
 import { Avatar } from '@shared/components/avatar/avatar';
+import { GlobalInput } from '@shared/components/global-input/global-input';
 import { getInitials } from '@shared/utils/initials';
-import { PublicOrderSummary } from '../../interfaces/order';
+import { BuyerForm, PublicOrderSummary } from '../../interfaces/order';
 import { PublicOrderService } from '../../public-order.service';
+
+/** 1 = tus datos, 2 = metodo de pago, 3 = comprobante */
+type WizardStep = 1 | 2 | 3;
 
 @Component({
   selector: 'app-public-payment',
-  imports: [NbCardModule, NbButtonModule, BsAmountPipe, Copyright, Avatar],
+  imports: [NbCardModule, NbButtonModule, BsAmountPipe, Copyright, Avatar, ReactiveFormsModule, GlobalInput],
   templateUrl: './public-payment.html',
 })
 export class PublicPayment implements OnInit {
@@ -33,7 +38,24 @@ export class PublicPayment implements OnInit {
 
   summary = signal<PublicOrderSummary | null>(null);
 
+  /** En que paso del wizard esta el cliente */
+  step = signal<WizardStep>(1);
+
+  /** Paso 1: sus propios datos. Mismas validaciones que antes llenaba el vendedor */
+  buyer_form = new FormGroup<BuyerForm>({
+    first_name: new FormControl(null, [Validators.required]),
+    last_name: new FormControl(null, [Validators.required]),
+    email: new FormControl(null, [Validators.required, Validators.email]),
+    ci: new FormControl(null, [Validators.required]),
+    phone: new FormControl(null, [Validators.required]),
+    address: new FormControl(null),
+  });
+  is_submitting_buyer = signal(false);
+
+  /** Paso 2: metodo de pago */
   selected_method_id = signal<number | null>(null);
+
+  /** Paso 3: comprobante */
   receipt_file = signal<File | null>(null);
   receipt_preview = signal<string | null>(null);
 
@@ -58,6 +80,11 @@ export class PublicPayment implements OnInit {
       next: (summary) => {
         this.summary.set(summary);
         if (summary.payment_methods.length === 1) this.selected_method_id.set(summary.payment_methods[0].id);
+
+        // Si el cliente ya habia llenado sus datos antes (recargo la pagina,
+        // o volvio despues de abandonar), no se le vuelve a pedir el paso 1
+        if (summary.order.first_name_client) this.step.set(2);
+
         this.is_loading.set(false);
       },
       error: () => {
@@ -81,6 +108,55 @@ export class PublicPayment implements OnInit {
     } catch {
       return [];
     }
+  }
+
+  /** Paso 1 -> 2: guarda los datos del cliente en la orden */
+  submitBuyer(): void {
+    if (this.is_submitting_buyer()) return;
+
+    this.buyer_form.markAllAsTouched();
+
+    if (this.buyer_form.invalid) {
+      this.toast.error('Revisa tus datos.');
+      return;
+    }
+
+    this.is_submitting_buyer.set(true);
+    const buyer = this.buyer_form.getRawValue();
+
+    this.publicOrderService
+      .submitBuyerData(this.tenant_id, this.token, {
+        first_name: buyer.first_name!,
+        last_name: buyer.last_name!,
+        email: buyer.email!,
+        ci: buyer.ci!,
+        phone: buyer.phone!,
+        address: buyer.address,
+      })
+      .subscribe({
+        next: () => {
+          this.is_submitting_buyer.set(false);
+          this.summary.update((current) => current && {
+            ...current,
+            order: { ...current.order, first_name_client: buyer.first_name, last_name_client: buyer.last_name }
+          });
+          this.step.set(2);
+        },
+        error: (err) => {
+          this.is_submitting_buyer.set(false);
+          this.toast.error(err?.error?.error ?? 'No pudimos guardar tus datos, intenta de nuevo.');
+        }
+      });
+  }
+
+  /** Paso 2 -> 3: ya eligio con que va a pagar */
+  continueToReceipt(): void {
+    if (!this.selected_method_id()) return;
+    this.step.set(3);
+  }
+
+  backToStep(step: WizardStep): void {
+    this.step.set(step);
   }
 
   selectMethod(id: number): void {

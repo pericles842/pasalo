@@ -6,7 +6,11 @@
   <div class="flex flex-col gap-1">
     <a routerLink="/dashboard/list" class="text-sm text-blue-600">&larr; Volver al listado</a>
     <span class="text-xl font-bold text-slate-900">
+      @if (result.order.first_name_client) {
       {{ result.order.first_name_client }} {{ result.order.last_name_client }}
+      } @else {
+      <span class="text-gray-400">Esperando datos del cliente</span>
+      }
     </span>
   </div>
 
@@ -23,11 +27,13 @@
       <nb-card-header class="flex items-center justify-between gap-3">
         <span>Datos del comprador</span>
         <button nbButton size="tiny" appearance="outline" status="primary" type="button" (click)="copyBuyerData()"
+          [disabled]="!result.order.first_name_client"
           aria-label="Copiar datos del comprador" nbTooltip="Copiar datos del comprador" nbTooltipPlacement="left">
           <nb-icon icon="copy-outline"></nb-icon>
         </button>
       </nb-card-header>
       <nb-card-body>
+        @if (result.order.first_name_client) {
         <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
           <div class="flex flex-col gap-0.5">
             <span class="text-xs text-gray-500">Correo</span>
@@ -52,6 +58,11 @@
           <span class="text-xs text-gray-500">Observaciones</span>
           <span class="text-sm text-slate-700">{{ result.order.notes }}</span>
         </div>
+        }
+        } @else {
+        <p class="m-0 text-sm text-gray-500">
+          El cliente todavía no ha llenado sus datos. Comparte el link de pago para que complete el paso 1.
+        </p>
         }
       </nb-card-body>
     </nb-card>

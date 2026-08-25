@@ -378,6 +378,39 @@ router.get('/public/orders/:tenant_id/:token', PublicOrderController.getSummary)
 
 /**
  * @swagger
+ * /public/orders/{tenant_id}/{token}/buyer:
+ *   put:
+ *     tags: [PublicOrders]
+ *     summary: Paso 1 del link publico -  el cliente llena sus propios datos
+ *     parameters:
+ *       - in: path
+ *         name: tenant_id
+ *         required: true
+ *         schema: { type: string }
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               first_name: { type: string }
+ *               last_name: { type: string }
+ *               email: { type: string }
+ *               ci: { type: string }
+ *               phone: { type: string }
+ *               address: { type: string }
+ *     responses:
+ *       200: { description: Datos guardados }
+ */
+router.put('/public/orders/:tenant_id/:token/buyer', PublicOrderController.submitBuyerData);
+
+/**
+ * @swagger
  * /public/orders/{tenant_id}/{token}/pay:
  *   post:
  *     tags: [PublicOrders]

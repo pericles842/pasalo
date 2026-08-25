@@ -185,9 +185,11 @@ export class OrdersList implements OnInit, OnDestroy {
     if (status_id === order.status_id) return;
 
     if (status_id === this.VERIFIED_STATUS_ID) {
+      const buyer_name = order.first_name_client ? `${order.first_name_client} ${order.last_name_client}` : 'el cliente';
+
       this.confirm.ask({
         title: 'Verificar pago',
-        message: `¿Confirmas que verificaste el pago de ${order.first_name_client} ${order.last_name_client}? Esta acción no se puede deshacer.`,
+        message: `¿Confirmas que verificaste el pago de ${buyer_name}? Esta acción no se puede deshacer.`,
         confirmLabel: 'Verificar pago',
         status: 'success',
       }).subscribe((confirmed) => {

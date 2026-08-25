@@ -77,6 +77,67 @@ export class PublicOrderController {
     }
 
     /**
+     * Paso 1 del link publico: el cliente llena sus propios datos (el
+     * vendedor solo cargo los productos al crear la orden). Se puede volver
+     * a llamar para corregir algo, siempre que la orden no este ya pagada.
+     *
+     * @static
+     * @memberof PublicOrderController
+     */
+    static async submitBuyerData(req: Request, res: Response, next: NextFunction) {
+        try {
+            const tenant_id = req.params.tenant_id as string;
+            const token = req.params.token as string;
+            const { first_name, last_name, email, ci, phone, address } = req.body;
+
+            if (!first_name || !last_name || !email || !ci || !phone) {
+                res.status(400).json({ message: 'Datos incompletos', error: 'Completa todos tus datos.' });
+                return;
+            }
+
+            const tenantDb = await getTenantConnection(tenant_id);
+
+            const [order] = await tenantDb.query<any>(
+                `SELECT id, status_id FROM orders WHERE pay_url_token = :token`,
+                { replacements: { token }, type: QueryTypes.SELECT }
+            );
+
+            if (!order) {
+                res.status(404).json({ message: 'Orden no encontrada', error: 'Este link de pago no es válido.' });
+                return;
+            }
+
+            // 2 = pagado, 5 = verificado: ya no se puede tocar la orden
+            if (order.status_id === 2 || order.status_id === 5) {
+                res.status(409).json({ message: 'Ya pagado', error: 'Esta orden ya fue pagada.' });
+                return;
+            }
+
+            await tenantDb.query(
+                `UPDATE orders
+                 SET first_name_client = :first_name, last_name_client = :last_name, email_client = :email,
+                     ci_client = :ci, phone_client = :phone, address_client = :address, updatedAt = NOW()
+                 WHERE id = :id`,
+                {
+                    replacements: {
+                        id: order.id,
+                        first_name,
+                        last_name,
+                        email,
+                        ci,
+                        phone,
+                        address: address?.trim() || null
+                    }
+                }
+            );
+
+            res.json({ message: 'Datos guardados' });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    /**
      * El cliente sube su comprobante y elige con que metodo pago.
      * Se intenta extraer la referencia y el monto de la imagen. Si el monto no
      * coincide con lo que la orden espera, la orden NO pasa a pagado sola:
@@ -118,6 +179,12 @@ export class PublicOrderController {
             // 2 = pagado, 5 = verificado por el vendedor
             if (order.status_id === 2 || order.status_id === 5) {
                 res.status(409).json({ message: 'Ya pagado', error: 'Esta orden ya tiene un comprobante registrado.' });
+                return;
+            }
+
+            // El paso 1 (datos del comprador) es obligatorio antes de poder pagar
+            if (!order.first_name_client) {
+                res.status(409).json({ message: 'Faltan tus datos', error: 'Completa tus datos antes de subir el comprobante.' });
                 return;
             }
 
