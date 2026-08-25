@@ -40,6 +40,8 @@ export interface Order {
   paid_at: string | null;
   reference: string | null;
   pay_url_token: string;
+  /** Null = orden vieja, creada antes de esta funcionalidad: el link no vence */
+  expires_at: string | null;
   items_count: number;
   createdAt: string;
 }
@@ -58,6 +60,8 @@ export interface PublicOrderSummary {
     /** Nulos hasta que el cliente completa el paso 1 (sus datos) */
     first_name_client: string | null;
     last_name_client: string | null;
+    /** El backend ya descuenta si esta pagada: pagada nunca cuenta como vencida */
+    is_expired: boolean;
     items_count: number;
     seller_name: string | null;
     seller_photo_url: string | null;

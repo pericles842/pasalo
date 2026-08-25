@@ -75,6 +75,12 @@
             class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500" />
           <span class="text-xs text-gray-400">Para cambiarlo, contacta a soporte.</span>
         </div>
+
+        <app-global-input class="col-span-12 md:col-span-6" name="link_expiration_minutes"
+          label="Duración del link de pago (minutos)" type="number"
+          [control]="form.controls.link_expiration_minutes" placeholder="Ej. 30"
+          hint="Entre 1 y 120 minutos (2h). Al vencer, el cliente ya no podrá pagar con ese link."
+          error="Debe ser un número entre 1 y 120 minutos" />
       </section>
 
       <button nbButton status="primary" fullWidth type="submit" [disabled]="is_saving()">

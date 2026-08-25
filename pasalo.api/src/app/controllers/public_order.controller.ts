@@ -18,6 +18,18 @@ const AMOUNT_TOLERANCE = 0.03;
 export class PublicOrderController {
 
     /**
+     * Un link vencido ya no se puede usar para pagar, pero si ya se pago
+     * (2 = pagado, 5 = verificado) el vencimiento deja de importar: la
+     * pantalla de "ya pagamos tu orden" tiene prioridad.
+     */
+    private static isExpired(order: { status_id: number; expires_at: string | Date | null }): boolean {
+        if (order.status_id === 2 || order.status_id === 5) return false;
+        if (!order.expires_at) return false;
+
+        return new Date(order.expires_at).getTime() < Date.now();
+    }
+
+    /**
      * Lo que ve el cliente al abrir su link de pago: cuanto debe, cuantos
      * productos, quien le vendio, y con que metodos puede pagar.
      *
@@ -32,6 +44,7 @@ export class PublicOrderController {
 
             const [order] = await tenantDb.query<any>(
                 `SELECT o.id, o.company_id, o.user_id, o.amount, o.status_id, o.first_name_client, o.last_name_client,
+                        o.expires_at,
                         (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
                  FROM orders o
                  WHERE o.pay_url_token = :token`,
@@ -42,6 +55,8 @@ export class PublicOrderController {
                 res.status(404).json({ message: 'Orden no encontrada', error: 'Este link de pago no es válido.' });
                 return;
             }
+
+            order.is_expired = PublicOrderController.isExpired(order);
 
             // El vendedor y la empresa viven en la base master, no en la del tenant
             const [seller] = await sequelize.query<any>(
@@ -98,7 +113,7 @@ export class PublicOrderController {
             const tenantDb = await getTenantConnection(tenant_id);
 
             const [order] = await tenantDb.query<any>(
-                `SELECT id, status_id FROM orders WHERE pay_url_token = :token`,
+                `SELECT id, status_id, expires_at FROM orders WHERE pay_url_token = :token`,
                 { replacements: { token }, type: QueryTypes.SELECT }
             );
 
@@ -110,6 +125,11 @@ export class PublicOrderController {
             // 2 = pagado, 5 = verificado: ya no se puede tocar la orden
             if (order.status_id === 2 || order.status_id === 5) {
                 res.status(409).json({ message: 'Ya pagado', error: 'Esta orden ya fue pagada.' });
+                return;
+            }
+
+            if (PublicOrderController.isExpired(order)) {
+                res.status(410).json({ message: 'Link vencido', error: 'Este link de pago ya venció.' });
                 return;
             }
 
@@ -166,7 +186,7 @@ export class PublicOrderController {
             const tenantDb = await getTenantConnection(tenant_id);
 
             const [order] = await tenantDb.query<any>(
-                `SELECT id, company_id, user_id, status_id, amount, first_name_client, last_name_client
+                `SELECT id, company_id, user_id, status_id, amount, first_name_client, last_name_client, expires_at
                  FROM orders WHERE pay_url_token = :token`,
                 { replacements: { token }, type: QueryTypes.SELECT }
             );
@@ -179,6 +199,11 @@ export class PublicOrderController {
             // 2 = pagado, 5 = verificado por el vendedor
             if (order.status_id === 2 || order.status_id === 5) {
                 res.status(409).json({ message: 'Ya pagado', error: 'Esta orden ya tiene un comprobante registrado.' });
+                return;
+            }
+
+            if (PublicOrderController.isExpired(order)) {
+                res.status(410).json({ message: 'Link vencido', error: 'Este link de pago ya venció.' });
                 return;
             }
 

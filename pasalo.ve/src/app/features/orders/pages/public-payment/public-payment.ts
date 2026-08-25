@@ -68,6 +68,9 @@ export class PublicPayment implements OnInit {
     return status_id === 2 || status_id === 5;
   });
 
+  /** El backend ya descuenta las ordenes pagadas: nunca aparecen como vencidas */
+  is_expired = computed(() => this.summary()?.order.is_expired ?? false);
+
   can_submit = computed(() => !!this.selected_method_id() && !!this.receipt_file() && !this.is_submitting());
 
   ngOnInit(): void {
@@ -144,9 +147,16 @@ export class PublicPayment implements OnInit {
         },
         error: (err) => {
           this.is_submitting_buyer.set(false);
+          this.markExpiredIfNeeded(err);
           this.toast.error(err?.error?.error ?? 'No pudimos guardar tus datos, intenta de nuevo.');
         }
       });
+  }
+
+  /** El link pudo vencer justo mientras el cliente llenaba el paso 1/3: se refleja al toque */
+  private markExpiredIfNeeded(err: { status?: number }): void {
+    if (err?.status !== 410) return;
+    this.summary.update((current) => current && { ...current, order: { ...current.order, is_expired: true } });
   }
 
   /** Paso 2 -> 3: ya eligio con que va a pagar */
@@ -186,6 +196,7 @@ export class PublicPayment implements OnInit {
         },
         error: (err) => {
           this.is_submitting.set(false);
+          this.markExpiredIfNeeded(err);
           this.toast.error(err?.error?.error ?? 'No pudimos registrar tu pago, intenta de nuevo.');
         }
       });

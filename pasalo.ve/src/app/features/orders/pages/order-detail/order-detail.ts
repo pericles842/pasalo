@@ -53,6 +53,10 @@ export class OrderDetail implements OnInit {
     });
   }
 
+  isLinkExpired(expires_at: string): boolean {
+    return new Date(expires_at).getTime() < Date.now();
+  }
+
   statusLabel(status_id: number): string {
     return STATUS_LABELS[status_id] ?? '—';
   }

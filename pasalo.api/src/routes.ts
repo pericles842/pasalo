@@ -133,6 +133,7 @@ router.post('/exchange-rate/sync', internalTokenMiddleware, ExchangeRateControll
  *             type: object
  *             properties:
  *               logo: { type: string, format: binary }
+ *               link_expiration_minutes: { type: integer, minimum: 1, maximum: 120, description: 'Duracion del link publico de pago (1-120 min)' }
  *     responses:
  *       200: { description: Empresa actualizada }
  */

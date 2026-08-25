@@ -159,11 +159,24 @@ export class CompanyController {
 
         try {
             const session = CompanyController.session(req);
-            const { name, domain } = req.body;
+            const { name, domain, link_expiration_minutes } = req.body;
 
             if (!name || !domain) {
                 res.status(400).json({ message: 'Datos incompletos', error: 'El nombre y el dominio de la empresa son requeridos.' });
                 return;
+            }
+
+            // Duracion del link publico de pago: 1 minuto a 2h (120 min)
+            if (link_expiration_minutes !== undefined) {
+                const minutes = Number(link_expiration_minutes);
+
+                if (!Number.isInteger(minutes) || minutes < 1 || minutes > 120) {
+                    res.status(400).json({
+                        message: 'Duración inválida',
+                        error: 'La duración del link de pago debe ser entre 1 y 120 minutos.'
+                    });
+                    return;
+                }
             }
 
             const company = await CompanyModel.findByPk(session.company.uuid);
@@ -188,6 +201,7 @@ export class CompanyController {
             company.name = name;
             company.rif = rif;
             company.domain = domain;
+            if (link_expiration_minutes !== undefined) company.link_expiration_minutes = Number(link_expiration_minutes);
 
             const file = (req as any).file;
 

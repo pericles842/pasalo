@@ -11,6 +11,8 @@ export interface UpdateCompanyPayload {
   rif: string | null;
   domain: string;
   logo?: File | null;
+  /** Duracion del link publico de pago, en minutos (1-120) */
+  link_expiration_minutes: number;
 }
 
 export interface UpdateCompanyResponse {
@@ -55,6 +57,7 @@ export class CompanyService {
     if (payload.rif) form.append('rif', payload.rif);
     form.append('domain', payload.domain);
     if (payload.logo) form.append('logo', payload.logo);
+    form.append('link_expiration_minutes', String(payload.link_expiration_minutes));
 
     return this.http.put<UpdateCompanyResponse>(`${environment.host}/company`, form);
   }

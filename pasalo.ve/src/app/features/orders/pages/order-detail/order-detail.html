@@ -192,6 +192,13 @@
         } @else {
         <p class="m-0 text-sm text-gray-500">El cliente todavía no ha subido su comprobante.</p>
 
+        @if (result.order.expires_at) {
+        <p class="mt-2 mb-0 text-xs" [class]="isLinkExpired(result.order.expires_at) ? 'font-semibold text-red-600' : 'text-gray-400'">
+          {{ isLinkExpired(result.order.expires_at) ? 'El link venció el' : 'El link vence el' }}
+          {{ result.order.expires_at | date: 'dd/MM/yy HH:mm' }}
+        </p>
+        }
+
         <button nbButton size="small" status="primary" appearance="outline" class="mt-4" type="button"
           (click)="copyPayUrl()">
           Copiar link de pago

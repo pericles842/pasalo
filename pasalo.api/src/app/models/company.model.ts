@@ -18,6 +18,8 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
   declare logo_url: CreationOptional<string | null>;
   // Lo define el plan contratado, no el formulario de registro
   declare user_limit: CreationOptional<number>;
+  // Cuanto dura el link publico de pago antes de expirar. Editable por el admin, tope 2h (120)
+  declare link_expiration_minutes: CreationOptional<number>;
 
   // Timestamps automáticos
   declare createdAt: CreationOptional<Date>;
@@ -210,6 +212,11 @@ CompanyModel.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0
+    },
+    link_expiration_minutes: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 30
     },
     createdAt: {
       type: DataTypes.DATE,

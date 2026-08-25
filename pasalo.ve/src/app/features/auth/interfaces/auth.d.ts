@@ -25,6 +25,8 @@ export interface SessionCompany {
   domain: string;
   logo_url: string | null;
   user_limit: number;
+  /** Cuanto dura el link publico de pago antes de expirar (minutos, tope 120) */
+  link_expiration_minutes: number;
 }
 
 export interface LoginResponse {

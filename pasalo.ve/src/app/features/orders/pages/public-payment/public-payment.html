@@ -78,6 +78,11 @@
       <p class="mt-2 mb-0 text-sm text-green-700">El vendedor revisará tu comprobante manualmente.</p>
       }
     </div>
+    } @else if (is_expired()) {
+    <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-6 text-center">
+      <p class="m-0 text-lg font-semibold text-amber-800">⏰ Este link de pago venció</p>
+      <p class="mt-1 mb-0 text-sm text-amber-700">Pídele al vendedor que te genere uno nuevo.</p>
+    </div>
     } @else {
 
     <!-- Indicador de pasos -->

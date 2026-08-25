@@ -15,6 +15,7 @@ interface CompanyEditForm {
   name: FormControl<string | null>;
   rif: FormControl<string | null>;
   domain: FormControl<string | null>;
+  link_expiration_minutes: FormControl<number | null>;
 }
 
 @Component({
@@ -38,7 +39,12 @@ export class CompanyPage implements OnInit {
   form: FormGroup<CompanyEditForm> = new FormGroup<CompanyEditForm>({
     name: new FormControl<string | null>(null, [Validators.required]),
     rif: new FormControl<string | null>(null),
-    domain: new FormControl<string | null>(null, [Validators.required])
+    domain: new FormControl<string | null>(null, [Validators.required]),
+    link_expiration_minutes: new FormControl<number | null>(30, [
+      Validators.required,
+      Validators.min(1),
+      Validators.max(120),
+    ]),
   });
 
   ngOnInit(): void {
@@ -50,7 +56,9 @@ export class CompanyPage implements OnInit {
     this.form.patchValue({
       name: company.name,
       rif: company.rif,
-      domain: company.domain
+      domain: company.domain,
+      // Sesiones guardadas antes de esta funcionalidad no traen el campo: se asume el default del backend
+      link_expiration_minutes: company.link_expiration_minutes ?? 30
     });
 
     this.subscriptionService.getStatus().subscribe({
@@ -77,7 +85,7 @@ export class CompanyPage implements OnInit {
       return;
     }
 
-    const { name, rif, domain } = this.form.getRawValue();
+    const { name, rif, domain, link_expiration_minutes } = this.form.getRawValue();
 
     this.is_saving.set(true);
 
@@ -85,7 +93,8 @@ export class CompanyPage implements OnInit {
       name: name!,
       rif: rif?.trim() || null,
       domain: domain!,
-      logo: this.logo_file()
+      logo: this.logo_file(),
+      link_expiration_minutes: link_expiration_minutes!
     }).subscribe({
       next: (response) => {
         this.is_saving.set(false);

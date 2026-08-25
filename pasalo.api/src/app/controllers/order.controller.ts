@@ -56,9 +56,18 @@ export class OrderController {
                 return;
             }
 
+            // Se lee fresco (no del token) para que un cambio de duracion aplique
+            // de inmediato, sin esperar a que el vendedor vuelva a iniciar sesion
+            const [company] = await sequelize.query<{ link_expiration_minutes: number }>(
+                `SELECT link_expiration_minutes FROM companies WHERE uuid = :company_id`,
+                { replacements: { company_id: session.company.uuid }, type: QueryTypes.SELECT }
+            );
+            const link_expiration_minutes = company?.link_expiration_minutes ?? 30;
+
             const order_id = randomUUID();
             const pay_url_token = randomUUID();
             const amount = items.reduce((total: number, item: any) => total + Number(item.price), 0);
+            const expires_at = new Date(Date.now() + link_expiration_minutes * 60 * 1000);
 
             await tenantDb.getQueryInterface().bulkInsert('orders', [{
                 id: order_id,
@@ -68,6 +77,7 @@ export class OrderController {
                 amount,
                 status_id: 1,
                 pay_url_token,
+                expires_at,
                 createdAt: new Date(),
                 updatedAt: new Date()
             }]);
