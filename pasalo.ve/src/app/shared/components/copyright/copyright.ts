@@ -3,7 +3,7 @@ import { Component, Input } from '@angular/core';
 type Variant = 'dark' | 'subtle' | 'light';
 
 const CONTAINER_CLASS: Record<Variant, string> = {
-  dark: 'px-6 py-4 lg:px-8',
+  dark: ' bg-blue-600 px-6 py-4 lg:px-8',
   subtle: 'px-6 py-3',
   light: 'px-6 py-3',
 };

@@ -6,12 +6,14 @@ import { ToastService } from '@shared/services/toast.service';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
 import { Copyright } from '@shared/components/copyright/copyright';
+import { Avatar } from '@shared/components/avatar/avatar';
+import { getInitials } from '@shared/utils/initials';
 import { PublicOrderSummary } from '../../interfaces/order';
 import { PublicOrderService } from '../../public-order.service';
 
 @Component({
   selector: 'app-public-payment',
-  imports: [NbCardModule, NbButtonModule, BsAmountPipe, Copyright],
+  imports: [NbCardModule, NbButtonModule, BsAmountPipe, Copyright, Avatar],
   templateUrl: './public-payment.html',
 })
 export class PublicPayment implements OnInit {
@@ -63,6 +65,10 @@ export class PublicPayment implements OnInit {
         this.is_loading.set(false);
       }
     });
+  }
+
+  getInitials(text: string | null | undefined): string {
+    return getInitials(text);
   }
 
   parseDatos(datos: string): { label: string; value: string }[] {

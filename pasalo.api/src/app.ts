@@ -13,8 +13,12 @@ import morgan from 'morgan';
 import chalk from 'chalk';
 import { getLocalIp } from './utils/systemFunctions';
 import { initSocket } from './app/config/socket';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger';
 
 dotenv.config();
+
+const isDev = process.env.NODE_ENV === 'development';
 
 const app = express();
 
@@ -48,6 +52,11 @@ app.set('views', path.join(__dirname, 'views'));
 // Comprobantes y logos mientras no hay AWS configurado (ver src/utils/storage.ts)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Documentación Swagger, solo disponible en development
+if (isDev) {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
+
 // Rutas API
 app.use('/api/', routes);
 
@@ -69,6 +78,15 @@ const server = app.listen(port, async () => {
 
     console.log(chalk.hex('#FF69B4')('🟢 Conectado a Mysql'));
     console.log(chalk.hex('#FF69B4')(`🟢 Servidor listo en http://${address}:${actualPort}`));
+
+    if (isDev) {
+      const docsUrl = `http://localhost:${actualPort}/api-docs`;
+      console.log(chalk.hex('#FF69B4')(`📘 Documentación disponible en ${docsUrl}`));
+      const open = (await import('open')).default;
+      open(docsUrl).catch(() => {
+        console.log(chalk.yellow(`No se pudo abrir el navegador automáticamente. Abre manualmente: ${docsUrl}`));
+      });
+    }
   } catch (error) {
     console.log(chalk.red('Hubo un problema'), error);
   }

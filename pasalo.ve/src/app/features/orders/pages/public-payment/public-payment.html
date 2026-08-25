@@ -1,4 +1,4 @@
-<div class="flex min-h-screen flex-col bg-gray-50">
+<div class="flex min-h-screen flex-col bg-gradient-to-b from-blue-100 via-white via-40% to-pink-50">
 <section class="flex flex-1 items-center justify-center px-4 py-10">
   <div class="w-full max-w-lg">
 
@@ -14,11 +14,20 @@
     } @else if (summary(); as data) {
 
     <!-- Resumen de la orden -->
-    <nb-card class="m-0">
+    <nb-card class="relative m-0 overflow-hidden">
+      <img src="/pasalo-iso.png" alt="" aria-hidden="true"
+        class="pointer-events-none absolute -right-6 -bottom-6 h-32 w-32 rotate-[-8deg] opacity-[0.06] grayscale select-none" />
+
       <nb-card-header>
-        <div class="flex flex-col gap-1">
-          <span class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">{{ data.order.company_name }}</span>
-          <span class="text-xl font-bold text-slate-900">Confirma tu pago</span>
+        <div class="flex items-center gap-3">
+          @if (data.order.logo_url) {
+          <app-avatar [photoUrl]="data.order.logo_url" sizeClass="h-11 w-11" shapeClass="rounded-lg"
+            fitClass="object-contain" bubbleClass="bg-white text-blue-700" />
+          }
+          <div class="flex flex-col gap-1">
+            <span class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">{{ data.order.company_name }}</span>
+            <span class="text-xl font-bold text-slate-900">Confirma tu pago</span>
+          </div>
         </div>
       </nb-card-header>
 
@@ -32,7 +41,11 @@
           </div>
           <div class="flex flex-col gap-0.5">
             <span class="text-xs text-gray-500">Vendedor</span>
-            <span class="font-medium text-slate-900">{{ data.order.seller_name ?? '—' }}</span>
+            <div class="flex items-center gap-2">
+              <app-avatar [photoUrl]="data.order.seller_photo_url" [initialsText]="getInitials(data.order.seller_name)"
+                sizeClass="h-6 w-6 text-xs" bubbleClass="bg-blue-50 text-blue-700" />
+              <span class="font-medium text-slate-900">{{ data.order.seller_name ?? '—' }}</span>
+            </div>
           </div>
           <div class="flex flex-col gap-0.5">
             <span class="text-xs text-gray-500">Productos</span>
@@ -105,7 +118,7 @@
       </label>
     </div>
 
-    <button nbButton status="primary" fullWidth class="mt-6" type="button" [disabled]="!can_submit()"
+    <button nbButton status="primary" fullWidth class="mt-8!" type="button" [disabled]="!can_submit()"
       (click)="submit()">
       {{ is_submitting() ? 'Enviando...' : 'Acepto, ya pagué' }}
     </button>

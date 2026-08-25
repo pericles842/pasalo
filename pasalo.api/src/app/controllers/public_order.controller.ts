@@ -45,17 +45,19 @@ export class PublicOrderController {
 
             // El vendedor y la empresa viven en la base master, no en la del tenant
             const [seller] = await sequelize.query<any>(
-                `SELECT first_name, middle_name FROM users WHERE uuid = :user_id`,
+                `SELECT first_name, middle_name, photo_url FROM users WHERE uuid = :user_id`,
                 { replacements: { user_id: order.user_id }, type: QueryTypes.SELECT }
             );
 
             const [company] = await sequelize.query<any>(
-                `SELECT name FROM companies WHERE uuid = :company_id`,
+                `SELECT name, logo_url FROM companies WHERE uuid = :company_id`,
                 { replacements: { company_id: order.company_id }, type: QueryTypes.SELECT }
             );
 
             order.seller_name = seller ? `${seller.first_name} ${seller.middle_name ?? ''}`.trim() : null;
+            order.seller_photo_url = seller?.photo_url ?? null;
             order.company_name = company?.name ?? null;
+            order.logo_url = company?.logo_url ?? null;
 
             const methods = await tenantDb.query(
                 `SELECT pm.id, pm.name, pm.type, pm.datos, pm.titular

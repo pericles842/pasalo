@@ -58,7 +58,9 @@ export interface PublicOrderSummary {
     last_name_client: string;
     items_count: number;
     seller_name: string | null;
+    seller_photo_url: string | null;
     company_name: string | null;
+    logo_url: string | null;
   };
   payment_methods: {
     id: number;
