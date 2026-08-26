@@ -3,7 +3,7 @@
 </app-general-title-form>
 
 <!-- Indicador de paso: solo en telefono, el stepper de escritorio ya muestra los pasos -->
-<div class="sticky top-0 z-10 -mx-4 mt-4 border-b border-gray-100 bg-white/95 px-4 py-3 backdrop-blur sm:hidden">
+<div class="sticky top-[68px] z-10 -mx-4 mt-4 border-b border-gray-100 bg-white/95 px-4 py-3 backdrop-blur sm:hidden">
   <div class="flex items-center justify-between text-xs font-medium text-gray-500">
     <span>Paso {{ current_step_index() + 1 }} de {{ step_labels.length }}</span>
     <span class="font-semibold text-blue-600">{{ step_labels[current_step_index()] }}</span>

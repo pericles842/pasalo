@@ -1,3 +1,59 @@
+.site-header {
+  height: 76px;
+  padding: 0 clamp(1.25rem, 5vw, 4rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--color-blue-100);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+}
+
+.brand-logo {
+  height: 34px;
+  width: auto;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.2vw, 2.2rem);
+  color: #52627d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.main-nav a {
+  color: #52627d;
+  text-decoration: none;
+}
+
+.main-nav a:hover {
+  color: var(--color-blue-600);
+}
+
+.nav-login {
+  color: var(--color-blue-900);
+}
+
+.menu-toggle {
+  display: none;
+  border: 0;
+  background: transparent;
+  color: var(--color-blue-900);
+  font-weight: 700;
+  font-size: 14px;
+}
+
 .web-client-layout {
   flex: 1 1 auto;
   display: flex;
@@ -7,5 +63,37 @@
 
   @media (min-width: 768px) {
     padding: 50px;
+  }
+}
+
+@media (max-width: 800px) {
+  .site-header {
+    height: 68px;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .main-nav {
+    display: none;
+    position: absolute;
+    top: 68px;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    background: white;
+    box-shadow: 0 12px 20px rgba(17, 41, 93, 0.1);
+  }
+
+  .main-nav.open {
+    display: flex;
+  }
+
+  .main-nav a {
+    padding: 8px 0;
   }
 }

@@ -1,0 +1,543 @@
+// Contrarresta el padding de .web-client-layout (16px/50px) para que las
+// secciones de esta pagina puedan ir a sangre completa (ancho de viewport),
+// igual que en el sitio de referencia. Las demas paginas del layout (precios,
+// publicidad, etc.) siguen usando ese padding normalmente.
+.home-page {
+  margin: -16px;
+
+  @media (min-width: 768px) {
+    margin: -50px;
+  }
+}
+
+em {
+  font-style: italic;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--color-blue-600);
+  font-weight: 400;
+}
+
+h1,
+h2 {
+  color: var(--color-blue-900);
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+  font-weight: 800;
+  margin: 0;
+}
+
+.eyebrow {
+  color: var(--color-blue-600);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  margin: 0 0 20px;
+}
+
+.eyebrow.light {
+  color: #8fc7ff;
+}
+
+.section {
+  padding: 120px clamp(1.25rem, 8vw, 8rem);
+}
+
+// ---------- Hero ----------
+.hero {
+  background: linear-gradient(115deg, var(--color-blue-50) 0%, #fff 58%);
+  min-height: 660px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 80px clamp(1.25rem, 8vw, 8rem) 90px;
+  gap: 40px;
+  overflow: hidden;
+}
+
+.hero-copy {
+  max-width: 570px;
+}
+
+.hero h1 {
+  font-size: clamp(3rem, 5.5vw, 5.1rem);
+}
+
+.hero-text {
+  color: #596a85;
+  max-width: 490px;
+  font-size: 17px;
+  line-height: 1.65;
+  margin: 25px 0 30px;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+
+.hero-actions button span {
+  font-size: 19px;
+  line-height: 0;
+  margin-left: 6px;
+}
+
+.text-link {
+  color: var(--color-blue-900);
+  font-size: 14px;
+  font-weight: 700;
+  border-bottom: 1px solid #b8c8df;
+  padding-bottom: 5px;
+  text-decoration: none;
+}
+
+.text-link:hover {
+  color: var(--color-blue-600);
+}
+
+.text-link span {
+  font-size: 19px;
+  line-height: 0;
+}
+
+.hero-proof {
+  color: #7c8ba2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 52px;
+  font-size: 12px;
+}
+
+.proof-dots {
+  display: flex;
+}
+
+.proof-dots i {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-blue-300);
+  border: 2px solid white;
+  margin-left: -4px;
+}
+
+.proof-dots i:first-child {
+  margin-left: 0;
+  background: var(--color-blue-800);
+}
+
+.proof-dots i:nth-child(2) {
+  background: var(--color-emerald-500, #10b981);
+}
+
+// ---------- Mockup del telefono ----------
+.hero-visual {
+  min-height: 480px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Circulo grande y solido detras de la imagen (marca de fondo)
+.visual-circle {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: var(--color-blue-100);
+}
+
+// Resplandor difuminado por encima del circulo solido, da profundidad
+.visual-glow {
+  position: absolute;
+  width: 390px;
+  height: 390px;
+  border-radius: 50%;
+  background: var(--color-blue-50);
+  filter: blur(30px);
+  opacity: 0.8;
+}
+
+.hero-image {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  filter: drop-shadow(0 25px 45px rgba(8, 39, 94, 0.28));
+}
+
+// ---------- Marcas ----------
+.trust-strip {
+  border-top: 1px solid var(--color-blue-100);
+  border-bottom: 1px solid var(--color-blue-100);
+  padding: 24px clamp(1.25rem, 8vw, 8rem);
+  display: flex;
+  align-items: center;
+  gap: 50px;
+  color: #97a5b8;
+  font-size: 11px;
+}
+
+.trust-strip p {
+  white-space: nowrap;
+}
+
+.logos {
+  display: flex;
+  justify-content: space-between;
+  gap: clamp(1rem, 4vw, 4rem);
+  width: 100%;
+  color: #7c8da8;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.logo-light {
+  font-weight: 400;
+}
+
+// ---------- Beneficios ----------
+.benefits-section {
+  background: white;
+}
+
+.section-heading {
+  max-width: 650px;
+}
+
+.section-heading.center {
+  max-width: 650px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.section-heading h2 {
+  font-size: clamp(2.7rem, 4vw, 4rem);
+}
+
+.section-heading > p:last-child {
+  color: #6e7e96;
+  line-height: 1.6;
+  max-width: 440px;
+  margin-top: 22px;
+}
+
+.section-heading.center > p:last-child {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.benefit-grid {
+  margin-top: 70px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 34px;
+}
+
+.benefit {
+  padding: 27px 25px 30px 0;
+  border-top: 1px solid var(--color-blue-200);
+}
+
+.benefit-number {
+  color: #8ca5c7;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.benefit h3 {
+  color: var(--color-blue-900);
+  font-size: 21px;
+  margin: 42px 0 12px;
+}
+
+.benefit p {
+  color: #718199;
+  line-height: 1.6;
+  font-size: 14px;
+  max-width: 280px;
+  min-height: 68px;
+}
+
+.benefit a {
+  color: var(--color-blue-600);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.benefit a:hover {
+  text-decoration: underline;
+}
+
+.benefit a span {
+  font-size: 17px;
+  margin-left: 7px;
+}
+
+// ---------- Como funciona ----------
+.how-section {
+  background: var(--color-blue-600);
+  color: white;
+  padding: 110px clamp(1.25rem, 8vw, 8rem);
+}
+
+.how-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+  max-width: 1100px;
+  margin: auto;
+}
+
+.how-copy h2 {
+  color: white;
+  font-size: clamp(2.8rem, 4.2vw, 4.2rem);
+}
+
+.how-copy > p:not(.eyebrow) {
+  color: #c8e0ff;
+  line-height: 1.65;
+  max-width: 430px;
+  margin: 25px 0 30px;
+}
+
+.btn-light {
+  background: #fff !important;
+  color: var(--color-blue-600) !important;
+  border-color: #fff !important;
+}
+
+.steps {
+  padding-top: 20px;
+}
+
+.step {
+  display: flex;
+  gap: 25px;
+  color: white;
+  position: relative;
+  padding-bottom: 38px;
+}
+
+.step-line {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #77b6f5;
+  border-radius: 50%;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.step-line::after {
+  content: '';
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: var(--color-emerald-500, #10b981);
+  border-radius: 50%;
+  top: 9px;
+  left: 9px;
+}
+
+.step-line i {
+  position: absolute;
+  top: 28px;
+  left: 13px;
+  height: 56px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.step:last-child .step-line {
+  border-color: var(--color-emerald-500, #10b981);
+}
+
+.step strong {
+  font-size: 20px;
+}
+
+.step p {
+  color: #b9d8fb;
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 350px;
+  margin: 8px 0 0;
+}
+
+// ---------- Quienes somos ----------
+.about-section {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 100px;
+  background: var(--color-blue-50);
+}
+
+.about-statement h2 {
+  font-size: clamp(2.6rem, 4vw, 3.8rem);
+}
+
+.about-detail {
+  align-self: end;
+  padding-bottom: 4px;
+}
+
+.about-detail p {
+  color: #63738c;
+  font-size: 17px;
+  line-height: 1.7;
+  max-width: 410px;
+  margin: 0;
+}
+
+.blue-link {
+  color: var(--color-blue-600);
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.blue-link:hover {
+  text-decoration: underline;
+}
+
+// ---------- Precios ----------
+.pricing-section {
+  background: white;
+}
+
+.pricing-loading {
+  text-align: center;
+  color: #6e7e96;
+  margin-top: 60px;
+}
+
+.pricing-grid {
+  margin-top: 60px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+// ---------- CTA final ----------
+.cta-section {
+  background: var(--color-blue-900);
+  text-align: center;
+  color: white;
+  padding: 125px 20px;
+}
+
+.cta-section h2 {
+  margin: 0 auto;
+  color: white;
+  font-size: clamp(2.8rem, 4.2vw, 4.2rem);
+}
+
+.cta-section > p:not(.eyebrow) {
+  color: #c4dcff;
+  margin: 24px auto 30px;
+  max-width: 420px;
+  line-height: 1.6;
+}
+
+.cta-section button span {
+  font-size: 19px;
+  line-height: 0;
+  margin-left: 6px;
+}
+
+// ---------- Responsive ----------
+@media (max-width: 800px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding-top: 50px;
+  }
+
+  .hero-visual {
+    min-height: 550px;
+  }
+
+  .trust-strip {
+    display: block;
+  }
+
+  .logos {
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .benefit-grid,
+  .how-inner,
+  .about-section,
+  .pricing-grid {
+    grid-template-columns: 1fr;
+    gap: 55px;
+  }
+
+  .pricing-grid {
+    gap: 24px;
+  }
+
+  .section,
+  .hero,
+  .how-section,
+  .cta-section {
+    padding-top: 80px;
+    padding-bottom: 80px;
+  }
+
+  .benefit-grid {
+    margin-top: 45px;
+  }
+
+  .benefit h3 {
+    margin-top: 25px;
+  }
+
+  .about-section {
+    gap: 30px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pricing-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 450px) {
+  .hero h1 {
+    font-size: 2.9rem;
+  }
+
+  .hero-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hero-visual {
+    transform: scale(0.9);
+    margin: -20px -25px;
+  }
+
+  .logos {
+    gap: 15px;
+  }
+
+  .logos span {
+    font-size: 14px;
+  }
+
+  .pricing-grid {
+    grid-template-columns: 1fr;
+  }
+}

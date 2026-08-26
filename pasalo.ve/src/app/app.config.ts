@@ -4,8 +4,9 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { NbDialogModule, NbOverlayContainerAdapter, NbThemeModule, NbToastrModule } from '@nebular/theme';
+import { NbEvaIconsModule } from '@nebular/eva-icons';
 
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -19,11 +20,17 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes),
+    // 'enabled': permite que los links con [fragment] (nav de la landing) hagan scroll
+    // a la seccion aunque se navegue desde otra pagina, no solo dentro de la misma.
+    provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled' })),
     // Nebular usa animaciones (overlays, stepper, select): sin esto revientan en runtime
     provideAnimationsAsync(),
     provideClientHydration(withEventReplay()),
     importProvidersFrom(NbThemeModule.forRoot({ name: 'default' })),
+    // Registra el pack de iconos Eva como pack por defecto: sin esto nb-icon
+    // lanza "Default pack is not registered" (rompe el SSR) en cualquier pagina
+    // que use nb-icon, como el dashboard, ordenes o esta landing.
+    importProvidersFrom(NbEvaIconsModule),
     importProvidersFrom(NbToastrModule.forRoot()),
     importProvidersFrom(NbDialogModule.forRoot()),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor, loadingInterceptor])),

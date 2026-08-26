@@ -1,3 +1,133 @@
+<div class="home-page">
 
+  <!-- Hero -->
+  <section id="inicio" class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Una app para cobrar lo que vendes</p>
+      <h1>Tu negocio tiene mucho que <em>cobrar.</em></h1>
+      <p class="hero-text">
+        Pásalo te ayuda a crear links de pago, cobrar por pago móvil o transferencia, y llevar el control
+        de cada orden desde un solo lugar.
+      </p>
+      <div class="hero-actions">
+        <button nbButton status="success" size="large" (click)="goToRegister()">
+          Quiero empezar a cobrar <span>→</span>
+        </button>
+        <a class="text-link" routerLink="/" fragment="como-funciona">Conoce Pásalo <span>↓</span></a>
+      </div>
+      <div class="hero-proof">
+        <span class="proof-dots"><i></i><i></i><i></i></span>
+        <span>Negocios que ya confían en Pásalo</span>
+      </div>
+    </div>
 
-<h1>Bienvenido</h1>
+    <div class="hero-visual" aria-label="Vista previa de la app Pásalo">
+      <div class="visual-circle"></div>
+      <div class="visual-glow"></div>
+      <img src="/hero-app-preview.png" alt="Vista previa de la app Pásalo: inicio de sesión y métricas de negocio" class="hero-image" />
+    </div>
+  </section>
+
+  <!-- Marcas -->
+  <section class="trust-strip">
+    <p>Ya están cobrando con Pásalo</p>
+    <div class="logos">
+      <span>cafecódigo</span>
+      <span>norte<span class="logo-light">studio</span></span>
+      <span>Casa <b>LUZ</b></span>
+      <span>mercado<span class="logo-light">local</span></span>
+      <span>VITA</span>
+    </div>
+  </section>
+
+  <!-- Beneficios -->
+  <section id="beneficios" class="section benefits-section">
+    <div class="section-heading">
+      <p class="eyebrow">Para empresas con iniciativa</p>
+      <h2>Cobrarle a tus clientes<br /><em>nunca fue tan fácil.</em></h2>
+      <p>Con Pásalo, cobrar deja de ser un dolor de cabeza y se vuelve parte de tu flujo de trabajo.</p>
+    </div>
+
+    <div class="benefit-grid">
+      @for (item of benefits; track item.number) {
+      <article class="benefit">
+        <span class="benefit-number">{{ item.number }}</span>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.text }}</p>
+        <a routerLink="/create-company">Saber más <span>↗</span></a>
+      </article>
+      }
+    </div>
+  </section>
+
+  <!-- Como funciona / asi de facil -->
+  <section id="como-funciona" class="how-section">
+    <div class="how-inner">
+      <div class="how-copy">
+        <p class="eyebrow light">Así de fácil</p>
+        <h2>Una forma más simple de cobrar.</h2>
+        <p>Diseñamos Pásalo para que cobrarle a tus clientes no se sienta como otra tarea pendiente. Crea tu link y compártelo, nosotros nos encargamos del resto.</p>
+        <button nbButton status="basic" class="btn-light" (click)="goToRegister()">Empieza hoy <span>→</span></button>
+      </div>
+
+      <div class="steps">
+        @for (step of steps; track step.title; let last = $last) {
+        <div class="step">
+          <span class="step-line">
+            @if (!last) { <i></i> }
+          </span>
+          <div>
+            <strong>{{ step.title }}</strong>
+            <p>{{ step.text }}</p>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Quienes somos -->
+  <section id="nosotros" class="section about-section">
+    <div class="about-statement">
+      <p class="eyebrow">Quiénes somos</p>
+      <h2>Creemos que cobrarle a tus clientes no debería ser <em>complicado.</em></h2>
+    </div>
+    <div class="about-detail">
+      <p>
+        Somos un equipo que entiende cómo cobra un negocio en Venezuela: pago móvil, transferencias y
+        comprobantes que hay que validar uno por uno. Por eso construimos Pásalo.
+      </p>
+      <a class="blue-link" routerLink="/" fragment="contacto">Conoce nuestra historia <span>↗</span></a>
+    </div>
+  </section>
+
+  <!-- Precios: reutiliza las tarjetas de subscripcion reales -->
+  <section id="precios" class="section pricing-section">
+    <div class="section-heading center">
+      <p class="eyebrow">Precios</p>
+      <h2>Un plan para cada etapa de tu negocio</h2>
+      <p>Empieza gratis y sube de plan cuando tu equipo o tus métodos de pago crezcan. Sin permanencia.</p>
+    </div>
+
+    @if (is_loading()) {
+    <p class="pricing-loading">Cargando planes...</p>
+    } @else {
+    <div class="pricing-grid">
+      @for (plan of plans(); track plan.id) {
+      <app-card-subscription-plan [plan]="plan" [isSelected]="false" (planSelected)="goToRegister()" />
+      }
+    </div>
+    }
+  </section>
+
+  <!-- CTA final: registro de empresa -->
+  <section id="empresas" class="cta-section">
+    <p class="eyebrow light">El siguiente paso es tuyo</p>
+    <h2>Empieza a<br /><em>cobrar hoy.</em></h2>
+    <p>Registra tu empresa y crea tu primer link de pago en minutos.</p>
+    <button nbButton status="basic" class="btn-light" size="large" (click)="goToRegister()">
+      Registrar mi empresa <span>→</span>
+    </button>
+  </section>
+
+</div>
