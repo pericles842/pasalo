@@ -1,0 +1,12 @@
+<div class="relative w-[min(90vw,26rem)] overflow-hidden rounded-xl bg-white shadow-2xl">
+  <button nbButton size="small" appearance="ghost" status="basic"
+    class="absolute top-2 right-2 z-10 rounded-full bg-white/90! shadow-md" type="button" (click)="close()"
+    aria-label="Cerrar">
+    <nb-icon icon="close-outline"></nb-icon>
+  </button>
+
+  <a [href]="ad.target_url" target="_blank" rel="noopener noreferrer" (click)="onClick()" class="block"
+    [title]="ad.company_name">
+    <img [src]="ad.image_url" [alt]="ad.company_name" class="block max-h-[80vh] w-full object-cover" />
+  </a>
+</div>

@@ -1,18 +1,10 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { NbButtonModule, NbCardModule } from '@nebular/theme';
-import { AdPlacement, AdPlanInterface, AdsService } from '@shared/services/ads.service';
+import { AdPlanInterface, AdsService } from '@shared/services/ads.service';
 
 /** Mismo numero de contacto que ya usa el resto de la app (footer, cambio de plan) */
 const WHATSAPP_NUMBER = '584124971066';
-
-const PLACEMENT_LABELS: Record<AdPlacement, string> = {
-  header: 'Header del dashboard',
-  footer: 'Footer',
-  sidebar: 'Sidebar y login',
-  dashboard_static: 'Dashboard',
-  modal: 'Modal (próximamente)',
-};
 
 @Component({
   selector: 'app-ads',
@@ -36,14 +28,15 @@ export class Ads implements OnInit {
     });
   }
 
-  placementLabel(placement: AdPlacement): string {
-    return PLACEMENT_LABELS[placement] ?? placement;
+  /** Nombre de cada ubicacion viene directo de `ad_locations`: agregar una nueva no requiere tocar este archivo */
+  locationsLabel(plan: AdPlanInterface): string {
+    return plan.locations.map((location) => location.name).join(' + ');
   }
 
   /** Mismo proceso que contratar una suscripcion: abre WhatsApp con el plan ya armado */
   contactWhatsApp(plan: AdPlanInterface): void {
     const message =
-      `Hola, quiero contratar el plan de publicidad "${plan.name}" (${this.placementLabel(plan.placement)}) ` +
+      `Hola, quiero contratar el plan de publicidad "${plan.name}" (${this.locationsLabel(plan)}) ` +
       `por $${plan.price} / ${plan.duration_days} días.`;
 
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');

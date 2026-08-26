@@ -96,6 +96,9 @@ Para las tablas de cada empresa (`orders`, `order_items`, `payment_methods`, `no
 - `DELETE /notifications/:id` y `DELETE /notifications` (borrar todas) — cada quien borra solo las suyas, admin borra cualquiera.
 - **WebSocket** (`socket.io`, `src/app/config/socket.ts`): cada usuario se autentica con el mismo JWT al conectar. Se une a la sala `user:<uuid>` (siempre) y, si es admin, también a `company:<tenant_id>:admin`. Cuando se registra un pago, se emite a ambas salas — así llega al vendedor dueño de la orden **y** al admin, a nadie más.
 
+### Publicidad
+- Pásalo vende espacio publicitario dentro de su propio dashboard a empresas anunciantes (header, debajo del menú, un modal periódico). Documento propio, con esquema y lógica de negocio: [ADS_CONTEXT.md](./ADS_CONTEXT.md).
+
 ### Tasa de cambio (BCV)
 - `GET /exchange-rate`: proxy cacheado (30 min) de `https://ve.dolarapi.com/v1/dolares`. Si la API externa falla y hay un valor cacheado previo, lo sigue sirviendo en vez de romper.
 - Frontend: `ExchangeRateService` la pide **una sola vez por sesión de navegador** (en el constructor del servicio, `providedIn: 'root'`) y la expone como signal (`rateOficial()`). Ningún componente vuelve a pedirla.

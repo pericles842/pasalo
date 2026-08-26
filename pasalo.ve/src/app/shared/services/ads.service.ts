@@ -3,7 +3,14 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, of } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
-export type AdPlacement = 'header' | 'footer' | 'sidebar' | 'dashboard_static' | 'modal';
+/** Clave libre, no un enum fijo: coincide con `ad_locations.key` (ej. "header-dashboard", "modal") */
+export type AdPlacement = string;
+
+export interface AdLocationInterface {
+  id: number;
+  key: AdPlacement;
+  name: string;
+}
 
 export interface AdInterface {
   id: number;
@@ -17,11 +24,11 @@ export interface AdInterface {
 export interface AdPlanInterface {
   id: number;
   name: string;
-  placement: AdPlacement;
   priority: number;
   price: number;
   duration_days: number;
   description: string | null;
+  locations: AdLocationInterface[];
 }
 
 @Injectable({ providedIn: 'root' })

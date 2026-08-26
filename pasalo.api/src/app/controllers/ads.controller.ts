@@ -1,18 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import { getAdForPlacement, registerAdClick } from '../../utils/adsEngine';
-import { AdPlacement } from '../models/plans_ads.model';
+import { AdLocationModel } from '../models/ad_location.model';
 import { PlanAdsModel } from '../models/plans_ads.model';
-
-const VALID_PLACEMENTS: AdPlacement[] = ['header', 'footer', 'sidebar', 'dashboard_static', 'modal'];
 
 export class AdsController {
     static async getAdForPlacement(req: Request, res: Response, next: NextFunction) {
         try {
-            const placement = req.params.placement as AdPlacement;
-            if (!VALID_PLACEMENTS.includes(placement)) {
-                res.status(400).json({ message: 'Placement inválido' });
-                return;
-            }
+            const placement = req.params.placement as string;
 
             const ad = await getAdForPlacement(placement);
             if (!ad) {
@@ -43,8 +37,21 @@ export class AdsController {
 
     static async getPlans(req: Request, res: Response, next: NextFunction) {
         try {
-            const plans = await PlanAdsModel.findAll({ where: { status: 'active' }, raw: true });
+            const plans = await PlanAdsModel.findAll({
+                where: { status: 'active' },
+                include: [{ model: AdLocationModel, as: 'locations', attributes: ['id', 'key', 'name'], through: { attributes: [] } }]
+            });
             res.json(plans);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    /** Catalogo de ubicaciones disponibles, para armar planes nuevos o dar de alta un anuncio a mano */
+    static async getLocations(req: Request, res: Response, next: NextFunction) {
+        try {
+            const locations = await AdLocationModel.findAll({ where: { status: 'active' }, raw: true });
+            res.json(locations);
         } catch (err) {
             next(err);
         }

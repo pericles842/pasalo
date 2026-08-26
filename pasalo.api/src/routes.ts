@@ -49,18 +49,29 @@ router.get('/ads/plans', AdsController.getPlans);
 
 /**
  * @swagger
+ * /ads/locations:
+ *   get:
+ *     tags: [Ads]
+ *     summary: Lista el catalogo de ubicaciones de publicidad disponibles
+ *     responses:
+ *       200: { description: Lista de ubicaciones }
+ */
+router.get('/ads/locations', AdsController.getLocations);
+
+/**
+ * @swagger
  * /ads/{placement}:
  *   get:
  *     tags: [Ads]
- *     summary: Sortea un anuncio activo para un placement (header, footer, sidebar, dashboard_static, modal)
+ *     summary: Sortea un anuncio activo para una ubicacion (ver /ads/locations para las claves disponibles)
  *     parameters:
  *       - in: path
  *         name: placement
  *         required: true
- *         schema: { type: string, enum: [header, footer, sidebar, dashboard_static, modal] }
+ *         schema: { type: string }
  *     responses:
  *       200: { description: Anuncio seleccionado }
- *       204: { description: No hay anuncios activos para ese placement }
+ *       204: { description: No hay anuncios activos para esa ubicacion }
  */
 router.get('/ads/:placement', AdsController.getAdForPlacement);
 

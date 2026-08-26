@@ -2,7 +2,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { Op } from 'sequelize';
 import { AdModel } from '../app/models/ads.model';
-import { AdPlacement } from '../app/models/plans_ads.model';
+import { AdLocationKey, AdLocationModel } from '../app/models/ad_location.model';
+import { PlanAdsModel } from '../app/models/plans_ads.model';
 import { getPublicUrl, listFiles } from './awsBucketS3';
 
 const UPLOADS_DIR = path.join(__dirname, '../../uploads');
@@ -17,7 +18,7 @@ export interface AdPayload {
     id: number;
     company_name: string;
     target_url: string;
-    placement: AdPlacement;
+    placement: AdLocationKey;
     image_url: string;
     interval_seconds: number | null;
 }
@@ -72,22 +73,39 @@ async function pickRandomImageUrl(folderName: string): Promise<string | null> {
 }
 
 /**
- * Elige un anuncio activo para el placement pedido: sorteo ponderado por priority
- * entre los ads vigentes (status active y dentro de start_date/end_date), y dentro
- * de ese ad, una foto al azar entre las que haya en su carpeta. Si la carpeta
- * ganadora no tiene fotos, se descarta y se vuelve a sortear entre el resto.
+ * Elige un anuncio activo para la ubicacion pedida (`ad_locations.key`): sorteo
+ * ponderado por priority entre los ads vigentes (status active, dentro de
+ * start_date/end_date, y cuyo plan incluya esa ubicacion), y dentro de ese ad,
+ * una foto al azar entre las que haya en su carpeta. Si la carpeta ganadora no
+ * tiene fotos, se descarta y se vuelve a sortear entre el resto.
  */
-export async function getAdForPlacement(placement: AdPlacement): Promise<AdPayload | null> {
+export async function getAdForPlacement(placement: AdLocationKey): Promise<AdPayload | null> {
     const today = new Date().toISOString().slice(0, 10);
 
     const candidates = await AdModel.findAll({
         where: {
-            placement,
             status: 'active',
             start_date: { [Op.lte]: today },
             end_date: { [Op.gte]: today }
         },
-        raw: true
+        include: [
+            {
+                model: PlanAdsModel,
+                as: 'plan',
+                required: true,
+                attributes: [],
+                include: [
+                    {
+                        model: AdLocationModel,
+                        as: 'locations',
+                        required: true,
+                        attributes: [],
+                        through: { attributes: [] },
+                        where: { key: placement, status: 'active' }
+                    }
+                ]
+            }
+        ]
     });
 
     let pool = [...candidates];
@@ -104,7 +122,7 @@ export async function getAdForPlacement(placement: AdPlacement): Promise<AdPaylo
                 id: chosen.id,
                 company_name: chosen.company_name,
                 target_url: chosen.target_url,
-                placement: chosen.placement,
+                placement,
                 image_url,
                 interval_seconds: chosen.interval_seconds
             };

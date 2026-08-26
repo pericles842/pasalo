@@ -1,14 +1,16 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import { sequelize } from '../config/db';
+import { AdLocationModel } from './ad_location.model';
+import { PlanAdsLocationModel } from './plan_ads_location.model';
 
-export type AdPlacement = 'header' | 'footer' | 'sidebar' | 'dashboard_static' | 'modal';
-
-// Catalogo de planes de publicidad (distinto de PlanModel, que es el plan de suscripcion de Pasalo)
+// Catalogo de planes de publicidad (distinto de PlanModel, que es el plan de suscripcion de Pasalo).
+// Un plan ya no tiene un placement fijo: incluye una o mas `AdLocationModel` via `plan_ads_locations`
+// (ver `locations` mas abajo), lo que permite vender combos (ej. header + footer del menu) y agregar
+// ubicaciones nuevas sin tocar esquema ni codigo.
 export class PlanAdsModel extends Model<InferAttributes<PlanAdsModel>, InferCreationAttributes<PlanAdsModel>> {
     declare id: CreationOptional<number>;
 
     declare name: string;
-    declare placement: AdPlacement;
     declare priority: CreationOptional<number>;
     declare price: number;
     declare duration_days: CreationOptional<number>;
@@ -33,10 +35,6 @@ PlanAdsModel.init(
             validate: {
                 notEmpty: { msg: 'El nombre del plan de publicidad es requerido' }
             }
-        },
-        placement: {
-            type: DataTypes.ENUM('header', 'footer', 'sidebar', 'dashboard_static', 'modal'),
-            allowNull: false
         },
         priority: {
             type: DataTypes.INTEGER,
@@ -83,3 +81,16 @@ PlanAdsModel.init(
         timestamps: true
     }
 );
+
+PlanAdsModel.belongsToMany(AdLocationModel, {
+    through: PlanAdsLocationModel,
+    foreignKey: 'plan_ads_id',
+    otherKey: 'ad_location_id',
+    as: 'locations'
+});
+AdLocationModel.belongsToMany(PlanAdsModel, {
+    through: PlanAdsLocationModel,
+    foreignKey: 'ad_location_id',
+    otherKey: 'plan_ads_id',
+    as: 'plans'
+});

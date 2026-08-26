@@ -1,18 +1,19 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import { sequelize } from '../config/db';
-import { AdPlacement } from './plans_ads.model';
+import { PlanAdsModel } from './plans_ads.model';
 
 // Un anuncio contratado. `folder_name` (ej. "ads-coffeecode") es la carpeta exclusiva
 // de esa empresa con sus fotos: en S3 es un prefijo en la raiz del bucket, en disco
 // vive bajo /uploads. Cual foto sale se decide al azar en runtime (ver adsEngine.ts).
+// Ya no guarda su propio placement: en que ubicacion(es) aparece lo define el plan
+// contratado (`plan_ads_id` -> `plans_ads.locations`), no una columna propia.
 export class AdModel extends Model<InferAttributes<AdModel>, InferCreationAttributes<AdModel>> {
     declare id: CreationOptional<number>;
 
-    declare plan_ads_id: CreationOptional<number | null>;
+    declare plan_ads_id: number;
     declare company_name: string;
     declare folder_name: string;
     declare target_url: string;
-    declare placement: AdPlacement;
     declare priority: CreationOptional<number>;
     declare start_date: string;
     declare end_date: string;
@@ -37,7 +38,7 @@ AdModel.init(
         },
         plan_ads_id: {
             type: DataTypes.INTEGER,
-            allowNull: true
+            allowNull: false
         },
         company_name: {
             type: DataTypes.STRING(255),
@@ -66,10 +67,6 @@ AdModel.init(
             validate: {
                 notEmpty: { msg: 'El enlace de destino es requerido' }
             }
-        },
-        placement: {
-            type: DataTypes.ENUM('header', 'footer', 'sidebar', 'dashboard_static', 'modal'),
-            allowNull: false
         },
         priority: {
             type: DataTypes.INTEGER,
@@ -130,3 +127,6 @@ AdModel.init(
         timestamps: true
     }
 );
+
+AdModel.belongsTo(PlanAdsModel, { foreignKey: 'plan_ads_id', as: 'plan' });
+PlanAdsModel.hasMany(AdModel, { foreignKey: 'plan_ads_id', as: 'ads' });

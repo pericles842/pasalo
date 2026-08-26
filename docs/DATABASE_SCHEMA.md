@@ -117,6 +117,9 @@ Catálogo fijo de estados de una orden (se usa en TODAS las bases tenant, refere
 | 3 | Atrasado | `atrasado` | La orden lleva demasiado tiempo sin pago. **(no hay proceso automático que asigne este estado — ver pendientes en PROJECT_CONTEXT.md)** |
 | 4 | Rechazado | `rechazado` | El vendedor revisó el comprobante y lo rechazó. |
 
+### Publicidad: `ads_locations`, `plans_ads`, `plan_ads_locations`, `ads`
+Catálogo de ubicaciones de publicidad, los planes que se le venden a empresas anunciantes, la relación N:M entre ambos, y los anuncios contratados concretos. Ver [ADS_CONTEXT.md](./ADS_CONTEXT.md) para el detalle columna por columna, el motor de sorteo y las decisiones de negocio detrás — es un dominio grande, se le dio su propio documento en vez de inflar este.
+
 ### `sequelizemeta`
 Tabla técnica de Sequelize/Umzug: registra qué archivos de `migrations/*.js` ya se aplicaron a esta base. No se toca a mano.
 
