@@ -39,6 +39,11 @@ PlanModel.init({
         allowNull: false,
         defaultValue: 1
     },
+    payment_methods_limit: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 3
+    },
     color_theme: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,

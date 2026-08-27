@@ -9,14 +9,22 @@ const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
 const dotenv_1 = __importDefault(require("dotenv"));
 const ImageOptimize_1 = require("./ImageOptimize");
 dotenv_1.default.config();
-// Inicialización del cliente S3
-const s3 = new client_s3_1.S3Client({
-    region: process.env.AWS_REGION,
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
+// El cliente se crea recien cuando se usa: si AWS_REGION no esta configurado
+// (mientras se sube a disco vía storage.ts), importar este archivo no debe
+// tumbar el servidor.
+let s3Client = null;
+function getS3Client() {
+    if (!s3Client) {
+        s3Client = new client_s3_1.S3Client({
+            region: process.env.AWS_REGION,
+            credentials: {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
+            }
+        });
     }
-});
+    return s3Client;
+}
 // Nombre del bucket desde el .env
 const BUCKET = process.env.AWS_BUCKET || '';
 /* ---------------------------------------------------------
@@ -36,7 +44,7 @@ const uploadToS3 = async (file, folder, keyToReplace, format, width) => {
         ContentType: mimeType,
         CacheControl: 'no-cache, no-store, must-revalidate'
     };
-    await s3.send(new client_s3_1.PutObjectCommand(uploadParams));
+    await getS3Client().send(new client_s3_1.PutObjectCommand(uploadParams));
     return {
         key: fileKey,
         url: `https://${BUCKET}.s3.amazonaws.com/${fileKey}`
@@ -51,7 +59,7 @@ const getSignedFileUrl = async (key, expiresInSeconds = 3600) => {
         Bucket: BUCKET,
         Key: key
     });
-    const signedUrl = await (0, s3_request_presigner_1.getSignedUrl)(s3, command, { expiresIn: expiresInSeconds });
+    const signedUrl = await (0, s3_request_presigner_1.getSignedUrl)(getS3Client(), command, { expiresIn: expiresInSeconds });
     return signedUrl;
 };
 exports.getSignedFileUrl = getSignedFileUrl;
@@ -63,7 +71,7 @@ const listFiles = async (folder) => {
         Bucket: BUCKET,
         Prefix: `${folder}/`
     });
-    const data = await s3.send(command);
+    const data = await getS3Client().send(command);
     return data.Contents || [];
 };
 exports.listFiles = listFiles;
@@ -82,7 +90,7 @@ const deleteFile = async (key) => {
                 Objects: key.map((k) => ({ Key: k }))
             }
         });
-        await s3.send(command);
+        await getS3Client().send(command);
         return { deleted: true, keys: key };
     }
     // Borrar uno
@@ -90,7 +98,7 @@ const deleteFile = async (key) => {
         Bucket: BUCKET,
         Key: key
     });
-    await s3.send(command);
+    await getS3Client().send(command);
     return { deleted: true, key };
 };
 exports.deleteFile = deleteFile;

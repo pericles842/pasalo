@@ -1,0 +1,316 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CompanyUserController = void 0;
+const sequelize_1 = require("sequelize");
+const db_1 = require("../config/db");
+const user_model_1 = require("../models/user.model");
+const role_model_1 = require("../models/role.model");
+const company_user_model_1 = require("../models/company_user.model");
+const company_model_1 = require("../models/company.model");
+const plans_model_1 = require("../models/plans.model");
+const auth_1 = require("../../utils/auth");
+const exchangeRate_1 = require("../../utils/exchangeRate");
+/** id del status "Pendiente de verificación" en status_subscriptions */
+const PENDING_VERIFICATION_STATUS_ID = 4;
+/** id del status "Activo" en status_subscriptions */
+const ACTIVE_STATUS_ID = 1;
+class CompanyUserController {
+    static session(req) {
+        return req.session;
+    }
+    /** Solo el usuario master administra los usuarios de la empresa */
+    static isAdmin(req) {
+        return CompanyUserController.session(req).role === 'admin';
+    }
+    /**
+     * Usuarios usados vs. permitidos por el plan de la empresa
+     *
+     * @static
+     * @param {string} company_id
+     * @memberof CompanyUserController
+     */
+    static async getUsage(company_id) {
+        const [used] = await db_1.sequelize.query(`SELECT COUNT(*) AS total FROM company_users WHERE company_id = :company_id`, { replacements: { company_id }, type: sequelize_1.QueryTypes.SELECT });
+        const [plan] = await db_1.sequelize.query(`SELECT p.* FROM companies_subscriptions cs
+             JOIN plans p ON p.id = cs.plan_id
+             WHERE cs.company_id = :company_id`, { replacements: { company_id }, type: sequelize_1.QueryTypes.SELECT });
+        const limit = plan?.user_limit ?? 0;
+        const total = Number(used.total);
+        return {
+            plan,
+            usage: {
+                used: total,
+                limit,
+                available: Math.max(0, limit - total)
+            }
+        };
+    }
+    /**
+     * Lista los usuarios de la empresa junto con el consumo del plan
+     *
+     * @static
+     * @memberof CompanyUserController
+     */
+    static async listUsers(req, res, next) {
+        try {
+            const company_id = CompanyUserController.session(req).company.uuid;
+            const users = await db_1.sequelize.query(`SELECT u.uuid, u.first_name, u.middle_name, u.email, u.photo_url, u.status,
+                        u.sales_made, u.createdAt, r.id AS role_id, r.name AS role_name, r.slug AS role_slug
+                 FROM company_users cu
+                 JOIN users u ON u.uuid = cu.user_id
+                 JOIN roles r ON r.id = u.role_id
+                 WHERE cu.company_id = :company_id
+                 ORDER BY u.createdAt ASC`, { replacements: { company_id }, type: sequelize_1.QueryTypes.SELECT });
+            const { plan, usage } = await CompanyUserController.getUsage(company_id);
+            res.json({ users, plan, usage });
+        }
+        catch (err) {
+            next(err);
+        }
+    }
+    /**
+     * Crea un usuario interno. El plan define cuantos caben.
+     *
+     * @static
+     * @memberof CompanyUserController
+     */
+    static async createUser(req, res, next) {
+        if (!CompanyUserController.isAdmin(req)) {
+            res.status(403).json({ message: 'Acceso denegado', error: 'Solo el administrador puede crear usuarios.' });
+            return;
+        }
+        const company_id = CompanyUserController.session(req).company.uuid;
+        const { first_name, middle_name, password, password_confirmation, role_id } = req.body;
+        // El correo es la credencial de acceso: siempre normalizado para que
+        // "Ana@Gmail.com" y "ana@gmail.com" sean el mismo usuario
+        const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : null;
+        if (!first_name || !email || !password || !role_id) {
+            res.status(400).json({ message: 'Datos incompletos', error: 'Completa el cargo, el nombre, el correo y la contraseña.' });
+            return;
+        }
+        if (password !== password_confirmation) {
+            res.status(400).json({ message: 'Contraseña inválida', error: 'La confirmación de contraseña no coincide.' });
+            return;
+        }
+        const email_taken = await user_model_1.UserModel.findOne({ where: { email } });
+        if (email_taken) {
+            res.status(409).json({ message: 'Correo en uso', error: `El correo ${email} ya está registrado en Pásalo, usa otro.` });
+            return;
+        }
+        const { plan, usage } = await CompanyUserController.getUsage(company_id);
+        if (usage.available <= 0) {
+            res.status(409).json({
+                message: 'Límite de usuarios alcanzado',
+                error: `Tu ${plan?.name ?? 'plan'} permite ${usage.limit} ${usage.limit === 1 ? 'usuario' : 'usuarios'} y ya los tienes ocupados. Cambia de plan para agregar más.`,
+                usage
+            });
+            return;
+        }
+        const role = await role_model_1.RoleModel.findByPk(role_id);
+        if (!role) {
+            res.status(404).json({ message: 'Cargo no encontrado', error: 'El cargo seleccionado no existe.' });
+            return;
+        }
+        if (role.slug === role_model_1.ROLE_ADMIN_SLUG) {
+            res.status(400).json({ message: 'Cargo no permitido', error: 'El cargo de administrador es exclusivo del usuario master de la empresa.' });
+            return;
+        }
+        const transaction = await db_1.sequelize.transaction();
+        try {
+            const user = await user_model_1.UserModel.create({
+                first_name,
+                middle_name: middle_name ?? null,
+                photo_url: null,
+                ci: null,
+                email,
+                password: await (0, auth_1.hashPassword)(password),
+                role_id: role.id,
+                status: 'active',
+                // Se calcula solo a partir de las órdenes del usuario; nunca se captura a mano
+                sales_made: 0
+            }, { transaction });
+            await company_user_model_1.CompanyUserModel.create({
+                company_id,
+                user_id: user.uuid
+            }, { transaction });
+            await transaction.commit();
+            const refreshed = await CompanyUserController.getUsage(company_id);
+            res.status(201).json({ user, role, usage: refreshed.usage });
+        }
+        catch (err) {
+            await transaction.rollback();
+            next(err);
+        }
+    }
+    /**
+     * Cambia el plan de la empresa.
+     *
+     * El plan gratuito se aplica al instante (no hay nada que cobrar). Un
+     * plan pago no se activa solo: queda como pending_plan_id con status
+     * "Pendiente de verificación" hasta que el pago se confirme por WhatsApp
+     * y se verifique a mano en la base de datos. El plan activo (y el cupo de
+     * usuarios) no cambia hasta ese momento.
+     *
+     * @static
+     * @memberof CompanyUserController
+     */
+    static async changePlan(req, res, next) {
+        if (!CompanyUserController.isAdmin(req)) {
+            res.status(403).json({ message: 'Acceso denegado', error: 'Solo el administrador puede cambiar el plan.' });
+            return;
+        }
+        try {
+            const session = CompanyUserController.session(req);
+            const company_id = session.company.uuid;
+            const { plan_id } = req.body;
+            const plan = await plans_model_1.PlanModel.findByPk(plan_id);
+            if (!plan) {
+                res.status(404).json({ message: 'Plan no encontrado', error: 'El plan seleccionado no existe.' });
+                return;
+            }
+            if (Number(plan.price) > 0) {
+                // El plan pago corre sus 30 dias desde que se pide, aunque la
+                // verificacion del pago llegue despues (igual que en el registro)
+                await db_1.sequelize.query(`UPDATE companies_subscriptions
+                     SET pending_plan_id = :plan_id, status_id = :status_id,
+                         expires_at = DATE_ADD(NOW(), INTERVAL 30 DAY), updatedAt = NOW()
+                     WHERE company_id = :company_id`, { replacements: { plan_id: plan.id, status_id: PENDING_VERIFICATION_STATUS_ID, company_id } });
+                const rates = await (0, exchangeRate_1.getExchangeRates)().catch(() => null);
+                const amount_usd = Number(plan.price);
+                const amount_bs = rates?.oficial ? Math.round(amount_usd * rates.oficial * 100) / 100 : null;
+                res.json({
+                    status: 'pending_verification',
+                    plan,
+                    amount_usd,
+                    amount_bs
+                });
+                return;
+            }
+            const { usage } = await CompanyUserController.getUsage(company_id);
+            // No se puede bajar a un plan mas chico que la cantidad de usuarios ya creados
+            if (plan.user_limit < usage.used) {
+                res.status(409).json({
+                    message: 'Plan insuficiente',
+                    error: `Tienes ${usage.used} usuarios y el ${plan.name} solo permite ${plan.user_limit}. Elimina usuarios antes de bajar de plan.`,
+                    usage
+                });
+                return;
+            }
+            await db_1.sequelize.transaction(async (transaction) => {
+                await db_1.sequelize.query(`UPDATE companies_subscriptions
+                     SET plan_id = :plan_id, pending_plan_id = NULL, status_id = :status_id,
+                         expires_at = NULL, updatedAt = NOW()
+                     WHERE company_id = :company_id`, { replacements: { plan_id: plan.id, status_id: ACTIVE_STATUS_ID, company_id }, transaction });
+                await company_model_1.CompanyModel.update({ user_limit: plan.user_limit }, { where: { uuid: company_id }, transaction });
+            });
+            const refreshed = await CompanyUserController.getUsage(company_id);
+            res.json({ status: 'active', plan, usage: refreshed.usage });
+        }
+        catch (err) {
+            next(err);
+        }
+    }
+    /**
+     * Estado de la suscripción para el banner del dashboard: plan activo,
+     * plan pedido pendiente de verificar (si hay uno), y cuanto falta para
+     * que venza el plan pago actual.
+     *
+     * @static
+     * @memberof CompanyUserController
+     */
+    static async getSubscriptionStatus(req, res, next) {
+        try {
+            const company_id = CompanyUserController.session(req).company.uuid;
+            const [subscription] = await db_1.sequelize.query(`SELECT cs.status_id, cs.expires_at, cs.pending_plan_id,
+                        p.id AS plan_id, p.name AS plan_name, p.price AS plan_price,
+                        pp.id AS pending_plan_full_id, pp.name AS pending_plan_name, pp.price AS pending_plan_price,
+                        st.name AS status_name
+                 FROM companies_subscriptions cs
+                 JOIN plans p ON p.id = cs.plan_id
+                 LEFT JOIN plans pp ON pp.id = cs.pending_plan_id
+                 JOIN status_subscriptions st ON st.id = cs.status_id
+                 WHERE cs.company_id = :company_id`, { replacements: { company_id }, type: sequelize_1.QueryTypes.SELECT });
+            if (!subscription) {
+                res.status(404).json({ message: 'Suscripción no encontrada', error: 'Tu empresa no tiene una suscripción registrada.' });
+                return;
+            }
+            const days_remaining = subscription.expires_at
+                ? Math.ceil((new Date(subscription.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                : null;
+            res.json({
+                plan: {
+                    id: subscription.plan_id,
+                    name: subscription.plan_name,
+                    price: subscription.plan_price
+                },
+                pending_plan: subscription.pending_plan_id ? {
+                    id: subscription.pending_plan_full_id,
+                    name: subscription.pending_plan_name,
+                    price: subscription.pending_plan_price
+                } : null,
+                status_id: subscription.status_id,
+                status_name: subscription.status_name,
+                expires_at: subscription.expires_at,
+                days_remaining
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    }
+    /**
+     * Cargos disponibles para los usuarios de la empresa
+     *
+     * @static
+     * @memberof CompanyUserController
+     */
+    static async listRoles(req, res, next) {
+        try {
+            // El cargo de administrador no se asigna: es del usuario master que registró la empresa
+            const roles = await role_model_1.RoleModel.findAll({
+                where: { slug: { [sequelize_1.Op.ne]: role_model_1.ROLE_ADMIN_SLUG } },
+                order: [['id', 'ASC']]
+            });
+            res.json(roles);
+        }
+        catch (err) {
+            next(err);
+        }
+    }
+    /**
+     * Elimina un usuario interno de la empresa.
+     * El usuario master no puede eliminarse a si mismo desde aqui.
+     *
+     * @static
+     * @memberof CompanyUserController
+     */
+    static async deleteUser(req, res, next) {
+        if (!CompanyUserController.isAdmin(req)) {
+            res.status(403).json({ message: 'Acceso denegado', error: 'Solo el administrador puede eliminar usuarios.' });
+            return;
+        }
+        try {
+            const session = CompanyUserController.session(req);
+            const company_id = session.company.uuid;
+            const { uuid } = req.params;
+            if (uuid === session.user.uuid) {
+                res.status(400).json({ message: 'Operación no permitida', error: 'No puedes eliminar tu propio usuario administrador.' });
+                return;
+            }
+            // Confirma que el usuario pertenece a la empresa de quien hace la peticion
+            const link = await company_user_model_1.CompanyUserModel.findOne({ where: { company_id, user_id: uuid } });
+            if (!link) {
+                res.status(404).json({ message: 'Usuario no encontrado', error: 'Ese usuario no pertenece a tu empresa.' });
+                return;
+            }
+            // company_users se elimina en cascada por la FK hacia users
+            await user_model_1.UserModel.destroy({ where: { uuid } });
+            const { usage } = await CompanyUserController.getUsage(company_id);
+            res.json({ message: 'Usuario eliminado', usage });
+        }
+        catch (err) {
+            next(err);
+        }
+    }
+}
+exports.CompanyUserController = CompanyUserController;

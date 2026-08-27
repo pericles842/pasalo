@@ -29,6 +29,26 @@ export class RoleModel extends Model<InferAttributes<RoleModel>, InferCreationAt
     }
 }
 
+/** Permiso de un usuario sobre un módulo del sistema */
+export interface ModulePermission {
+    module_id: number;
+    module: string;
+    can_view: boolean;
+    can_create: boolean;
+    can_update: boolean;
+    can_delete: boolean;
+}
+
+/**
+ * TODO: la permisología por módulo aún no está modelada en la base de datos.
+ * Este stub solo existe para que authMiddleware compile; no otorga ni deniega nada real todavía.
+ */
+export class UserPermissions {
+    static async getUserPermission(user_id: string): Promise<ModulePermission[]> {
+        return [];
+    }
+}
+
 RoleModel.init(
     {
         id: {

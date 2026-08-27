@@ -1,110 +1,86 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Usuario = void 0;
+exports.UserModel = void 0;
 const sequelize_1 = require("sequelize");
 const db_1 = require("../config/db");
-class Usuario extends sequelize_1.Model {
-    static async getUsers(id = null) {
-        try {
-            let query = `SELECT 
-      users.*,
-      public_groups.name as savings_box ,
-      states.name as state ,
-      cities.name as municipality ,
-      parishes.name as parish,
-      roles.name as role
-      FROM users 
-      LEFT JOIN public_groups on public_groups.id = users.public_group_id
-      INNER JOIN states ON states.id = users.state_id
-      INNER JOIN cities ON cities.id = users.city_id
-      INNER JOIN parishes ON parishes.id = users.parish_id
-      INNER JOIN roles ON roles.id = users.rol_id `;
-            if (id) {
-                query += ` WHERE users.id = ${id};`;
-            }
-            const [users] = await db_1.sequelize.query(query);
-            return users;
-        }
-        catch (error) {
-            throw error;
-        }
+const role_model_1 = require("./role.model");
+class UserModel extends sequelize_1.Model {
+    /** Nunca devolver el hash de la contraseña al frontend */
+    toJSON() {
+        const { password, ...user } = super.toJSON();
+        return user;
     }
 }
-exports.Usuario = Usuario;
-Usuario.init({
-    id: {
-        type: sequelize_1.DataTypes.INTEGER,
+exports.UserModel = UserModel;
+UserModel.init({
+    uuid: {
+        type: sequelize_1.DataTypes.UUID,
+        defaultValue: sequelize_1.DataTypes.UUIDV4,
         allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
+        primaryKey: true
     },
-    name: {
+    first_name: {
         type: sequelize_1.DataTypes.STRING(255),
         allowNull: false,
+        validate: {
+            notEmpty: { msg: 'El nombre es requerido' }
+        }
     },
-    last_name: {
+    middle_name: {
+        type: sequelize_1.DataTypes.STRING(255),
+        allowNull: true
+    },
+    photo_url: {
+        type: sequelize_1.DataTypes.STRING(255),
+        allowNull: true
+    },
+    ci: {
         type: sequelize_1.DataTypes.STRING(255),
         allowNull: true,
+        unique: true
     },
     email: {
         type: sequelize_1.DataTypes.STRING(255),
         allowNull: false,
+        unique: true,
         validate: {
-            notEmpty: { msg: "El correo no puede estar vació" },
-        },
-    },
-    phone: {
-        type: sequelize_1.DataTypes.STRING(255),
-        allowNull: false,
-        validate: {
-            notEmpty: { msg: "El teléfono no puede estar vacío" },
-        },
+            isEmail: { msg: 'El correo personal no es válido' }
+        }
     },
     password: {
         type: sequelize_1.DataTypes.STRING(255),
-        allowNull: false,
-        validate: {
-            notEmpty: { msg: "La contraseña no puede estar vacía" },
-        },
+        allowNull: false
     },
-    ci: {
-        type: sequelize_1.DataTypes.STRING(255),
-        allowNull: false,
-        validate: {
-            notEmpty: { msg: "La cédula no puede estar vacía" },
-        },
-    },
-    url_img: {
-        type: sequelize_1.DataTypes.STRING(255),
-        allowNull: true,
-    },
-    rol_id: {
+    role_id: {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false,
+        defaultValue: 1,
+        references: {
+            model: role_model_1.RoleModel,
+            key: 'id'
+        }
     },
-    public_group_id: {
-        type: sequelize_1.DataTypes.INTEGER,
-        allowNull: true,
+    status: {
+        type: sequelize_1.DataTypes.ENUM('active', 'inactive', 'baned'),
+        allowNull: false,
+        defaultValue: 'active'
     },
-    state_id: {
+    sales_made: {
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: false,
+        defaultValue: 0
     },
-    city_id: {
-        type: sequelize_1.DataTypes.INTEGER,
-        allowNull: false,
-    },
-    parish_id: {
-        type: sequelize_1.DataTypes.INTEGER,
-        allowNull: false,
-    },
-    created_at: {
+    createdAt: {
         type: sequelize_1.DataTypes.DATE,
-        allowNull: false,
-        defaultValue: sequelize_1.DataTypes.NOW,
+        allowNull: false
     },
+    updatedAt: {
+        type: sequelize_1.DataTypes.DATE,
+        allowNull: false
+    }
 }, {
     sequelize: db_1.sequelize,
-    tableName: "users",
-    timestamps: false,
+    tableName: 'users',
+    timestamps: true
 });
+UserModel.belongsTo(role_model_1.RoleModel, { foreignKey: 'role_id', as: 'role' });

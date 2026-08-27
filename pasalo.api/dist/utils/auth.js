@@ -1,4 +1,5 @@
 "use strict";
+// helpers/auth.ts
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -36,10 +37,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.JWT_EXPIRES_IN = void 0;
 exports.hashPassword = hashPassword;
 exports.comparePassword = comparePassword;
 exports.decodeToken = decodeToken;
-// helpers/auth.ts
+exports.generateToken = generateToken;
+exports.verifyToken = verifyToken;
+/** Duracion por defecto de la sesion */
+exports.JWT_EXPIRES_IN = '8h';
 const bcrypt = __importStar(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 /**
@@ -73,4 +78,31 @@ async function comparePassword(plain, hash) {
  */
 function decodeToken(token) {
     return jsonwebtoken_1.default.decode(token);
+}
+/**
+ * Firma el token de sesion del usuario
+ *
+ * @export
+ * @param {object} payload
+ * @param {string} [expires_in]
+ * @return {string}
+ */
+function generateToken(payload, expires_in = exports.JWT_EXPIRES_IN) {
+    const secret = process.env.JWT_SECRET;
+    if (!secret)
+        throw new Error('JWT_SECRET no esta configurado en el .env');
+    return jsonwebtoken_1.default.sign(payload, secret, { expiresIn: expires_in });
+}
+/**
+ * Verifica el token de sesion y devuelve su contenido
+ *
+ * @export
+ * @param {string} token
+ * @return {object}
+ */
+function verifyToken(token) {
+    const secret = process.env.JWT_SECRET;
+    if (!secret)
+        throw new Error('JWT_SECRET no esta configurado en el .env');
+    return jsonwebtoken_1.default.verify(token, secret);
 }

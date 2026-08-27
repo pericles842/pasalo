@@ -16,7 +16,7 @@ async function authMiddleware(req, res, next) {
         throw "Modulo requerido";
     try {
         const payload_jwt = (await jsonwebtoken_1.default.verify(token, JWT_SECRET));
-        const permissions = await role_model_1.UserPermissions.getUserPermission(payload_jwt.user.id);
+        const permissions = await role_model_1.UserPermissions.getUserPermission(payload_jwt.user.uuid);
         const [module_access] = permissions.filter((p) => p.module_id == parseInt(module_id));
         //errores de acceso
         if (req.method === "GET" && !module_access.can_view)

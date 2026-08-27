@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { UserPermissions } from "../app/models/role.model";
+import { ModulePermission, UserPermissions } from "../app/models/role.model";
 import { Usuario } from "../app/models/user.model";
 
 const JWT_SECRET: string = process.env.JWT_SECRET || "";
@@ -23,11 +23,11 @@ export async function authMiddleware(
     };
 
     const permissions = await UserPermissions.getUserPermission(
-      payload_jwt.user.id
+      payload_jwt.user.uuid
     );
 
     const [module_access] = permissions.filter(
-      (p) => p.module_id == parseInt(module_id as string)
+      (p: ModulePermission) => p.module_id == parseInt(module_id as string)
     );
 
     //errores de acceso
