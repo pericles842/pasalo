@@ -6,8 +6,8 @@
     "dev": "ts-node-dev --respawn --log-error src/app.ts",
     "build": "tsc && cp -r src/views dist/views",
     "start": "node dist/app.js",
-    "migrate": "npx sequelize-cli db:migrate --env development",
-    "seed": "npx sequelize-cli db:seed:all --env development",
+    "migrate": "npx sequelize-cli db:migrate --env production",
+    "seed": "npx sequelize-cli db:seed:all --env production",
     "migrate:tenants": "ts-node src/scripts/migrate-tenants.ts"
   },
   "keywords": [],
