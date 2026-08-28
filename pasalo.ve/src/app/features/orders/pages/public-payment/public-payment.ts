@@ -82,7 +82,7 @@ export class PublicPayment implements OnInit {
     this.publicOrderService.getSummary(this.tenant_id, this.token).subscribe({
       next: (summary) => {
         this.summary.set(summary);
-        if (summary.payment_methods.length === 1) this.selected_method_id.set(summary.payment_methods[0].id);
+        if (summary.payment_methods.length > 0) this.selected_method_id.set(summary.payment_methods[0].id);
 
         // Si el cliente ya habia llenado sus datos antes (recargo la pagina,
         // o volvio despues de abandonar), no se le vuelve a pedir el paso 1

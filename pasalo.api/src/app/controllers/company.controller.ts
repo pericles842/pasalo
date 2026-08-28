@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+﻿import { NextFunction, Request, Response } from 'express';
 import { Op } from 'sequelize';
 import { PlanModel } from '../models/plans.model';
 import { CompanyModel } from '../models/company.model';
@@ -8,6 +8,7 @@ import { ROLE_ADMIN_SLUG, RoleModel } from '../models/role.model';
 import { sequelize } from '../config/db';
 import { hashPassword } from '../../utils/auth';
 import { uploadFile } from '../../utils/storage';
+import { buildImagePrefix, slugify } from '../../utils/fileNaming';
 import { SessionPayload } from '../../middlewares/jwtMiddleware';
 
 export class CompanyController {
@@ -27,17 +28,7 @@ export class CompanyController {
 
         let parts = cleanDomain.split('.');
         let base = parts[0] ? parts[0] : '';
-        return CompanyController.slugify(base);
-    }
-
-    /** "GYM Consultores" -> "gym_consultores": para que el tenant_id sea un nombre de base de datos válido */
-    private static slugify(value: string): string {
-        return value
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase()
-            .trim()
-            .replace(/[^a-z0-9]+/g, '_')
-            .replace(/^_+|_+$/g, '');
+        return slugify(base);
     }
 
     /**
@@ -217,7 +208,8 @@ export class CompanyController {
             const file = (req as any).file;
 
             if (file) {
-                const { url } = await uploadFile(file, `logos/${company.tenant_id}`, 'webp', { width: 512, height: 512, fit: 'inside' });
+                const namePrefix = buildImagePrefix(company.tenant_id, company.name);
+                const { url } = await uploadFile(file, `logos/${company.tenant_id}`, 'webp', { width: 512, height: 512, fit: 'inside' }, namePrefix);
                 company.logo_url = url;
             }
 

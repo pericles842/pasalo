@@ -20,7 +20,9 @@ let s3Client: S3Client | null = null;
 function getS3Client(): S3Client {
   if (!s3Client) {
     s3Client = new S3Client({
-      region: process.env.AWS_REGION,
+      region: process.env.AWS_REGION || 'auto',
+      endpoint: process.env.R2_ENDPOINT,
+      forcePathStyle: true,
       credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
@@ -34,6 +36,9 @@ function getS3Client(): S3Client {
 // Nombre del bucket desde el .env
 const BUCKET = process.env.AWS_BUCKET || '';
 
+// Base publica del bucket R2 (r2.dev o dominio propio), sin slash final
+const PUBLIC_URL = (process.env.R2_PUBLIC_URL || '').replace(/\/$/, '');
+
 /* ---------------------------------------------------------
    SUBIR ARCHIVO A UNA CARPETA
 ----------------------------------------------------------*/
@@ -42,14 +47,15 @@ export const uploadToS3 = async (
   folder: string,
   keyToReplace?: string,
   format?: 'png' | 'jpg' | 'webp',
-  width?: ResizeOptions
+  width?: ResizeOptions,
+  namePrefix?: string
 ): Promise<{ key: string; url: string }> => {
   if (!file) throw new Error('No se recibió el archivo');
 
   const { buffer: optimized, mimeType, extension } = await optimizeImage(file.buffer, format, width);
 
   //extensión del archivo segun la optimization
-  const fileKey = keyToReplace || `${folder}/${Date.now()}.${extension}`;
+  const fileKey = keyToReplace || `${folder}/${namePrefix ? `${namePrefix}_` : ''}${Date.now()}.${extension}`;
 
   //parametros para la subida
   const uploadParams = {
@@ -64,7 +70,7 @@ export const uploadToS3 = async (
 
   return {
     key: fileKey,
-    url: `https://${BUCKET}.s3.amazonaws.com/${fileKey}`
+    url: getPublicUrl(fileKey)
   };
 };
 
@@ -128,7 +134,7 @@ export const deleteFile = async (key: string | string[]) => {
    OBTENER URL PÚBLICA (solo para carpeta public/)
 ----------------------------------------------------------*/
 export const getPublicUrl = (key: string) => {
-  return `https://${BUCKET}.s3.amazonaws.com/${key}`;
+  return `${PUBLIC_URL}/${key}`;
 };
 
 export const extractKeyFromUrl = (folder: string, url: string): string | null => {

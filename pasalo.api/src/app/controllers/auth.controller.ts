@@ -5,6 +5,7 @@ import { CompanyUserModel } from '../models/company_user.model';
 import { CompanyModel } from '../models/company.model';
 import { comparePassword, generateToken, hashPassword, JWT_EXPIRES_IN } from '../../utils/auth';
 import { uploadFile } from '../../utils/storage';
+import { buildImagePrefix } from '../../utils/fileNaming';
 
 export class AuthController {
 
@@ -153,7 +154,8 @@ export class AuthController {
             const file = (req as any).file;
 
             if (file) {
-                const { url } = await uploadFile(file, `avatars/${session.company.tenant_id}`, 'webp', { width: 512, height: 512, fit: 'inside' });
+                const namePrefix = buildImagePrefix(session.company.tenant_id, session.company.name);
+                const { url } = await uploadFile(file, `avatars/${session.company.tenant_id}`, 'webp', { width: 512, height: 512, fit: 'inside' }, namePrefix);
                 user.photo_url = url;
             }
 

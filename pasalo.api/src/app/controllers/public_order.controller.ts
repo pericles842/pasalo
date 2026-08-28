@@ -5,6 +5,7 @@ import { getTenantConnection } from '../config/tenant';
 import { randomUUID } from 'crypto';
 import { extractReceiptData } from '../../utils/ocr';
 import { uploadFile } from '../../utils/storage';
+import { buildImagePrefix } from '../../utils/fileNaming';
 import { getExchangeRates } from '../../utils/exchangeRate';
 import { notifyOrderPaid } from '../config/socket';
 
@@ -218,9 +219,16 @@ export class PublicOrderController {
                 { replacements: { payment_method_id }, type: QueryTypes.SELECT }
             );
 
+            const [company] = await sequelize.query<any>(
+                `SELECT name FROM companies WHERE uuid = :company_id`,
+                { replacements: { company_id: order.company_id }, type: QueryTypes.SELECT }
+            );
+
+            const namePrefix = buildImagePrefix(tenant_id, company?.name ?? tenant_id);
+
             const [{ reference, amount: extracted_amount, raw_text }, uploaded] = await Promise.all([
                 extractReceiptData(file.buffer),
-                uploadFile(file, `receipts/${tenant_id}`, 'webp', { width: 1200, height: 1200, fit: 'inside' })
+                uploadFile(file, `receipts/${tenant_id}`, 'webp', { width: 1200, height: 1200, fit: 'inside' }, namePrefix)
             ]);
 
             // Si el metodo cobra en bolivares, el comprobante trae Bs: se compara

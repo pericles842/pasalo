@@ -26,27 +26,29 @@ export async function uploadFile(
     file: any,
     folder: string,
     format?: 'png' | 'jpg' | 'webp',
-    resize?: ResizeOptions
+    resize?: ResizeOptions,
+    namePrefix?: string
 ): Promise<{ key: string; url: string }> {
     if (isS3Configured()) {
-        return uploadToS3(file, folder, undefined, format, resize);
+        return uploadToS3(file, folder, undefined, format, resize, namePrefix);
     }
 
-    return uploadToLocal(file, folder, format, resize);
+    return uploadToLocal(file, folder, format, resize, namePrefix);
 }
 
 async function uploadToLocal(
     file: any,
     folder: string,
     format?: 'png' | 'jpg' | 'webp',
-    resize?: ResizeOptions
+    resize?: ResizeOptions,
+    namePrefix?: string
 ): Promise<{ key: string; url: string }> {
     if (!file) throw new Error('No se recibió el archivo');
 
     const { buffer, mimeType, extension } = await optimizeImage(file.buffer, format, resize);
     void mimeType;
 
-    const fileKey = `${folder}/${Date.now()}-${randomUUID()}.${extension}`;
+    const fileKey = `${folder}/${namePrefix ? `${namePrefix}_` : ''}${Date.now()}-${randomUUID()}.${extension}`;
     const fullPath = path.join(UPLOADS_DIR, fileKey);
 
     await fs.mkdir(path.dirname(fullPath), { recursive: true });
