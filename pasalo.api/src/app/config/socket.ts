@@ -2,6 +2,7 @@ import type { Server as HttpServer } from 'http';
 import { Server } from 'socket.io';
 import { verifyToken } from '../../utils/auth';
 import { SessionPayload } from '../../middlewares/jwtMiddleware';
+import { corsOrigins } from './cors';
 
 let io: Server | null = null;
 
@@ -13,7 +14,7 @@ let io: Server | null = null;
 export function initSocket(server: HttpServer): Server {
     io = new Server(server, {
         cors: {
-            origin: 'https://pasalo.co.ve',
+            origin: corsOrigins,
             credentials: true
         }
     });

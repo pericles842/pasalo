@@ -13,6 +13,7 @@ import morgan from 'morgan';
 import chalk from 'chalk';
 import { getLocalIp } from './utils/systemFunctions';
 import { initSocket } from './app/config/socket';
+import { corsOrigins } from './app/config/cors';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 
@@ -26,7 +27,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ['https://pasalo.co.ve'],
+    origin: corsOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // explícito
     allowedHeaders: ['Content-Type', 'Authorization', 'module_id'], // explícito
