@@ -13,7 +13,7 @@ let io: Server | null = null;
 export function initSocket(server: HttpServer): Server {
     io = new Server(server, {
         cors: {
-            origin: ['https://tienda-online-j3m.vercel.app', 'http://localhost:4200'],
+            origin: 'https://pasalo.co.ve',
             credentials: true
         }
     });
