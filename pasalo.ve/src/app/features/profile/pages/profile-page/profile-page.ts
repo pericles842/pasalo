@@ -5,6 +5,7 @@ import { NbButtonModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { Avatar } from '@shared/components/avatar/avatar';
 import { ToastService } from '@shared/services/toast.service';
+import { compressImage } from '@shared/utils/compress-image';
 import { passwordMatchValidator } from '@shared/validators/password-match.validator';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { ProfileService } from '../../profile.service';
@@ -53,12 +54,14 @@ export class ProfilePage implements OnInit {
     });
   }
 
-  onPhotoSelected(event: Event): void {
+  async onPhotoSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
 
-    this.photo_file.set(file);
-    this.photo_preview.set(file ? URL.createObjectURL(file) : null);
+    const compressed = file ? await compressImage(file) : null;
+
+    this.photo_file.set(compressed);
+    this.photo_preview.set(compressed ? URL.createObjectURL(compressed) : null);
   }
 
   save(): void {

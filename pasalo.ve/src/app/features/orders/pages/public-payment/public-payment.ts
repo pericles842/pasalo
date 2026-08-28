@@ -2,7 +2,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { NbButtonModule, NbCardModule } from '@nebular/theme';
+import { NbButtonModule, NbCardModule, NbIconModule, NbTooltipModule } from '@nebular/theme';
+import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { ToastService } from '@shared/services/toast.service';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
@@ -10,15 +11,16 @@ import { Copyright } from '@shared/components/copyright/copyright';
 import { Avatar } from '@shared/components/avatar/avatar';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { getInitials } from '@shared/utils/initials';
+import { compressImage } from '@shared/utils/compress-image';
 import { BuyerForm, PublicOrderSummary } from '../../interfaces/order';
 import { PublicOrderService } from '../../public-order.service';
 
-/** 1 = tus datos, 2 = metodo de pago, 3 = comprobante */
-type WizardStep = 1 | 2 | 3;
+/** 1 = tus datos, 2 = metodo de pago + comprobante */
+type WizardStep = 1 | 2;
 
 @Component({
   selector: 'app-public-payment',
-  imports: [NbCardModule, NbButtonModule, BsAmountPipe, Copyright, Avatar, ReactiveFormsModule, GlobalInput],
+  imports: [NbCardModule, NbButtonModule, NbIconModule, NbEvaIconsModule, NbTooltipModule, BsAmountPipe, Copyright, Avatar, ReactiveFormsModule, GlobalInput],
   templateUrl: './public-payment.html',
 })
 export class PublicPayment implements OnInit {
@@ -52,10 +54,8 @@ export class PublicPayment implements OnInit {
   });
   is_submitting_buyer = signal(false);
 
-  /** Paso 2: metodo de pago */
+  /** Paso 2: metodo de pago + comprobante */
   selected_method_id = signal<number | null>(null);
-
-  /** Paso 3: comprobante */
   receipt_file = signal<File | null>(null);
   receipt_preview = signal<string | null>(null);
 
@@ -153,16 +153,10 @@ export class PublicPayment implements OnInit {
       });
   }
 
-  /** El link pudo vencer justo mientras el cliente llenaba el paso 1/3: se refleja al toque */
+  /** El link pudo vencer justo mientras el cliente llenaba el paso 1/2: se refleja al toque */
   private markExpiredIfNeeded(err: { status?: number }): void {
     if (err?.status !== 410) return;
     this.summary.update((current) => current && { ...current, order: { ...current.order, is_expired: true } });
-  }
-
-  /** Paso 2 -> 3: ya eligio con que va a pagar */
-  continueToReceipt(): void {
-    if (!this.selected_method_id()) return;
-    this.step.set(3);
   }
 
   backToStep(step: WizardStep): void {
@@ -173,12 +167,24 @@ export class PublicPayment implements OnInit {
     this.selected_method_id.set(id);
   }
 
-  onFileSelected(event: Event): void {
+  /** Copia un solo dato (banco, teléfono, monto, etc.) para pegarlo directo en la app del banco */
+  copyValue(value: string, label: string): void {
+    if (!this.is_browser) return;
+
+    navigator.clipboard.writeText(value).then(
+      () => this.toast.success(`${label} copiado.`),
+      () => this.toast.error('No pudimos copiar.')
+    );
+  }
+
+  async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
 
-    this.receipt_file.set(file);
-    this.receipt_preview.set(file ? URL.createObjectURL(file) : null);
+    const compressed = file ? await compressImage(file) : null;
+
+    this.receipt_file.set(compressed);
+    this.receipt_preview.set(compressed ? URL.createObjectURL(compressed) : null);
   }
 
   submit(): void {

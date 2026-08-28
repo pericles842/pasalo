@@ -26,7 +26,18 @@ export class CompanyController {
         let cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').trim();
 
         let parts = cleanDomain.split('.');
-        return parts[0] ? parts[0] : '';
+        let base = parts[0] ? parts[0] : '';
+        return CompanyController.slugify(base);
+    }
+
+    /** "GYM Consultores" -> "gym_consultores": para que el tenant_id sea un nombre de base de datos válido */
+    private static slugify(value: string): string {
+        return value
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_+|_+$/g, '');
     }
 
     /**

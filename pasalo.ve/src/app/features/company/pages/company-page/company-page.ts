@@ -6,6 +6,7 @@ import { NbButtonModule, NbCardModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { Avatar } from '@shared/components/avatar/avatar';
 import { ToastService } from '@shared/services/toast.service';
+import { compressImage } from '@shared/utils/compress-image';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { CompanyService } from '../../company-repository.service';
 import { SubscriptionService } from '../../subscription.service';
@@ -67,12 +68,14 @@ export class CompanyPage implements OnInit {
     });
   }
 
-  onLogoSelected(event: Event): void {
+  async onLogoSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
 
-    this.logo_file.set(file);
-    this.logo_preview.set(file ? URL.createObjectURL(file) : null);
+    const compressed = file ? await compressImage(file) : null;
+
+    this.logo_file.set(compressed);
+    this.logo_preview.set(compressed ? URL.createObjectURL(compressed) : null);
   }
 
   save(): void {

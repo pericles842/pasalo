@@ -220,7 +220,7 @@ export class PublicOrderController {
 
             const [{ reference, amount: extracted_amount, raw_text }, uploaded] = await Promise.all([
                 extractReceiptData(file.buffer),
-                uploadFile(file, `receipts/${tenant_id}`, 'jpg', { width: 1200, height: 1200, fit: 'inside' })
+                uploadFile(file, `receipts/${tenant_id}`, 'webp', { width: 1200, height: 1200, fit: 'inside' })
             ]);
 
             // Si el metodo cobra en bolivares, el comprobante trae Bs: se compara
