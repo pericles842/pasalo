@@ -2,6 +2,9 @@
   <div class="flex flex-col gap-1">
     <span class="text-xs font-medium text-gray-500">{{ label }}</span>
     <span class="text-xl font-bold text-slate-900">{{ value }}</span>
+    @if (hint) {
+    <span class="text-[11px] text-gray-400">{{ hint }}</span>
+    }
   </div>
   <span class="grid h-10 w-10 shrink-0 place-items-center rounded-lg {{ iconBgClass }}">
     <nb-icon [icon]="icon" [options]="{ width: 20, height: 20 }"></nb-icon>

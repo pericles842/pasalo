@@ -50,6 +50,11 @@
 
     <app-stat-card label="Métodos de pago" [value]="(s.payment_methods_count | number) ?? '0'" icon="credit-card-outline"
       iconBgClass="bg-blue-50 text-blue-600" />
+
+    <app-stat-card label="Tasa del dólar (BCV)"
+      [value]="exchangeRate.rateOficial() ? ('Bs ' + (exchangeRate.rateOficial() | number: '1.2-2')) : 'No disponible'"
+      [hint]="exchangeRate.updatedAt() ? ('Actualizado: ' + (exchangeRate.updatedAt() | date: 'dd/MM/yyyy HH:mm')) : undefined"
+      icon="swap-outline" iconBgClass="bg-emerald-50 text-emerald-600" />
   </div>
   }
 </section>

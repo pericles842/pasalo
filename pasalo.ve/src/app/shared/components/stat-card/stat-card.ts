@@ -12,4 +12,5 @@ export class StatCard {
   @Input({ required: true }) value!: string;
   @Input({ required: true }) icon!: string;
   @Input() iconBgClass = 'bg-blue-50 text-blue-600';
+  @Input() hint?: string;
 }

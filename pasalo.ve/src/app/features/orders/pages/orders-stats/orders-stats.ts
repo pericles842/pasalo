@@ -1,13 +1,14 @@
-import { CurrencyPipe, DecimalPipe, isPlatformBrowser } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { NbButtonModule } from '@nebular/theme';
 import { StatCard } from '@shared/components/stat-card/stat-card';
 import { ToastService } from '@shared/services/toast.service';
+import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { OrderStats, OrdersService } from '../../orders.service';
 
 @Component({
   selector: 'app-orders-stats',
-  imports: [NbButtonModule, StatCard, CurrencyPipe, DecimalPipe],
+  imports: [NbButtonModule, StatCard, CurrencyPipe, DecimalPipe, DatePipe],
   templateUrl: './orders-stats.html',
 })
 export class OrdersStats implements OnInit {
@@ -15,6 +16,7 @@ export class OrdersStats implements OnInit {
   private ordersService = inject(OrdersService);
   private toast = inject(ToastService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
+  protected exchangeRate = inject(ExchangeRateService);
 
   is_loading = signal(true);
   stats = signal<OrderStats | null>(null);

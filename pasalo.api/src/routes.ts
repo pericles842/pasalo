@@ -163,14 +163,20 @@ router.get('/exchange-rate', ExchangeRateController.getRates);
 /**
  * @swagger
  * /exchange-rate/sync:
- *   post:
+ *   get:
  *     tags: [ExchangeRate]
- *     summary: Sincroniza las tasas de cambio (uso interno, ejecutado por un demonio externo)
- *     security: [{ bearerAuth: [] }]
+ *     summary: Sincroniza las tasas de cambio (uso interno, ejecutado por un demonio externo o un cron)
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema: { type: string }
+ *         description: Debe coincidir con RATES_SYNC_TOKEN del servidor
  *     responses:
  *       200: { description: Tasas sincronizadas }
+ *       401: { description: Token inválido o faltante }
  */
-router.post('/exchange-rate/sync', internalTokenMiddleware, ExchangeRateController.sync);
+router.get('/exchange-rate/sync', internalTokenMiddleware, ExchangeRateController.sync);
 
 /**
  * @swagger

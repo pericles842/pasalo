@@ -151,16 +151,15 @@
       <span class="text-sm font-semibold text-slate-900">Paso 2 de 2: Elige tu método de pago y sube el comprobante</span>
 
       @for (method of data.payment_methods; track method.id) {
-      <div class="rounded-xl border p-4 transition-colors"
-        [class]="selected_method_id() === method.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'">
-        <button type="button" class="block w-full text-left" (click)="selectMethod(method.id)">
-          <span class="text-sm font-semibold text-slate-900">{{ method.name }}</span>
-        </button>
+      <div class="cursor-pointer rounded-xl border p-4 transition-colors"
+        [class]="selected_method_id() === method.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'"
+        (click)="selectMethod(method.id)">
+        <span class="text-sm font-semibold text-slate-900">{{ method.name }}</span>
 
         @if (method.titular) {
         <div class="mt-1.5 flex items-center justify-between gap-2">
           <span class="text-xs text-gray-500">Titular: <span class="text-slate-700">{{ method.titular }}</span></span>
-          <button type="button" class="shrink-0 text-gray-400 hover:text-blue-600" (click)="copyValue(method.titular!, 'Titular')"
+          <button type="button" class="shrink-0 text-gray-400 hover:text-blue-600" (click)="$event.stopPropagation(); copyValue(method.titular!, 'Titular')"
             aria-label="Copiar titular" nbTooltip="Copiar" nbTooltipPlacement="left">
             <nb-icon icon="copy-outline" class="text-sm!"></nb-icon>
           </button>
@@ -171,7 +170,7 @@
           @for (field of parseDatos(method.datos); track field.label) {
           <div class="flex items-center justify-between gap-2">
             <span class="text-xs text-gray-600"><strong>{{ field.label }}:</strong> {{ field.value }}</span>
-            <button type="button" class="shrink-0 text-gray-400 hover:text-blue-600" (click)="copyValue(field.value, field.label)"
+            <button type="button" class="shrink-0 text-gray-400 hover:text-blue-600" (click)="$event.stopPropagation(); copyValue(field.value, field.label)"
               [attr.aria-label]="'Copiar ' + field.label" nbTooltip="Copiar" nbTooltipPlacement="left">
               <nb-icon icon="copy-outline" class="text-sm!"></nb-icon>
             </button>
