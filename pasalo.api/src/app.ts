@@ -26,7 +26,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ['http://localhost:4200'],
+    origin: ['https://pasalo.co.ve'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // explícito
     allowedHeaders: ['Content-Type', 'Authorization', 'module_id'], // explícito
