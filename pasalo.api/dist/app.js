@@ -49,6 +49,7 @@ const morgan_1 = __importDefault(require("morgan"));
 const chalk_1 = __importDefault(require("chalk"));
 const systemFunctions_1 = require("./utils/systemFunctions");
 const socket_1 = require("./app/config/socket");
+const cors_2 = require("./app/config/cors");
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swagger_1 = require("./config/swagger");
 dotenv_1.default.config();
@@ -56,7 +57,7 @@ const isDev = process.env.NODE_ENV === 'development';
 const app = (0, express_1.default)();
 // Configuración de CORS para permitir peticiones desde otros orígenes
 app.use((0, cors_1.default)({
-    origin: ['http://localhost:4200'],
+    origin: cors_2.corsOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // explícito
     allowedHeaders: ['Content-Type', 'Authorization', 'module_id'], // explícito

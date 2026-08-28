@@ -4,6 +4,7 @@ exports.initSocket = initSocket;
 exports.notifyOrderPaid = notifyOrderPaid;
 const socket_io_1 = require("socket.io");
 const auth_1 = require("../../utils/auth");
+const cors_1 = require("./cors");
 let io = null;
 /**
  * Notificaciones en vivo del panel: cuando un cliente completa un pago,
@@ -13,7 +14,7 @@ let io = null;
 function initSocket(server) {
     io = new socket_io_1.Server(server, {
         cors: {
-            origin: ['https://tienda-online-j3m.vercel.app', 'http://localhost:4200'],
+            origin: cors_1.corsOrigins,
             credentials: true
         }
     });

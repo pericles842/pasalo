@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --log-error src/app.ts",
     "build": "tsc && cp -r src/views dist/views",
+    "prestart": "npm run build",
     "start": "node dist/app.js",
     "migrate": "npx sequelize-cli db:migrate --env development",
     "seed": "npx sequelize-cli db:seed:all --env development",
