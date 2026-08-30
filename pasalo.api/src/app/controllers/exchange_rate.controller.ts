@@ -4,7 +4,7 @@ import { getExchangeRates, syncExchangeRates } from '../../utils/exchangeRate';
 export class ExchangeRateController {
 
     /**
-     * Tasa del dólar BCV (oficial) y paralelo, leida de la base de datos.
+     * Tasas BCV, EUR y su promedio, leidas de la base de datos.
      * Es publica: la usa tanto el dashboard como la pantalla de pago del cliente.
      * Nunca golpea la API externa, por lo que nunca depende de que esta responda.
      *

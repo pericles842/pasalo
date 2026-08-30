@@ -51,10 +51,20 @@
     <app-stat-card label="Métodos de pago" [value]="(s.payment_methods_count | number) ?? '0'" icon="credit-card-outline"
       iconBgClass="bg-blue-50 text-blue-600" />
 
-    <app-stat-card label="Tasa del dólar (BCV)"
-      [value]="exchangeRate.rateOficial() ? ('Bs ' + (exchangeRate.rateOficial() | number: '1.2-2')) : 'No disponible'"
+    <app-stat-card [label]="'Tasa BCV' + (isDefaultRate('bcv') ? ' (tu tasa)' : '')"
+      [value]="exchangeRate.rateBcv() ? ('Bs ' + (exchangeRate.rateBcv() | number: '1.2-2')) : 'No disponible'"
       [hint]="exchangeRate.updatedAt() ? ('Actualizado: ' + (exchangeRate.updatedAt() | date: 'dd/MM/yyyy HH:mm')) : undefined"
       icon="swap-outline" iconBgClass="bg-emerald-50 text-emerald-600" />
+
+    <app-stat-card [label]="'Tasa EUR' + (isDefaultRate('eur') ? ' (tu tasa)' : '')"
+      [value]="exchangeRate.rateEur() ? ('Bs ' + (exchangeRate.rateEur() | number: '1.2-2')) : 'No disponible'"
+      [hint]="exchangeRate.updatedAt() ? ('Actualizado: ' + (exchangeRate.updatedAt() | date: 'dd/MM/yyyy HH:mm')) : undefined"
+      icon="swap-outline" iconBgClass="bg-sky-50 text-sky-600" />
+
+    <app-stat-card [label]="'Tasa promedio' + (isDefaultRate('promedio') ? ' (tu tasa)' : '')"
+      [value]="exchangeRate.ratePromedio() ? ('Bs ' + (exchangeRate.ratePromedio() | number: '1.2-2')) : 'No disponible'"
+      [hint]="exchangeRate.updatedAt() ? ('Actualizado: ' + (exchangeRate.updatedAt() | date: 'dd/MM/yyyy HH:mm')) : undefined"
+      icon="swap-outline" iconBgClass="bg-violet-50 text-violet-600" />
   </div>
   }
 </section>

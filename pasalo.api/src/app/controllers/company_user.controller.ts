@@ -222,7 +222,7 @@ export class CompanyUserController {
 
                 const rates = await getExchangeRates().catch(() => null);
                 const amount_usd = Number(plan.price);
-                const amount_bs = rates?.oficial ? Math.round(amount_usd * rates.oficial * 100) / 100 : null;
+                const amount_bs = rates?.bcv ? Math.round(amount_usd * rates.bcv * 100) / 100 : null;
 
                 res.json({
                     status: 'pending_verification',
@@ -338,6 +338,72 @@ export class CompanyUserController {
             });
 
             res.json(roles);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    /**
+     * Edita nombre y cargo de un usuario interno. El correo no se toca aqui:
+     * es la credencial de acceso, cambiarla es un flujo aparte (soporte).
+     *
+     * @static
+     * @memberof CompanyUserController
+     */
+    static async updateUser(req: Request, res: Response, next: NextFunction) {
+        if (!CompanyUserController.isAdmin(req)) {
+            res.status(403).json({ message: 'Acceso denegado', error: 'Solo el administrador puede editar usuarios.' });
+            return;
+        }
+
+        try {
+            const session = CompanyUserController.session(req);
+            const company_id = session.company.uuid;
+            const { uuid } = req.params;
+            const { first_name, middle_name, role_id } = req.body;
+
+            if (uuid === session.user.uuid) {
+                res.status(400).json({ message: 'Operación no permitida', error: 'No puedes editar tu propio usuario desde aquí, usa tu perfil.' });
+                return;
+            }
+
+            if (!first_name || !role_id) {
+                res.status(400).json({ message: 'Datos incompletos', error: 'Completa el nombre y el cargo del usuario.' });
+                return;
+            }
+
+            const link = await CompanyUserModel.findOne({ where: { company_id, user_id: uuid } });
+
+            if (!link) {
+                res.status(404).json({ message: 'Usuario no encontrado', error: 'Ese usuario no pertenece a tu empresa.' });
+                return;
+            }
+
+            const role = await RoleModel.findByPk(role_id);
+
+            if (!role) {
+                res.status(404).json({ message: 'Cargo no encontrado', error: 'El cargo seleccionado no existe.' });
+                return;
+            }
+
+            if (role.slug === ROLE_ADMIN_SLUG) {
+                res.status(400).json({ message: 'Cargo no permitido', error: 'El cargo de administrador es exclusivo del usuario master de la empresa.' });
+                return;
+            }
+
+            const user = await UserModel.findByPk(uuid as string);
+
+            if (!user) {
+                res.status(404).json({ message: 'Usuario no encontrado', error: 'Ese usuario no existe.' });
+                return;
+            }
+
+            user.first_name = first_name;
+            user.middle_name = middle_name ?? null;
+            user.role_id = role.id;
+            await user.save();
+
+            res.json({ user, role });
         } catch (err) {
             next(err);
         }

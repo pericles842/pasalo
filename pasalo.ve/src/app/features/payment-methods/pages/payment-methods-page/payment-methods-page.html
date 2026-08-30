@@ -61,11 +61,11 @@
     <!-- Nuevo metodo -->
     <nb-card class="m-0">
       <nb-card-header>
-        <span class="font-semibold">Agregar método</span>
+        <span class="font-semibold">{{ editing_id() ? 'Editar método' : 'Agregar método' }}</span>
       </nb-card-header>
 
       <nb-card-body>
-        @if (!has_room()) {
+        @if (!has_room() && !editing_id()) {
         <div class="flex flex-col gap-3 rounded-lg bg-amber-50 px-4 py-4 text-sm text-amber-800">
           <span>
             Ya ocupaste los {{ usage()?.limit }}
@@ -78,9 +78,6 @@
         } @else {
         <form [formGroup]="form" (submit)="$event.preventDefault(); submit()" class="flex flex-col gap-5">
 
-          <app-global-input name="pm_name" label="Nombre" placeholder="Ej. Pago Móvil Banesco"
-            [control]="form.controls.name" error="El nombre es requerido" />
-
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium text-gray-600">Tipo</label>
             <nb-select fullWidth placeholder="Selecciona un tipo" formControlName="type" scrollStrategy="reposition">
@@ -90,33 +87,50 @@
             </nb-select>
           </div>
 
+          @if (selected_type()) {
+          <app-global-input name="pm_name" label="Nombre" placeholder="Ej. Pago Móvil Banesco"
+            [control]="form.controls.name" error="El nombre es requerido" />
+
           <app-global-input name="pm_titular" label="Titular" placeholder="Ej. Mi Empresa C.A."
             [control]="form.controls.titular" hint="Opcional" />
 
           @if (visibleFields().includes('banco')) {
-          <app-global-input name="pm_banco" label="Banco" placeholder="Ej. Banesco"
-            [control]="form.controls.banco" />
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium text-gray-600">Banco</label>
+            <nb-select fullWidth placeholder="Selecciona un banco" formControlName="banco" scrollStrategy="reposition">
+              @for (bank of venezuelaBanks; track bank.code) {
+              <nb-option [value]="bank.name + ' (' + bank.code + ')'">{{ bank.name }} ({{ bank.code }})</nb-option>
+              }
+            </nb-select>
+          </div>
           }
           @if (visibleFields().includes('telefono')) {
-          <app-global-input name="pm_telefono" label="Teléfono" placeholder="Ej. 0414-1234567"
-            [control]="form.controls.telefono" />
+          <app-phone-input name="pm_telefono" label="Teléfono" [control]="form.controls.telefono" />
           }
           @if (visibleFields().includes('numero_cuenta')) {
           <app-global-input name="pm_cuenta" label="Número de cuenta" placeholder="Ej. 0134-0000-00-0000000000"
             [control]="form.controls.numero_cuenta" />
           }
           @if (visibleFields().includes('cedula')) {
-          <app-global-input name="pm_cedula" label="Cédula / RIF" placeholder="Ej. V-12345678"
+          <app-ci-input name="pm_cedula" label="Cédula / RIF" [prefixes]="['V', 'E', 'J']"
             [control]="form.controls.cedula" />
           }
           @if (visibleFields().includes('correo')) {
           <app-global-input name="pm_correo" label="Correo o usuario" placeholder="Ej. pagos@empresa.com"
             [control]="form.controls.correo" />
           }
+          }
 
-          <button nbButton status="primary" fullWidth type="submit" [disabled]="is_saving()">
-            {{ is_saving() ? 'Guardando...' : 'Agregar método de pago' }}
-          </button>
+          <div class="flex gap-2">
+            @if (editing_id()) {
+            <button nbButton appearance="ghost" status="basic" type="button" (click)="cancelEdit()">
+              Cancelar
+            </button>
+            }
+            <button nbButton status="primary" fullWidth class="flex-1" type="submit" [disabled]="is_saving()">
+              {{ is_saving() ? 'Guardando...' : (editing_id() ? 'Guardar cambios' : 'Agregar método de pago') }}
+            </button>
+          </div>
         </form>
         }
       </nb-card-body>
@@ -148,10 +162,15 @@
                 }
               </div>
             </div>
-            <button nbButton size="tiny" status="danger" appearance="ghost" type="button"
-              [disabled]="deleting_id() === method.id" (click)="remove(method)">
-              Eliminar
-            </button>
+            <div class="flex shrink-0 gap-2">
+              <button nbButton size="tiny" status="primary" appearance="ghost" type="button" (click)="edit(method)">
+                Editar
+              </button>
+              <button nbButton size="tiny" status="danger" appearance="ghost" type="button"
+                [disabled]="deleting_id() === method.id" (click)="remove(method)">
+                Eliminar
+              </button>
+            </div>
           </div>
           }
         </div>

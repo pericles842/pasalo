@@ -9,10 +9,14 @@ import { RegisterCompanyPayload, UserCompany } from './interfaces/user';
 export interface UpdateCompanyPayload {
   name: string;
   rif: string | null;
-  domain: string;
+  domain: string | null;
   logo?: File | null;
   /** Duracion del link publico de pago, en minutos (1-120) */
   link_expiration_minutes: number;
+  /** Con que tasa se convierten los montos a bolivares (comprobantes y link de pago) */
+  default_rate_type: 'bcv' | 'eur' | 'promedio';
+  /** Que campos del comprador son obligatorios en el paso 1 del link publico de pago */
+  required_buyer_fields: string[];
 }
 
 export interface UpdateCompanyResponse {
@@ -55,9 +59,11 @@ export class CompanyService {
 
     form.append('name', payload.name);
     if (payload.rif) form.append('rif', payload.rif);
-    form.append('domain', payload.domain);
+    if (payload.domain) form.append('domain', payload.domain);
     if (payload.logo) form.append('logo', payload.logo);
     form.append('link_expiration_minutes', String(payload.link_expiration_minutes));
+    form.append('default_rate_type', payload.default_rate_type);
+    form.append('required_buyer_fields', JSON.stringify(payload.required_buyer_fields));
 
     return this.http.put<UpdateCompanyResponse>(`${environment.host}/company`, form);
   }

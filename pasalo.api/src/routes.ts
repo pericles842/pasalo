@@ -254,6 +254,23 @@ router.delete('/company/users/:uuid', jwtMiddleware, CompanyUserController.delet
 
 /**
  * @swagger
+ * /company/users/{uuid}:
+ *   put:
+ *     tags: [CompanyUsers]
+ *     summary: Edita nombre y cargo de un usuario de la empresa
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: uuid
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: Usuario actualizado }
+ */
+router.put('/company/users/:uuid', jwtMiddleware, CompanyUserController.updateUser);
+
+/**
+ * @swagger
  * /company/subscription:
  *   put:
  *     tags: [CompanyUsers]
@@ -306,6 +323,23 @@ router.post('/company/payment-methods', authTenant, PaymentMethodController.crea
  *       200: { description: Método de pago eliminado }
  */
 router.delete('/company/payment-methods/:id', authTenant, PaymentMethodController.remove);
+
+/**
+ * @swagger
+ * /company/payment-methods/{id}:
+ *   put:
+ *     tags: [PaymentMethods]
+ *     summary: Edita un método de pago existente
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200: { description: Método de pago actualizado }
+ */
+router.put('/company/payment-methods/:id', authTenant, PaymentMethodController.update);
 
 /**
  * @swagger

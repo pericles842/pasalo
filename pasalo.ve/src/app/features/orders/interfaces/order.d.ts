@@ -27,6 +27,8 @@ export interface Order {
   address_client: string | null;
   notes: string | null;
   amount: number;
+  /** Bs fijado por el vendedor al crear la orden (editable), lo ve el comprador */
+  bs_amount: number | null;
   status_id: number;
   payment_method_id: number | null;
   payment_method_name?: string | null;
@@ -56,6 +58,8 @@ export interface PublicOrderSummary {
   order: {
     id: string;
     amount: number;
+    /** Bs a pagar: el que el vendedor fijo al crear la orden, o el calculado con la tasa si es una orden vieja */
+    bs_amount: number | null;
     status_id: number;
     /** Nulos hasta que el cliente completa el paso 1 (sus datos) */
     first_name_client: string | null;
@@ -67,13 +71,18 @@ export interface PublicOrderSummary {
     seller_photo_url: string | null;
     company_name: string | null;
     logo_url: string | null;
+    /** Tasa que la empresa eligio para convertir montos a bolivares */
+    rate_type: 'bcv' | 'eur' | 'promedio';
+    rate_value: number | null;
+    /** Que campos del comprador son obligatorios en el paso 1 */
+    required_fields: ('first_name' | 'last_name' | 'email' | 'ci' | 'phone' | 'address')[];
   };
   payment_methods: {
     id: number;
     name: string;
     type: string;
     titular: string | null;
-    datos: string;
+    datos: Record<string, string> | string;
   }[];
 }
 
@@ -82,13 +91,13 @@ export interface SubmitPaymentResponse {
   extracted_reference: string | null;
 }
 
-/** Payload del paso 1 del link publico: el cliente llena sus propios datos */
+/** Payload del paso 1 del link publico: el cliente llena sus propios datos. Cuales son obligatorios lo define la empresa */
 export interface PublicBuyerPayload {
-  first_name: string;
-  last_name: string;
-  email: string;
-  ci: string;
-  phone: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  ci: string | null;
+  phone: string | null;
   address: string | null;
 }
 
@@ -111,10 +120,12 @@ export interface BuyerForm {
 export interface CreateOrderPayload {
   items: OrderItem[];
   notes: string | null;
+  /** Bs elegido por el vendedor (editable), opcional */
+  bs_amount: number | null;
 }
 
 export interface CreateOrderResponse {
-  order: { id: string; amount: number; status_id: number; pay_url_token: string };
+  order: { id: string; amount: number; bs_amount: number | null; status_id: number; pay_url_token: string };
   items: OrderItem[];
   pay_url: string;
 }

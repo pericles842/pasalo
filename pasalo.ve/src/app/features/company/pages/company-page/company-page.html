@@ -63,11 +63,12 @@
         <app-global-input class="col-span-12 md:col-span-6" name="company_name" label="Nombre de la empresa"
           [control]="form.controls.name" placeholder="Ej. Empresa S.A." error="El nombre es requerido" />
 
-        <app-global-input class="col-span-12 md:col-span-6" name="company_rif" label="RIF"
-          [control]="form.controls.rif" placeholder="Ej. J-1234567897" hint="Opcional" />
+        <app-ci-input class="col-span-12 md:col-span-6" name="company_rif" label="RIF" [prefixes]="['J', 'G', 'V', 'E']"
+          [control]="form.controls.rif" hint="Opcional" />
 
         <app-global-input class="col-span-12 md:col-span-6" name="company_domain" label="Dominio"
-          [control]="form.controls.domain" placeholder="empresa.com" error="El dominio es requerido" />
+          [control]="form.controls.domain" placeholder="empresa.com" hint="Opcional"
+          error="Ingresa un dominio válido (ej. empresa.com)" />
 
         <div class="col-span-12 flex flex-col gap-1.5 md:col-span-6">
           <label class="text-sm font-medium text-gray-600">Correo de la empresa</label>
@@ -81,6 +82,34 @@
           [control]="form.controls.link_expiration_minutes" placeholder="Ej. 30"
           hint="Entre 1 y 120 minutos (2h). Al vencer, el cliente ya no podrá pagar con ese link."
           error="Debe ser un número entre 1 y 120 minutos" />
+
+        <div class="col-span-12 flex flex-col gap-1.5 md:col-span-6">
+          <label class="text-sm font-medium text-gray-600">Tasa para convertir a bolívares</label>
+          <select [formControl]="form.controls.default_rate_type"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <option value="bcv">BCV</option>
+            <option value="eur">EUR</option>
+            <option value="promedio">Promedio (BCV/EUR)</option>
+          </select>
+          <span class="text-xs text-gray-400">
+            Con esta tasa se convierten los montos a bolívares en tus comprobantes y en el link de pago del cliente.
+          </span>
+        </div>
+
+        <div class="col-span-12 flex flex-col gap-2">
+          <label class="text-sm font-medium text-gray-600">Datos obligatorios del comprador</label>
+          <span class="-mt-1 text-xs text-gray-400">
+            Elige qué datos debe llenar el cliente en el paso 1 del link de pago. El método de pago y el comprobante
+            siempre son obligatorios.
+          </span>
+          <div class="flex flex-wrap gap-x-6 gap-y-2">
+            @for (field of buyerFieldOptions; track field.key) {
+            <nb-checkbox [checked]="isFieldRequired(field.key)" (checkedChange)="toggleRequiredField(field.key)">
+              {{ field.label }}
+            </nb-checkbox>
+            }
+          </div>
+        </div>
       </section>
 
       <button nbButton status="primary" fullWidth type="submit" [disabled]="is_saving()">

@@ -1,15 +1,15 @@
-import { isPlatformBrowser } from '@angular/common';
+import { DecimalPipe, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { NbButtonModule, NbCardModule, NbIconModule, NbTooltipModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { ToastService } from '@shared/services/toast.service';
-import { ExchangeRateService } from '@shared/services/exchange-rate.service';
-import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
 import { Copyright } from '@shared/components/copyright/copyright';
 import { Avatar } from '@shared/components/avatar/avatar';
 import { GlobalInput } from '@shared/components/global-input/global-input';
+import { CiInput } from '@shared/components/ci-input/ci-input';
+import { PhoneInput } from '@shared/components/phone-input/phone-input';
 import { getInitials } from '@shared/utils/initials';
 import { compressImage } from '@shared/utils/compress-image';
 import { BuyerForm, PublicOrderSummary } from '../../interfaces/order';
@@ -20,14 +20,13 @@ type WizardStep = 1 | 2;
 
 @Component({
   selector: 'app-public-payment',
-  imports: [NbCardModule, NbButtonModule, NbIconModule, NbEvaIconsModule, NbTooltipModule, BsAmountPipe, Copyright, Avatar, ReactiveFormsModule, GlobalInput],
+  imports: [NbCardModule, NbButtonModule, NbIconModule, NbEvaIconsModule, NbTooltipModule, DecimalPipe, Copyright, Avatar, ReactiveFormsModule, GlobalInput, CiInput, PhoneInput],
   templateUrl: './public-payment.html',
 })
 export class PublicPayment implements OnInit {
 
   private route = inject(ActivatedRoute);
   private publicOrderService = inject(PublicOrderService);
-  protected exchangeRate = inject(ExchangeRateService);
   private toast = inject(ToastService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
@@ -43,13 +42,13 @@ export class PublicPayment implements OnInit {
   /** En que paso del wizard esta el cliente */
   step = signal<WizardStep>(1);
 
-  /** Paso 1: sus propios datos. Mismas validaciones que antes llenaba el vendedor */
+  /** Paso 1: sus propios datos. Que campos son obligatorios lo define la empresa (ver applyRequiredFields) */
   buyer_form = new FormGroup<BuyerForm>({
-    first_name: new FormControl(null, [Validators.required]),
-    last_name: new FormControl(null, [Validators.required]),
-    email: new FormControl(null, [Validators.required, Validators.email]),
-    ci: new FormControl(null, [Validators.required]),
-    phone: new FormControl(null, [Validators.required]),
+    first_name: new FormControl(null),
+    last_name: new FormControl(null),
+    email: new FormControl(null, [Validators.email]),
+    ci: new FormControl(null),
+    phone: new FormControl(null),
     address: new FormControl(null),
   });
   is_submitting_buyer = signal(false);
@@ -82,6 +81,7 @@ export class PublicPayment implements OnInit {
     this.publicOrderService.getSummary(this.tenant_id, this.token).subscribe({
       next: (summary) => {
         this.summary.set(summary);
+        this.applyRequiredFields(summary.order.required_fields);
         if (summary.payment_methods.length > 0) this.selected_method_id.set(summary.payment_methods[0].id);
 
         // Si el cliente ya habia llenado sus datos antes (recargo la pagina,
@@ -101,16 +101,41 @@ export class PublicPayment implements OnInit {
     return getInitials(text);
   }
 
-  parseDatos(datos: string): { label: string; value: string }[] {
-    try {
-      const parsed = JSON.parse(datos);
-      return Object.entries(parsed).map(([key, value]) => ({
-        label: key.charAt(0).toUpperCase() + key.slice(1),
-        value: String(value)
-      }));
-    } catch {
-      return [];
+  /** Aplica los Validators.required segun lo que la empresa configuro para su comprador */
+  private applyRequiredFields(required_fields: string[]): void {
+    (Object.keys(this.buyer_form.controls) as (keyof BuyerForm)[]).forEach((field) => {
+      const control = this.buyer_form.controls[field];
+      const base = field === 'email' ? [Validators.email] : [];
+
+      control.setValidators(required_fields.includes(field) ? [Validators.required, ...base] : base);
+      control.updateValueAndValidity({ emitEvent: false });
+    });
+  }
+
+  isRequired(field: keyof BuyerForm): boolean {
+    return (this.summary()?.order.required_fields ?? []).includes(field);
+  }
+
+  parseDatos(datos: Record<string, string> | string): { label: string; value: string }[] {
+    if (!datos) return [];
+
+    // MySQL real (produccion) autoparsea la columna JSON a objeto; algunos
+    // motores locales (ej. MariaDB) la devuelven como texto: se soportan ambos
+    let parsed: Record<string, string>;
+    if (typeof datos === 'string') {
+      try {
+        parsed = JSON.parse(datos);
+      } catch {
+        return [];
+      }
+    } else {
+      parsed = datos;
     }
+
+    return Object.entries(parsed).map(([key, value]) => ({
+      label: key.charAt(0).toUpperCase() + key.slice(1),
+      value: String(value)
+    }));
   }
 
   /** Paso 1 -> 2: guarda los datos del cliente en la orden */
@@ -129,11 +154,11 @@ export class PublicPayment implements OnInit {
 
     this.publicOrderService
       .submitBuyerData(this.tenant_id, this.token, {
-        first_name: buyer.first_name!,
-        last_name: buyer.last_name!,
-        email: buyer.email!,
-        ci: buyer.ci!,
-        phone: buyer.phone!,
+        first_name: buyer.first_name,
+        last_name: buyer.last_name,
+        email: buyer.email,
+        ci: buyer.ci,
+        phone: buyer.phone,
         address: buyer.address,
       })
       .subscribe({

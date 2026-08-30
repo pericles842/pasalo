@@ -1,7 +1,7 @@
-import { isPlatformBrowser } from '@angular/common';
-import { Component, OnDestroy, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import { DecimalPipe, isPlatformBrowser } from '@angular/common';
+import { Component, OnDestroy, OnInit, PLATFORM_ID, effect, inject, signal } from '@angular/core';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NbButtonModule, NbIconModule } from '@nebular/theme';
+import { NbButtonModule, NbIconModule, NbInputModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { Subscription } from 'rxjs';
 import { RouterLink } from '@angular/router';
@@ -16,7 +16,7 @@ import { OrdersService } from '../../orders.service';
 
 @Component({
   selector: 'app-orders-form',
-  imports: [ReactiveFormsModule, NbButtonModule, GlobalInput, NbEvaIconsModule, NbIconModule, GeneralTitleForm, BsAmountPipe, RouterLink],
+  imports: [ReactiveFormsModule, NbButtonModule, GlobalInput, NbEvaIconsModule, NbIconModule, NbInputModule, GeneralTitleForm, BsAmountPipe, DecimalPipe, RouterLink],
   templateUrl: './orders-form.html',
   styleUrl: './orders-form.scss',
 })
@@ -43,10 +43,27 @@ export class OrdersForm implements OnInit, OnDestroy {
 
   notes = new FormControl<string | null>(null);
 
+  /** Bs a cobrar: se sugiere con la tasa activa, pero el vendedor lo puede editar libremente */
+  bs_amount = new FormControl<number | null>(null);
+  private bs_amount_edited = false;
+
   items_total = signal(0);
 
   get items_controls() {
     return this.items.controls;
+  }
+
+  constructor() {
+    // Mientras el vendedor no toque el campo Bs a mano, se mantiene sugerido
+    // segun el total en $ y la tasa activa de la empresa
+    effect(() => {
+      const total = this.items_total();
+      const rate = this.exchangeRate.activeRate();
+
+      if (this.bs_amount_edited) return;
+
+      this.bs_amount.setValue(rate ? Math.round(total * rate * 100) / 100 : null, { emitEvent: false });
+    });
   }
 
   ngOnInit(): void {
@@ -86,6 +103,10 @@ export class OrdersForm implements OnInit, OnDestroy {
     this.items_total.set(Math.round(total * 100) / 100);
   }
 
+  onBsAmountInput(): void {
+    this.bs_amount_edited = true;
+  }
+
   addItem(): void {
     this.items.push(this.buildItem());
   }
@@ -108,6 +129,8 @@ export class OrdersForm implements OnInit, OnDestroy {
   createAnother(): void {
     this.created_order.set(null);
     this.notes.reset();
+    this.bs_amount.reset();
+    this.bs_amount_edited = false;
     while (this.items.length > 1) this.items.removeAt(0);
     this.items.at(0).reset();
   }
@@ -132,6 +155,7 @@ export class OrdersForm implements OnInit, OnDestroy {
           price: Number(item.price),
         })),
         notes: this.notes.value,
+        bs_amount: this.bs_amount.value,
       })
       .subscribe({
         next: (response) => {

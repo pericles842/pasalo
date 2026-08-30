@@ -1,0 +1,24 @@
+<section class="flex min-h-screen flex-col bg-gradient-to-b from-blue-100 via-white via-40% to-pink-50">
+  <div class="flex flex-1 items-center justify-center px-4 py-10">
+    <nb-card class="w-full max-w-md border-white/60! bg-white/70! shadow-xl! backdrop-blur-xl">
+      <nb-card-body class="flex flex-col items-center gap-4 py-10 text-center">
+        <img src="/pasalo-logo.png" alt="Pásalo" class="h-16 w-auto" />
+
+        <span class="text-6xl font-black text-blue-600">404</span>
+
+        <div class="flex flex-col gap-1">
+          <span class="text-xl font-bold text-slate-900">Página no encontrada</span>
+          <span class="text-sm text-gray-500">El enlace que abriste no existe o ya no está disponible.</span>
+        </div>
+
+        @if (auth.is_logged_in()) {
+        <a nbButton status="primary" routerLink="/dashboard">Ir a mi panel</a>
+        } @else {
+        <a nbButton status="primary" routerLink="/">Volver al inicio</a>
+        }
+      </nb-card-body>
+    </nb-card>
+  </div>
+
+  <app-copyright variant="subtle"></app-copyright>
+</section>

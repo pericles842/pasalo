@@ -8,10 +8,10 @@ import { sequelize } from '../config/db';
 export class RateModel extends Model<InferAttributes<RateModel>, InferCreationAttributes<RateModel>> {
     declare id: CreationOptional<number>;
 
-    declare oficial: number | null;
-    declare paralelo: number | null;
-    declare fecha_oficial: string | null;
-    declare fecha_paralelo: string | null;
+    declare bcv: number | null;
+    declare eur: number | null;
+    declare promedio: number | null;
+    declare fecha: string | null;
     declare source: CreationOptional<string>;
 
     declare createdAt: CreationOptional<Date>;
@@ -26,19 +26,19 @@ RateModel.init(
             autoIncrement: true,
             primaryKey: true
         },
-        oficial: {
+        bcv: {
             type: DataTypes.DOUBLE,
             allowNull: true
         },
-        paralelo: {
+        eur: {
             type: DataTypes.DOUBLE,
             allowNull: true
         },
-        fecha_oficial: {
-            type: DataTypes.STRING,
+        promedio: {
+            type: DataTypes.DOUBLE,
             allowNull: true
         },
-        fecha_paralelo: {
+        fecha: {
             type: DataTypes.STRING,
             allowNull: true
         },

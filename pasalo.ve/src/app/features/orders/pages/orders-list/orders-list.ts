@@ -9,14 +9,13 @@ import { CompanyUser } from 'src/app/features/users/interfaces/company-user';
 import { ToastService } from '@shared/services/toast.service';
 import { ConfirmService } from '@shared/services/confirm.service';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
-import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
 import { OrderPaidNotification, SocketService } from 'src/app/features/notifications/socket.service';
 import { Order, OrderStatus } from '../../interfaces/order';
 import { OrdersService } from '../../orders.service';
 
 @Component({
   selector: 'app-orders-list',
-  imports: [NbCardModule, NbSelectModule, NbButtonModule, NbIconModule, NbEvaIconsModule, DatePipe, DecimalPipe, RouterLink, BsAmountPipe],
+  imports: [NbCardModule, NbSelectModule, NbButtonModule, NbIconModule, NbEvaIconsModule, DatePipe, DecimalPipe, RouterLink],
   templateUrl: './orders-list.html',
 })
 export class OrdersList implements OnInit, OnDestroy {
@@ -176,6 +175,14 @@ export class OrdersList implements OnInit, OnDestroy {
   /** El comprobante trae Bs si el metodo es en bolivares; si no, ya viene en USD */
   isBsMethod(order: Order): boolean {
     return order.payment_method_type === 'pagomovil' || order.payment_method_type === 'transferencia';
+  }
+
+  /** Bs fijado por el vendedor al crear la orden; si es una orden vieja sin ese dato, se calcula con la tasa activa */
+  resolvedBsAmount(order: Order): number | null {
+    if (order.bs_amount !== null && order.bs_amount !== undefined) return order.bs_amount;
+
+    const rate = this.exchangeRate.activeRate();
+    return rate ? order.amount * rate : null;
   }
 
   /** Pasar a "Verificado" (id 5) es sensible: no se puede deshacer desde aca */

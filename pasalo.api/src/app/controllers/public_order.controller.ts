@@ -6,11 +6,30 @@ import { randomUUID } from 'crypto';
 import { extractReceiptData } from '../../utils/ocr';
 import { uploadFile } from '../../utils/storage';
 import { buildImagePrefix } from '../../utils/fileNaming';
-import { getExchangeRates } from '../../utils/exchangeRate';
+import { getExchangeRates, RateType } from '../../utils/exchangeRate';
 import { notifyOrderPaid } from '../config/socket';
 
 // Metodos que se cobran en bolivares: el comprobante muestra Bs, no USD
 const BS_PAYMENT_TYPES = ['pagomovil', 'transferencia'];
+
+// Default cuando la empresa todavia no configuro este campo (editable por el admin luego)
+const DEFAULT_REQUIRED_BUYER_FIELDS = ['first_name', 'email'];
+
+// required_buyer_fields (JSON) puede llegar ya parseada o como string sin parsear, segun la consulta
+function normalizeRequiredFields(value: unknown): string[] {
+    if (Array.isArray(value)) return value;
+
+    if (typeof value === 'string') {
+        try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) return parsed;
+        } catch {
+            // cae al default
+        }
+    }
+
+    return DEFAULT_REQUIRED_BUYER_FIELDS;
+}
 
 // Tolerancia para diferencias de redondeo / variacion de tasa entre que se
 // creo la orden y se pago
@@ -44,7 +63,7 @@ export class PublicOrderController {
             const tenantDb = await getTenantConnection(tenant_id);
 
             const [order] = await tenantDb.query<any>(
-                `SELECT o.id, o.company_id, o.user_id, o.amount, o.status_id, o.first_name_client, o.last_name_client,
+                `SELECT o.id, o.company_id, o.user_id, o.amount, o.bs_amount, o.status_id, o.first_name_client, o.last_name_client,
                         o.expires_at,
                         (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
                  FROM orders o
@@ -66,14 +85,29 @@ export class PublicOrderController {
             );
 
             const [company] = await sequelize.query<any>(
-                `SELECT name, logo_url FROM companies WHERE uuid = :company_id`,
+                `SELECT name, logo_url, default_rate_type, required_buyer_fields FROM companies WHERE uuid = :company_id`,
                 { replacements: { company_id: order.company_id }, type: QueryTypes.SELECT }
             );
+
+            const rate_type: RateType = company?.default_rate_type ?? 'bcv';
+            const rates = await getExchangeRates().catch(() => null);
 
             order.seller_name = seller ? `${seller.first_name} ${seller.middle_name ?? ''}`.trim() : null;
             order.seller_photo_url = seller?.photo_url ?? null;
             order.company_name = company?.name ?? null;
             order.logo_url = company?.logo_url ?? null;
+            order.rate_type = rate_type;
+            order.rate_value = rates?.[rate_type] ?? null;
+            order.required_fields = normalizeRequiredFields(company?.required_buyer_fields);
+
+            // El vendedor pudo fijar un Bs manual al crear la orden (mas confiable
+            // que la tasa del momento): si existe, es el que se muestra al comprador
+            if (order.bs_amount === null || order.bs_amount === undefined) {
+                const rate = rates?.[rate_type];
+                order.bs_amount = rate ? Number(order.amount) * rate : null;
+            } else {
+                order.bs_amount = Number(order.bs_amount);
+            }
 
             const methods = await tenantDb.query(
                 `SELECT pm.id, pm.name, pm.type, pm.datos, pm.titular
@@ -104,17 +138,13 @@ export class PublicOrderController {
         try {
             const tenant_id = req.params.tenant_id as string;
             const token = req.params.token as string;
-            const { first_name, last_name, email, ci, phone, address } = req.body;
-
-            if (!first_name || !last_name || !email || !ci || !phone) {
-                res.status(400).json({ message: 'Datos incompletos', error: 'Completa todos tus datos.' });
-                return;
-            }
+            const buyer_data: Record<string, string | undefined> = req.body;
+            const { address } = req.body;
 
             const tenantDb = await getTenantConnection(tenant_id);
 
             const [order] = await tenantDb.query<any>(
-                `SELECT id, status_id, expires_at FROM orders WHERE pay_url_token = :token`,
+                `SELECT id, company_id, status_id, expires_at FROM orders WHERE pay_url_token = :token`,
                 { replacements: { token }, type: QueryTypes.SELECT }
             );
 
@@ -122,6 +152,21 @@ export class PublicOrderController {
                 res.status(404).json({ message: 'Orden no encontrada', error: 'Este link de pago no es válido.' });
                 return;
             }
+
+            const [company] = await sequelize.query<any>(
+                `SELECT required_buyer_fields FROM companies WHERE uuid = :company_id`,
+                { replacements: { company_id: order.company_id }, type: QueryTypes.SELECT }
+            );
+
+            const required_fields = normalizeRequiredFields(company?.required_buyer_fields);
+            const missing = required_fields.filter((field) => !buyer_data[field]);
+
+            if (missing.length > 0) {
+                res.status(400).json({ message: 'Datos incompletos', error: 'Completa todos tus datos.' });
+                return;
+            }
+
+            const { first_name, last_name, email, ci, phone } = req.body;
 
             // 2 = pagado, 5 = verificado: ya no se puede tocar la orden
             if (order.status_id === 2 || order.status_id === 5) {
@@ -142,11 +187,11 @@ export class PublicOrderController {
                 {
                     replacements: {
                         id: order.id,
-                        first_name,
-                        last_name,
-                        email,
-                        ci,
-                        phone,
+                        first_name: first_name?.trim() || null,
+                        last_name: last_name?.trim() || null,
+                        email: email?.trim() || null,
+                        ci: ci?.trim() || null,
+                        phone: phone?.trim() || null,
                         address: address?.trim() || null
                     }
                 }
@@ -187,7 +232,7 @@ export class PublicOrderController {
             const tenantDb = await getTenantConnection(tenant_id);
 
             const [order] = await tenantDb.query<any>(
-                `SELECT id, company_id, user_id, status_id, amount, first_name_client, last_name_client, expires_at
+                `SELECT id, company_id, user_id, status_id, amount, bs_amount, first_name_client, last_name_client, expires_at
                  FROM orders WHERE pay_url_token = :token`,
                 { replacements: { token }, type: QueryTypes.SELECT }
             );
@@ -220,7 +265,7 @@ export class PublicOrderController {
             );
 
             const [company] = await sequelize.query<any>(
-                `SELECT name FROM companies WHERE uuid = :company_id`,
+                `SELECT name, default_rate_type FROM companies WHERE uuid = :company_id`,
                 { replacements: { company_id: order.company_id }, type: QueryTypes.SELECT }
             );
 
@@ -232,13 +277,20 @@ export class PublicOrderController {
             ]);
 
             // Si el metodo cobra en bolivares, el comprobante trae Bs: se compara
-            // contra el monto de la orden convertido con la tasa BCV del momento
+            // contra el Bs que el vendedor fijo al crear la orden (mas confiable que
+            // recalcular con la tasa del momento del pago)
             let expected_amount = Number(order.amount);
 
             if (method && BS_PAYMENT_TYPES.includes(method.type)) {
-                const rates = await getExchangeRates().catch(() => null);
-                if (rates?.oficial) expected_amount = Number(order.amount) * rates.oficial;
-                else expected_amount = 0; // sin tasa no hay con que comparar: no se marca sospechoso
+                if (order.bs_amount !== null && order.bs_amount !== undefined) {
+                    expected_amount = Number(order.bs_amount);
+                } else {
+                    // Orden vieja sin bs_amount: se cae al calculo en vivo como respaldo
+                    const rate_type: RateType = company?.default_rate_type ?? 'bcv';
+                    const rates = await getExchangeRates().catch(() => null);
+                    const rate = rates?.[rate_type];
+                    expected_amount = rate ? Number(order.amount) * rate : 0; // sin tasa no hay con que comparar: no se marca sospechoso
+                }
             }
 
             const is_suspicious = extracted_amount !== null && expected_amount > 0

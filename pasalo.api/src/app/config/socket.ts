@@ -58,3 +58,16 @@ export function notifyOrderPaid(tenant_id: string, seller_id: string, payload: u
         .to(`company:${tenant_id}:admin`)
         .emit('order:paid', payload);
 }
+
+/**
+ * Avisa al vendedor de la orden y al administrador de la empresa que el
+ * estado de una orden cambio (verificada, rechazada, etc.), para que la
+ * insignia de "pendientes por verificar" del menu se actualice sin recargar.
+ */
+export function notifyOrderStatusChanged(tenant_id: string, seller_id: string, payload: unknown): void {
+    if (!io) return;
+
+    io.to(`user:${seller_id}`)
+        .to(`company:${tenant_id}:admin`)
+        .emit('order:status-changed', payload);
+}

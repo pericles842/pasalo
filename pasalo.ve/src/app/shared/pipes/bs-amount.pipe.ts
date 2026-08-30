@@ -3,10 +3,10 @@ import { toBs } from '../utils/currency';
 
 /**
  * Muestra un monto en dolares convertido a bolivares.
- * El segundo argumento es la tasa (leela de ExchangeRateService.rateOficial()
+ * El segundo argumento es la tasa (leela de ExchangeRateService.activeRate()
  * directamente en la plantilla, para que el pipe reaccione cuando llegue).
  *
- * Uso: {{ order.amount | bsAmount: exchangeRate.rateOficial() }}
+ * Uso: {{ order.amount | bsAmount: exchangeRate.activeRate() }}
  */
 @Pipe({ name: 'bsAmount' })
 export class BsAmountPipe implements PipeTransform {

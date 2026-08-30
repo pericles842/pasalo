@@ -13,6 +13,7 @@ import {
 import { CardSubscriptionPlanComponent } from "@shared/components/card-subscription-plan/card-subscription-plan";
 import { GeneralTitleForm } from "@shared/elements/general-title-form/general-title-form";
 import { passwordMatchValidator } from '@shared/validators/password-match.validator';
+import { domainFormatValidator } from '@shared/validators/domain-format.validator';
 import { ToastService } from '@shared/services/toast.service';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { CompanyService } from "src/app/features/company/company-repository.service";
@@ -50,7 +51,7 @@ export class RegisterCompany implements OnInit {
     logo: new FormControl(null),
     rif: new FormControl(null),
     email: new FormControl(null, [Validators.required, Validators.email]),
-    domain: new FormControl(null, [Validators.required])
+    domain: new FormControl(null, [domainFormatValidator()])
   });
 
   // Usuario master de la empresa: siempre se registra con el rol de administrador
@@ -86,7 +87,7 @@ export class RegisterCompany implements OnInit {
     const plan = this.selected_plan;
     if (!plan || plan.id === 1) return '';
 
-    const rate = this.exchangeRate.rateOficial();
+    const rate = this.exchangeRate.rateBcv();
     const amount_bs = rate ? Math.round(plan.price * rate * 100) / 100 : null;
     const company_name = this.company_form.controls.name.value ?? 'mi empresa';
 

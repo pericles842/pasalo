@@ -7,11 +7,10 @@
       [control]="form.controls.email" type="email" placeholder="contacto@empresa.com"
       hint="Aquí llegarán las notificaciones de la cuenta" error="Ingresa un correo válido" />
 
-    <app-global-input class="col-span-12 md:col-span-6" name="rif" label="RIF" [control]="form.controls.rif"
-      placeholder="Ej. J-1234567897" hint="Opcional" />
+    <app-ci-input class="col-span-12 md:col-span-6" name="rif" label="RIF" [prefixes]="['J', 'G', 'V', 'E']"
+      [control]="form.controls.rif" hint="Opcional" />
 
-    <app-global-input class="col-span-12 md:col-span-6" name="domain" label="Dominio"
-      [control]="form.controls.domain" placeholder="empresa.com"
-      hint="Con este dominio se identifica tu espacio en Pásalo" error="El dominio es requerido" />
+    <app-global-input class="col-span-12 md:col-span-6" name="domain" label="Dominio" [control]="form.controls.domain"
+      placeholder="empresa.com" hint="Opcional" error="Ingresa un dominio válido (ej. empresa.com)" />
   </section>
 </form>

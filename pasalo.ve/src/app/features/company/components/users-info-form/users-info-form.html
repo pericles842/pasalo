@@ -6,8 +6,8 @@
     <app-global-input class="col-span-12 md:col-span-6" name="middle_name" label="Apellido"
       [control]="form.controls.middle_name" placeholder="Ej. Sarmiento" error="El apellido es requerido" />
 
-    <app-global-input class="col-span-12 md:col-span-6" name="ci" label="Cédula" [control]="form.controls.ci"
-      placeholder="13728876" error="La cédula es requerida" />
+    <app-ci-input class="col-span-12 md:col-span-6" name="ci" label="Cédula" [control]="form.controls.ci"
+      error="La cédula es requerida" />
 
     <app-global-input class="col-span-12 md:col-span-6" name="user_email" label="Correo personal"
       [control]="form.controls.email" type="email" placeholder="example@gmail.com"

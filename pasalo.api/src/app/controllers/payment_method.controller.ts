@@ -143,6 +143,66 @@ export class PaymentMethodController {
         }
     }
 
+    static async update(req: Request, res: Response, next: NextFunction) {
+        if (!PaymentMethodController.isAdmin(req)) {
+            res.status(403).json({ message: 'Acceso denegado', error: 'Solo el administrador puede editar métodos de pago.' });
+            return;
+        }
+
+        try {
+            const session = PaymentMethodController.session(req);
+            const tenantDb = PaymentMethodController.tenantDb(req);
+            const { id } = req.params;
+            const { name, type, titular, datos } = req.body;
+
+            if (!name || !type || !VALID_TYPES.includes(type)) {
+                res.status(400).json({ message: 'Datos incompletos', error: 'Completa el nombre y un tipo válido de método de pago.' });
+                return;
+            }
+
+            if (!datos || typeof datos !== 'object' || Object.keys(datos).length === 0) {
+                res.status(400).json({ message: 'Datos incompletos', error: 'Completa los datos con los que el cliente pagará.' });
+                return;
+            }
+
+            const [existing] = await tenantDb.query<any>(
+                `SELECT id FROM payment_methods WHERE id = :id AND company_id = :company_id`,
+                { replacements: { id, company_id: session.company.uuid }, type: QueryTypes.SELECT }
+            );
+
+            if (!existing) {
+                res.status(404).json({ message: 'Método no encontrado', error: 'Ese método de pago no pertenece a tu empresa.' });
+                return;
+            }
+
+            await tenantDb.query(
+                `UPDATE payment_methods
+                 SET name = :name, type = :type, titular = :titular, datos = :datos, updatedAt = NOW()
+                 WHERE id = :id AND company_id = :company_id`,
+                {
+                    replacements: {
+                        id,
+                        company_id: session.company.uuid,
+                        name,
+                        type,
+                        titular: titular ?? null,
+                        datos: JSON.stringify(datos)
+                    }
+                }
+            );
+
+            const [updated] = await tenantDb.query(
+                `SELECT id, name, type, datos, titular, createdAt
+                 FROM payment_methods WHERE id = :id`,
+                { replacements: { id }, type: QueryTypes.SELECT }
+            );
+
+            res.json({ method: updated });
+        } catch (err) {
+            next(err);
+        }
+    }
+
     static async remove(req: Request, res: Response, next: NextFunction) {
         if (!PaymentMethodController.isAdmin(req)) {
             res.status(403).json({ message: 'Acceso denegado', error: 'Solo el administrador puede eliminar métodos de pago.' });

@@ -6,6 +6,7 @@ import {
   CreatePaymentMethodPayload,
   CreatePaymentMethodResponse,
   DeletePaymentMethodResponse,
+  PaymentMethod,
   PaymentMethodsListResponse,
 } from './interfaces/payment-method';
 
@@ -20,6 +21,10 @@ export class PaymentMethodsService {
 
   createPaymentMethod(payload: CreatePaymentMethodPayload): Observable<CreatePaymentMethodResponse> {
     return this.http.post<CreatePaymentMethodResponse>(`${environment.host}/company/payment-methods`, payload);
+  }
+
+  updatePaymentMethod(id: number, payload: CreatePaymentMethodPayload): Observable<{ method: PaymentMethod }> {
+    return this.http.put<{ method: PaymentMethod }>(`${environment.host}/company/payment-methods/${id}`, payload);
   }
 
   deletePaymentMethod(id: number): Observable<DeletePaymentMethodResponse> {

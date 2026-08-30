@@ -4,6 +4,7 @@ import { NbButtonModule } from '@nebular/theme';
 import { StatCard } from '@shared/components/stat-card/stat-card';
 import { ToastService } from '@shared/services/toast.service';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
+import { AuthService } from 'src/app/features/auth/auth.service';
 import { OrderStats, OrdersService } from '../../orders.service';
 
 @Component({
@@ -17,6 +18,7 @@ export class OrdersStats implements OnInit {
   private toast = inject(ToastService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
   protected exchangeRate = inject(ExchangeRateService);
+  protected auth = inject(AuthService);
 
   is_loading = signal(true);
   stats = signal<OrderStats | null>(null);
@@ -44,6 +46,10 @@ export class OrdersStats implements OnInit {
     this.date_from.set(null);
     this.date_to.set(null);
     this.load();
+  }
+
+  isDefaultRate(rate_type: 'bcv' | 'eur' | 'promedio'): boolean {
+    return (this.auth.session()?.company.default_rate_type ?? 'bcv') === rate_type;
   }
 
   private load(): void {

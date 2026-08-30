@@ -1,0 +1,21 @@
+<div class="flex flex-col gap-1.5">
+  <label [for]="name" class="text-sm font-medium text-gray-600" [class.text-red-600]="isInvalid">
+    {{ label }}
+  </label>
+
+  <div class="grid grid-cols-12 gap-3">
+    <select [formControl]="prefixControl"
+      class="col-span-3 rounded-lg border border-gray-300 px-1 py-2 text-center text-sm font-medium">
+      @for (p of prefixes; track p) {
+      <option [value]="p">{{ p }}</option>
+      }
+    </select>
+
+    <input nbInput style="font-weight: 500;" fullWidth class="col-span-9" [id]="name" [name]="name" type="text"
+      inputmode="numeric" [formControl]="numberControl" (blur)="onBlur()" [status]="status" placeholder="1234567" />
+  </div>
+
+  <small class="text-xs text-gray-500" [class.text-red-600]="isInvalid">
+    {{ message }}
+  </small>
+</div>

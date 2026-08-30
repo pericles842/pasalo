@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto';
 import { Sequelize } from 'sequelize';
 import { sequelize } from '../config/db';
 import { SessionPayload } from '../../middlewares/jwtMiddleware';
+import { notifyOrderStatusChanged } from '../config/socket';
 
 export class OrderController {
 
@@ -28,7 +29,7 @@ export class OrderController {
         try {
             const session = OrderController.session(req);
             const tenantDb = OrderController.tenantDb(req);
-            const { items, notes } = req.body;
+            const { items, notes, bs_amount } = req.body;
 
             if (!Array.isArray(items) || items.length === 0) {
                 res.status(400).json({ message: 'Datos incompletos', error: 'Agrega al menos un producto a la orden.' });
@@ -69,12 +70,18 @@ export class OrderController {
             const amount = items.reduce((total: number, item: any) => total + Number(item.price), 0);
             const expires_at = new Date(Date.now() + link_expiration_minutes * 60 * 1000);
 
+            if (bs_amount !== undefined && bs_amount !== null && (isNaN(Number(bs_amount)) || Number(bs_amount) < 0)) {
+                res.status(400).json({ message: 'Monto inválido', error: 'El monto en bolívares debe ser un número mayor o igual a 0.' });
+                return;
+            }
+
             await tenantDb.getQueryInterface().bulkInsert('orders', [{
                 id: order_id,
                 company_id: session.company.uuid,
                 user_id: session.user.uuid,
                 notes: notes ?? null,
                 amount,
+                bs_amount: bs_amount !== undefined && bs_amount !== null ? Number(bs_amount) : null,
                 status_id: 1,
                 pay_url_token,
                 expires_at,
@@ -98,6 +105,7 @@ export class OrderController {
                 order: {
                     id: order_id,
                     amount,
+                    bs_amount: bs_amount !== undefined && bs_amount !== null ? Number(bs_amount) : null,
                     status_id: 1,
                     pay_url_token
                 },
@@ -259,7 +267,7 @@ export class OrderController {
             const where = is_admin ? 'id = :id' : 'id = :id AND user_id = :user_id';
             const replacements: Record<string, any> = { id, user_id: session.user.uuid };
 
-            const [order] = await tenantDb.query(`SELECT id FROM orders WHERE ${where}`, {
+            const [order] = await tenantDb.query<{ id: string; user_id: string }>(`SELECT id, user_id FROM orders WHERE ${where}`, {
                 replacements,
                 type: QueryTypes.SELECT
             });
@@ -278,6 +286,8 @@ export class OrderController {
                  WHERE id = :id`,
                 { replacements: { status_id, id } }
             );
+
+            notifyOrderStatusChanged(session.company.tenant_id, order.user_id, { order_id: id, status_id });
 
             res.json({ message: 'Estado actualizado' });
         } catch (err) {

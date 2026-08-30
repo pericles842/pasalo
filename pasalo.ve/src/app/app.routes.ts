@@ -6,6 +6,7 @@ import { Pricing } from './pages/pricing/pricing';
 import { Ads } from './pages/ads/ads';
 import { Terms } from './pages/terms/terms';
 import { Privacy } from './pages/privacy/privacy';
+import { Cookies } from './pages/cookies/cookies';
 import { RegisterCompany } from './pages/register-company/register-company';
 import { Dashboard } from './layout/dashboard/dashboard';
 import { WebClient } from './layout/web-client/web-client';
@@ -16,6 +17,7 @@ import { NotificationsPage } from './features/notifications/pages/notifications-
 import { PublicPayment } from './features/orders/pages/public-payment/public-payment';
 import { ProfilePage } from './features/profile/pages/profile-page/profile-page';
 import { CompanyPage } from './features/company/pages/company-page/company-page';
+import { NotFound } from './pages/not-found/not-found';
 import { authGuard } from './features/auth/auth.guard';
 
 export const routes: Routes = [
@@ -28,6 +30,7 @@ export const routes: Routes = [
       { path: 'publicidad', component: Ads, title: 'Publicidad | Pásalo.ve' },
       { path: 'terminos-y-condiciones', component: Terms, title: 'Términos y condiciones | Pásalo.ve' },
       { path: 'politica-de-privacidad', component: Privacy, title: 'Política de privacidad | Pásalo.ve' },
+      { path: 'politica-de-cookies', component: Cookies, title: 'Política de cookies | Pásalo.ve' },
       { path: 'create-company', component: RegisterCompany, title: 'Pásalo.ve' },
     ],
   },
@@ -51,6 +54,11 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/orders/order.routing.module').then((m) => m.OrdersRoutingModule),
       },
+      // Cualquier sub-ruta del dashboard que no matcheo nada de arriba: se
+      // muestra dentro del layout (sidebar/header), no del wildcard de mas abajo
+      { path: '**', component: NotFound, title: 'Página no encontrada | Pásalo.ve' },
     ],
   },
+  // Cualquier ruta que no matcheo nada de lo anterior
+  { path: '**', component: NotFound, title: 'Página no encontrada | Pásalo.ve' },
 ];

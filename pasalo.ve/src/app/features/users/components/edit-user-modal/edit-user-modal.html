@@ -1,0 +1,33 @@
+<nb-card class="m-0 w-[min(90vw,28rem)]">
+  <nb-card-header>
+    <span class="font-semibold">Editar usuario</span>
+  </nb-card-header>
+
+  <nb-card-body>
+    <form [formGroup]="form" (submit)="$event.preventDefault(); save()" class="flex flex-col gap-4">
+      <app-global-input name="edit_first_name" label="Nombre" placeholder="Ej. Louis"
+        [control]="form.controls.first_name" error="El nombre es requerido" />
+
+      <app-global-input name="edit_middle_name" label="Apellido" placeholder="Ej. Sarmiento"
+        [control]="form.controls.middle_name" hint="Opcional" />
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-600">Cargo</label>
+        <nb-select fullWidth placeholder="Selecciona un cargo" formControlName="role_id" scrollStrategy="reposition">
+          @for (role of roles; track role.id) {
+          <nb-option [value]="role.id">{{ role.name }}</nb-option>
+          }
+        </nb-select>
+      </div>
+    </form>
+  </nb-card-body>
+
+  <nb-card-footer class="flex justify-end gap-2">
+    <button nbButton status="basic" appearance="outline" type="button" (click)="close()">
+      Cancelar
+    </button>
+    <button nbButton status="primary" type="button" [disabled]="is_saving()" (click)="save()">
+      {{ is_saving() ? 'Guardando...' : 'Guardar cambios' }}
+    </button>
+  </nb-card-footer>
+</nb-card>

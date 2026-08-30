@@ -134,6 +134,10 @@
                 <td class="py-3">
                   @if (user.role_slug !== 'admin') {
                   <div class="flex gap-2">
+                    <button nbButton size="tiny" status="primary" appearance="outline" type="button"
+                      (click)="editUser(user)">
+                      Editar
+                    </button>
                     <button nbButton size="tiny" status="warning" appearance="outline" type="button"
                       title="Próximamente" [disabled]="true" (click)="deactivateUser(user)">
                       Desactivar

@@ -62,10 +62,10 @@
                 <nb-icon icon="copy-outline" class="text-sm!"></nb-icon>
               </button>
             </div>
-            @if (data.order.amount | bsAmount: exchangeRate.rateOficial(); as bs) {
+            @if (data.order.bs_amount; as bs_amount) {
             <div class="flex items-center gap-1.5">
-              <span class="text-xs text-gray-500">Bs {{ bs }} <span class="text-gray-400">(tasa BCV)</span></span>
-              <button type="button" class="text-gray-400 hover:text-blue-600" (click)="copyValue(bs, 'Monto en Bs')"
+              <span class="text-xs text-gray-500">Bs {{ bs_amount | number: '1.2-2' }}</span>
+              <button type="button" class="text-gray-400 hover:text-blue-600" (click)="copyValue(bs_amount.toString(), 'Monto en Bs')"
                 aria-label="Copiar monto en bolívares" nbTooltip="Copiar monto en Bs" nbTooltipPlacement="right">
                 <nb-icon icon="copy-outline" class="text-xs!"></nb-icon>
               </button>
@@ -121,23 +121,29 @@
       <span class="-mt-2 text-xs text-gray-500">Así el vendedor sabe quién le está pagando.</span>
 
       <div class="grid grid-cols-12 gap-4" [formGroup]="buyer_form">
-        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_first_name" label="Nombre"
-          placeholder="Ej. Rafael" [control]="buyer_form.controls.first_name" error="El nombre es requerido" />
+        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_first_name"
+          [label]="'Nombre' + (isRequired('first_name') ? '' : ' (opcional)')" placeholder="Ej. Rafael"
+          [control]="buyer_form.controls.first_name" error="El nombre es requerido" />
 
-        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_last_name" label="Apellido"
-          placeholder="Ej. Pérez" [control]="buyer_form.controls.last_name" error="El apellido es requerido" />
+        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_last_name"
+          [label]="'Apellido' + (isRequired('last_name') ? '' : ' (opcional)')" placeholder="Ej. Pérez"
+          [control]="buyer_form.controls.last_name" error="El apellido es requerido" />
 
-        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_email" label="Correo" type="email"
-          placeholder="tucorreo@correo.com" [control]="buyer_form.controls.email" error="Ingresa un correo válido" />
+        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_email" type="email"
+          [label]="'Correo' + (isRequired('email') ? '' : ' (opcional)')" placeholder="tucorreo@correo.com"
+          [control]="buyer_form.controls.email" error="Ingresa un correo válido" />
 
-        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_ci" label="Cédula"
-          placeholder="Ej. V-12345678" [control]="buyer_form.controls.ci" error="La cédula es requerida" />
+        <app-ci-input class="col-span-12 sm:col-span-6" name="buyer_ci"
+          [label]="'Cédula' + (isRequired('ci') ? '' : ' (opcional)')" [control]="buyer_form.controls.ci"
+          error="La cédula es requerida" />
 
-        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_phone" label="Teléfono"
-          placeholder="Ej. 0414-1234567" [control]="buyer_form.controls.phone" error="El teléfono es requerido" />
+        <app-phone-input class="col-span-12 sm:col-span-6" name="buyer_phone"
+          [label]="'Teléfono' + (isRequired('phone') ? '' : ' (opcional)')" [control]="buyer_form.controls.phone"
+          error="El teléfono es requerido" />
 
-        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_address" label="Ubicación"
-          placeholder="Ej. Caracas, Venezuela" [control]="buyer_form.controls.address" hint="Opcional" />
+        <app-global-input class="col-span-12 sm:col-span-6" name="buyer_address"
+          [label]="'Ubicación' + (isRequired('address') ? '' : ' (opcional)')" placeholder="Ej. Caracas, Venezuela"
+          [control]="buyer_form.controls.address" error="La ubicación es requerida" />
       </div>
 
       <button nbButton status="primary" fullWidth class="mt-2!" type="button" [disabled]="is_submitting_buyer()"

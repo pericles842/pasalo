@@ -97,6 +97,10 @@ export class Dashboard implements OnInit, OnDestroy {
       // Un pago nuevo entra como "Pagado": suma a la insignia de pendientes por verificar
       this.loadPaidOrdersCount();
     });
+
+    // Cualquier cambio de estado (verificado, rechazado, etc.) tambien
+    // refresca la insignia, sin importar desde que pantalla/sesion se hizo
+    this.socket.onOrderStatusChanged(() => this.loadPaidOrdersCount());
   }
 
   /** Cuenta las ordenes en estado "Pagado" para la insignia del menu */

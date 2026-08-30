@@ -31,6 +31,19 @@ export class CompanyController {
         return slugify(base);
     }
 
+    /** Si el slug base ya esta en uso, le agrega un sufijo numerico hasta que sea unico */
+    private static async uniqueTenantId(base: string): Promise<string> {
+        let candidate = base;
+        let suffix = 2;
+
+        while (await CompanyModel.findOne({ where: { tenant_id: candidate } })) {
+            candidate = `${base}_${suffix}`;
+            suffix++;
+        }
+
+        return candidate;
+    }
+
     /**
      * Registra la empresa, su usuario master y la suscripción al plan.
      * El límite de usuarios internos lo define el plan seleccionado.
@@ -51,12 +64,32 @@ export class CompanyController {
             return;
         }
 
-        const tenant_id = CompanyController.parserDomain(company_data.domain);
+        const domain = typeof company_data.domain === 'string' ? company_data.domain.trim() : '';
+        let base_tenant_id: string;
 
-        if (!tenant_id) {
-            res.status(400).json({ message: 'Dominio inválido', error: 'No se pudo generar el identificador de la empresa a partir del dominio.' });
-            return;
+        if (domain) {
+            base_tenant_id = CompanyController.parserDomain(domain);
+
+            if (!base_tenant_id) {
+                res.status(400).json({ message: 'Dominio inválido', error: 'El dominio no tiene un formato válido.' });
+                return;
+            }
+        } else {
+            // Sin dominio, el tenant_id sale del nombre de la empresa. Dos empresas
+            // distintas pueden compartir el mismo nombre (ej. "Coffee Code"), asi que
+            // se agrega un numero al slug para reducir la probabilidad de colision
+            const name_slug = slugify(company_data.name ?? '');
+
+            if (!name_slug) {
+                res.status(400).json({ message: 'Nombre inválido', error: 'No se pudo generar el identificador de la empresa a partir del nombre.' });
+                return;
+            }
+
+            const random_suffix = Math.floor(1000 + Math.random() * 9000);
+            base_tenant_id = `${name_slug}_${random_suffix}`;
         }
+
+        const tenant_id = await CompanyController.uniqueTenantId(base_tenant_id);
 
         const plan = await PlanModel.findByPk(plan_id);
 
@@ -93,7 +126,7 @@ export class CompanyController {
                 // rif:'' chocarian entre si, pero varias con null no
                 rif: company_data.rif?.trim() || null,
                 email: company_data.email,
-                domain: company_data.domain,
+                domain: domain || null,
                 logo_url: company_data.logo ?? null,
                 tenant_id,
                 // El plan manda: define cuántos usuarios internos puede crear el master.
@@ -161,10 +194,16 @@ export class CompanyController {
 
         try {
             const session = CompanyController.session(req);
-            const { name, domain, link_expiration_minutes } = req.body;
+            const { name, link_expiration_minutes, default_rate_type, required_buyer_fields } = req.body;
+            const domain = typeof req.body.domain === 'string' ? req.body.domain.trim() : '';
 
-            if (!name || !domain) {
-                res.status(400).json({ message: 'Datos incompletos', error: 'El nombre y el dominio de la empresa son requeridos.' });
+            if (!name) {
+                res.status(400).json({ message: 'Datos incompletos', error: 'El nombre de la empresa es requerido.' });
+                return;
+            }
+
+            if (domain && !CompanyController.parserDomain(domain)) {
+                res.status(400).json({ message: 'Dominio inválido', error: 'El dominio no tiene un formato válido.' });
                 return;
             }
 
@@ -176,6 +215,38 @@ export class CompanyController {
                     res.status(400).json({
                         message: 'Duración inválida',
                         error: 'La duración del link de pago debe ser entre 1 y 120 minutos.'
+                    });
+                    return;
+                }
+            }
+
+            if (default_rate_type !== undefined && !['bcv', 'eur', 'promedio'].includes(default_rate_type)) {
+                res.status(400).json({
+                    message: 'Tasa inválida',
+                    error: 'La tasa por defecto debe ser bcv, eur o promedio.'
+                });
+                return;
+            }
+
+            const ALLOWED_BUYER_FIELDS = ['first_name', 'last_name', 'email', 'ci', 'phone', 'address'];
+            let parsed_required_fields: string[] | undefined;
+
+            if (required_buyer_fields !== undefined) {
+                try {
+                    parsed_required_fields = typeof required_buyer_fields === 'string'
+                        ? JSON.parse(required_buyer_fields)
+                        : required_buyer_fields;
+                } catch {
+                    parsed_required_fields = undefined;
+                }
+
+                const is_valid = Array.isArray(parsed_required_fields)
+                    && parsed_required_fields.every((f) => ALLOWED_BUYER_FIELDS.includes(f));
+
+                if (!is_valid) {
+                    res.status(400).json({
+                        message: 'Campos inválidos',
+                        error: 'Los campos obligatorios del comprador no son válidos.'
                     });
                     return;
                 }
@@ -202,8 +273,10 @@ export class CompanyController {
 
             company.name = name;
             company.rif = rif;
-            company.domain = domain;
+            company.domain = domain || null;
             if (link_expiration_minutes !== undefined) company.link_expiration_minutes = Number(link_expiration_minutes);
+            if (default_rate_type !== undefined) company.default_rate_type = default_rate_type;
+            if (parsed_required_fields !== undefined) company.required_buyer_fields = parsed_required_fields;
 
             const file = (req as any).file;
 

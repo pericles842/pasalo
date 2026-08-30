@@ -71,7 +71,7 @@
                   </span>
                   @if (isBsMethod(order)) {
                   <span class="text-xs text-amber-800">
-                    Bs esperado: {{ order.amount | bsAmount: exchangeRate.rateOficial() }} · Bs en la foto:
+                    Bs esperado: {{ resolvedBsAmount(order) | number: '1.2-2' }} · Bs en la foto:
                     {{ order.extracted_amount | number: '1.2-2' }}
                   </span>
                   } @else {
@@ -86,8 +86,8 @@
               <td class="py-3 pr-4">
                 <div class="flex flex-col">
                   <span class="font-semibold" [class]="rowTextClass(order) || 'text-slate-900'">${{ order.amount }}</span>
-                  @if (order.amount | bsAmount: exchangeRate.rateOficial(); as bs) {
-                  <span class="text-xs" [class]="rowTextClass(order) || 'text-gray-500'">Bs {{ bs }}</span>
+                  @if (resolvedBsAmount(order); as bs) {
+                  <span class="text-xs" [class]="rowTextClass(order) || 'text-gray-500'">Bs {{ bs | number: '1.2-2' }}</span>
                   }
                 </div>
               </td>

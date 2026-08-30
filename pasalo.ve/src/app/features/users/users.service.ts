@@ -3,10 +3,12 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import {
+  CompanyUser,
   CompanyUsersResponse,
   CreateCompanyUserPayload,
   PlanUsage,
-  Role
+  Role,
+  UpdateCompanyUserPayload,
 } from './interfaces/company-user';
 
 @Injectable({ providedIn: 'root' })
@@ -50,5 +52,14 @@ export class UsersService {
    */
   deleteUser(uuid: string): Observable<{ message: string; usage: PlanUsage }> {
     return this.http.delete<{ message: string; usage: PlanUsage }>(`${environment.host}/company/users/${uuid}`);
+  }
+
+  /**
+   * Edita nombre y cargo de un usuario interno. El correo no se puede cambiar aqui.
+   *
+   * @memberof UsersService
+   */
+  updateUser(uuid: string, payload: UpdateCompanyUserPayload): Observable<{ user: CompanyUser; role: Role }> {
+    return this.http.put<{ user: CompanyUser; role: Role }>(`${environment.host}/company/users/${uuid}`, payload);
   }
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NbButtonModule, NbCardModule } from '@nebular/theme';
+import { NbButtonModule, NbCardModule, NbDialogService } from '@nebular/theme';
 import { CardSubscriptionPlanComponent } from '@shared/components/card-subscription-plan/card-subscription-plan';
 import { passwordMatchValidator } from '@shared/validators/password-match.validator';
 import { ToastService } from '@shared/services/toast.service';
@@ -11,7 +11,8 @@ import { PlanInterface } from 'src/app/services/http/plan/plan';
 import { PlanService } from 'src/app/services/http/plan/plan.service';
 import { SubscriptionService } from 'src/app/features/company/subscription.service';
 import { NewUserForm } from '../../components/new-user-form/new-user-form';
-import { CompanyUser, CreateUserForm, PlanUsage } from '../../interfaces/company-user';
+import { EditUserModal } from '../../components/edit-user-modal/edit-user-modal';
+import { CompanyUser, CreateUserForm, PlanUsage, Role } from '../../interfaces/company-user';
 import { UsersService } from '../../users.service';
 
 @Component({
@@ -33,7 +34,10 @@ export class UsersPage implements OnInit {
   private auth = inject(AuthService);
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);
+  private dialogService = inject(NbDialogService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  roles = signal<Role[]>([]);
 
   // Estado en signals: la app corre en zoneless y asi la vista se refresca sola
   users = signal<CompanyUser[]>([]);
@@ -75,6 +79,7 @@ export class UsersPage implements OnInit {
 
     this.loadUsers();
     this.planService.getFullPlan().subscribe((plans) => this.plans.set(plans));
+    this.usersService.getRoles().subscribe((roles) => this.roles.set(roles));
   }
 
   loadUsers(): void {
@@ -152,6 +157,17 @@ export class UsersPage implements OnInit {
         this.is_changing_plan.set(false);
         this.toast.error(err?.error?.error ?? 'No pudimos cambiar el plan.');
       }
+    });
+  }
+
+  editUser(user: CompanyUser): void {
+    this.dialogService.open(EditUserModal, {
+      context: { user, roles: this.roles() },
+    }).onClose.subscribe((result) => {
+      if (!result) return;
+      this.users.update((users) => users.map((u) => (
+        u.uuid === user.uuid ? { ...u, first_name: result.user.first_name, middle_name: result.user.middle_name, role_id: result.role.id, role_name: result.role.name, role_slug: result.role.slug } : u
+      )));
     });
   }
 

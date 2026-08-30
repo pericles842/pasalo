@@ -1,12 +1,14 @@
 import { Component, Input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { GlobalInput } from "@shared/components/global-input/global-input";
+import { CiInput } from '@shared/components/ci-input/ci-input';
 import { UserCompanyForm } from '../../interfaces/user';
 
 @Component({
   selector: 'app-users-info-form',
   imports: [
     GlobalInput,
+    CiInput,
     ReactiveFormsModule
   ],
   templateUrl: './users-info-form.html',

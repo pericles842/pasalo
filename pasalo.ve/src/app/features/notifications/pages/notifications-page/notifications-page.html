@@ -57,7 +57,7 @@
               <td class="py-3 pr-4">
                 <div class="flex flex-col">
                   <span class="font-semibold text-slate-900">${{ n.amount }}</span>
-                  @if (n.amount | bsAmount: exchangeRate.rateOficial(); as bs) {
+                  @if (n.amount | bsAmount: exchangeRate.activeRate(); as bs) {
                   <span class="text-xs text-gray-500">Bs {{ bs }}</span>
                   }
                 </div>

@@ -14,6 +14,11 @@ export interface OrderPaidNotification {
   is_suspicious: boolean;
 }
 
+export interface OrderStatusChangedNotification {
+  order_id: string;
+  status_id: number;
+}
+
 /**
  * Notificaciones en vivo del panel: se conecta con el mismo token de sesión
  * y escucha cuando un cliente completa el pago de una orden.
@@ -47,6 +52,14 @@ export class SocketService implements OnDestroy {
   /** Quita un listener registrado con onOrderPaid, útil al destruir un componente */
   offOrderPaid(callback: (payload: OrderPaidNotification) => void): void {
     this.socket?.off('order:paid', callback);
+  }
+
+  onOrderStatusChanged(callback: (payload: OrderStatusChangedNotification) => void): void {
+    this.socket?.on('order:status-changed', callback);
+  }
+
+  offOrderStatusChanged(callback: (payload: OrderStatusChangedNotification) => void): void {
+    this.socket?.off('order:status-changed', callback);
   }
 
   ngOnDestroy(): void {

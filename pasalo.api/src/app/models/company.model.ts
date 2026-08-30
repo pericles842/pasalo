@@ -12,7 +12,7 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
   declare rif: CreationOptional<string | null>;
   declare email: string;
   declare tenant_id: string;
-  declare domain: string;
+  declare domain: CreationOptional<string | null>;
 
 
   declare logo_url: CreationOptional<string | null>;
@@ -20,6 +20,10 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
   declare user_limit: CreationOptional<number>;
   // Cuanto dura el link publico de pago antes de expirar. Editable por el admin, tope 2h (120)
   declare link_expiration_minutes: CreationOptional<number>;
+  // Con que tasa se convierten los montos a bolivares (comprobantes y link de pago). Editable por el admin
+  declare default_rate_type: CreationOptional<'bcv' | 'eur' | 'promedio'>;
+  // Que campos del comprador son obligatorios en el paso 1 del link publico de pago
+  declare required_buyer_fields: CreationOptional<string[]>;
 
   // Timestamps automáticos
   declare createdAt: CreationOptional<Date>;
@@ -203,10 +207,7 @@ CompanyModel.init(
     },
     domain: {
       type: DataTypes.STRING(255),
-      allowNull: false,
-      validate: {
-        notEmpty: { msg: 'El dominio es requerido' }
-      }
+      allowNull: true
     },
     user_limit: {
       type: DataTypes.INTEGER,
@@ -217,6 +218,28 @@ CompanyModel.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 30
+    },
+    default_rate_type: {
+      type: DataTypes.ENUM('bcv', 'eur', 'promedio'),
+      allowNull: false,
+      defaultValue: 'bcv'
+    },
+    required_buyer_fields: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: ['first_name', 'email'],
+      // Con mysql2 esta columna vuelve como el string JSON sin parsear en vez de array
+      get(this: CompanyModel) {
+        const raw = this.getDataValue('required_buyer_fields');
+        if (Array.isArray(raw)) return raw;
+        if (typeof raw !== 'string') return raw;
+
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return null;
+        }
+      }
     },
     createdAt: {
       type: DataTypes.DATE,

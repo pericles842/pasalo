@@ -39,7 +39,7 @@
             ${{ n.amount }}
           </span>
         </div>
-        @if (n.amount | bsAmount: exchangeRate.rateOficial(); as bs) {
+        @if (n.amount | bsAmount: exchangeRate.activeRate(); as bs) {
         <span class="text-xs text-gray-400">Bs {{ bs }}</span>
         }
         @if (n.is_suspicious) {

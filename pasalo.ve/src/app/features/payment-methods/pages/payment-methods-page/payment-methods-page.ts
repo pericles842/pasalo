@@ -4,6 +4,9 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { NbButtonModule, NbCardModule, NbSelectModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { CardSubscriptionPlanComponent } from '@shared/components/card-subscription-plan/card-subscription-plan';
+import { CiInput } from '@shared/components/ci-input/ci-input';
+import { PhoneInput } from '@shared/components/phone-input/phone-input';
+import { VENEZUELA_BANKS } from '@shared/utils/venezuela-banks';
 import { ToastService } from '@shared/services/toast.service';
 import { ConfirmService } from '@shared/services/confirm.service';
 import { PlanInterface } from 'src/app/services/http/plan/plan';
@@ -35,6 +38,8 @@ const TYPE_LABELS: Record<PaymentMethodType, string> = {
     NbSelectModule,
     GlobalInput,
     CardSubscriptionPlanComponent,
+    CiInput,
+    PhoneInput,
   ],
   templateUrl: './payment-methods-page.html',
 })
@@ -58,6 +63,9 @@ export class PaymentMethodsPage implements OnInit {
   is_changing_plan = signal(false);
   deleting_id = signal<number | null>(null);
 
+  /** id del metodo que se esta editando; null = formulario en modo "crear" */
+  editing_id = signal<number | null>(null);
+
   /** Sin cupo disponible no se puede crear: hay que cambiar de plan */
   has_room = computed(() => (this.usage()?.available ?? 0) > 0);
 
@@ -68,6 +76,7 @@ export class PaymentMethodsPage implements OnInit {
   });
 
   typeLabels = TYPE_LABELS;
+  venezuelaBanks = VENEZUELA_BANKS;
 
   form = new FormGroup<PaymentMethodForm>({
     name: new FormControl(null, [Validators.required]),
@@ -82,7 +91,7 @@ export class PaymentMethodsPage implements OnInit {
 
   // FormControl.value no es una signal: sin esto, el computed de abajo
   // se calcula una sola vez y nunca reacciona a que el usuario cambie el tipo
-  private selected_type = signal<PaymentMethodType | null>(null);
+  protected selected_type = signal<PaymentMethodType | null>(null);
 
   /** Que campos de "datos" pedirle al usuario segun el tipo elegido */
   visibleFields = computed((): ('banco' | 'telefono' | 'numero_cuenta' | 'cedula' | 'correo')[] => {
@@ -124,16 +133,26 @@ export class PaymentMethodsPage implements OnInit {
     });
   }
 
-  parseDatos(datos: string): { label: string; value: string }[] {
-    try {
-      const parsed = JSON.parse(datos);
-      return Object.entries(parsed).map(([key, value]) => ({
-        label: key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' '),
-        value: String(value)
-      }));
-    } catch {
-      return [];
+  parseDatos(datos: Record<string, string> | string): { label: string; value: string }[] {
+    if (!datos) return [];
+
+    // MySQL real (produccion) autoparsea la columna JSON a objeto; algunos
+    // motores locales (ej. MariaDB) la devuelven como texto: se soportan ambos
+    let parsed: Record<string, string>;
+    if (typeof datos === 'string') {
+      try {
+        parsed = JSON.parse(datos);
+      } catch {
+        return [];
+      }
+    } else {
+      parsed = datos;
     }
+
+    return Object.entries(parsed).map(([key, value]) => ({
+      label: key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' '),
+      value: String(value)
+    }));
   }
 
   togglePlans(): void {
@@ -168,10 +187,47 @@ export class PaymentMethodsPage implements OnInit {
     });
   }
 
+  /** Carga un metodo existente en el formulario para editarlo */
+  edit(method: PaymentMethod): void {
+    const datos = typeof method.datos === 'string' ? this.safeParseDatos(method.datos) : method.datos;
+
+    this.editing_id.set(method.id);
+
+    // Los campos de "datos" se llenan en silencio, antes de disparar el
+    // cambio de tipo: CiInput/PhoneInput leen el value inicial en su ngOnInit,
+    // asi que deben tener el dato correcto ya puesto cuando se instancian
+    this.form.patchValue({
+      name: method.name,
+      titular: method.titular,
+      banco: datos?.['banco'] ?? null,
+      telefono: datos?.['telefono'] ?? null,
+      numero_cuenta: datos?.['numero_cuenta'] ?? null,
+      cedula: datos?.['cedula'] ?? null,
+      correo: datos?.['correo'] ?? null,
+    }, { emitEvent: false });
+
+    this.form.controls.type.setValue(method.type);
+  }
+
+  cancelEdit(): void {
+    this.editing_id.set(null);
+    this.form.reset();
+  }
+
+  private safeParseDatos(raw: string): Record<string, string> | null {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
   submit(): void {
     if (this.is_saving()) return;
 
-    if (!this.has_room()) {
+    const editing_id = this.editing_id();
+
+    if (!editing_id && !this.has_room()) {
       this.toast.error('Ya alcanzaste el límite de métodos de pago de tu plan. Cambia de plan para agregar más.');
       return;
     }
@@ -204,6 +260,23 @@ export class PaymentMethodsPage implements OnInit {
     };
 
     this.is_saving.set(true);
+
+    if (editing_id) {
+      this.paymentMethodsService.updatePaymentMethod(editing_id, payload).subscribe({
+        next: ({ method }) => {
+          this.is_saving.set(false);
+          this.methods.update((methods) => methods.map((m) => (m.id === editing_id ? method : m)));
+          this.toast.success('Método de pago actualizado.');
+          this.editing_id.set(null);
+          this.form.reset();
+        },
+        error: (err) => {
+          this.is_saving.set(false);
+          this.toast.error(err?.error?.error ?? 'No pudimos actualizar el método de pago.');
+        }
+      });
+      return;
+    }
 
     this.paymentMethodsService.createPaymentMethod(payload).subscribe({
       next: ({ usage }) => {
@@ -240,6 +313,7 @@ export class PaymentMethodsPage implements OnInit {
         this.deleting_id.set(null);
         this.methods.update((methods) => methods.filter((m) => m.id !== method.id));
         this.usage.set(usage);
+        if (this.editing_id() === method.id) this.cancelEdit();
         this.toast.success('Método de pago eliminado.');
       },
       error: (err) => {

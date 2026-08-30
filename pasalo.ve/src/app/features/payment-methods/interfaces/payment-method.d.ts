@@ -8,7 +8,8 @@ export interface PaymentMethod {
   type: PaymentMethodType;
   titular: string | null;
   url_img: string | null;
-  datos: string;
+  /** MySQL real autoparsea la columna JSON a objeto; algunos motores locales la devuelven como texto */
+  datos: Record<string, string> | string;
   createdAt: string;
 }
 

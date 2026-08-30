@@ -53,3 +53,15 @@ export interface CreateUserForm {
   password: FormControl<string | null>;
   password_confirmation: FormControl<string | null>;
 }
+
+export interface UpdateCompanyUserPayload {
+  role_id: number | null;
+  first_name: string | null;
+  middle_name: string | null;
+}
+
+export interface EditUserForm {
+  role_id: FormControl<number | null>;
+  first_name: FormControl<string | null>;
+  middle_name: FormControl<string | null>;
+}
