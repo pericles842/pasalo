@@ -1,12 +1,21 @@
-@if (ad(); as current) {
-<a [href]="current.target_url" target="_blank" rel="noopener noreferrer" (click)="onClick(current.id)"
-  class="block h-full w-full overflow-hidden rounded-lg" [title]="current.company_name">
-  <img [src]="current.image_url" [alt]="current.company_name" class="h-full w-full object-cover" />
-</a>
-} @else {
-<div
-  class="grid h-full w-full place-items-center gap-1 rounded-lg border border-dashed border-blue-200 bg-blue-50/50 p-2 text-center text-blue-400">
-  <nb-icon icon="edit-2-outline" [options]="{ width: 18, height: 18 }"></nb-icon>
-  <span class="text-xs leading-tight font-medium">Aquí va tu publicidad</span>
+<div class="flex h-full w-full flex-col gap-0.5">
+  <div class="min-h-0 flex-1">
+    @if (ad(); as current) {
+    <a [href]="current.target_url" target="_blank" rel="noopener noreferrer" (click)="onClick(current.id)"
+      class="block h-full w-full overflow-hidden rounded-lg" [title]="current.company_name">
+      <img [src]="current.image_url" [alt]="current.company_name" class="h-full w-full object-cover" />
+    </a>
+    } @else {
+    <div
+      class="grid h-full w-full place-items-center gap-1 rounded-lg border border-dashed border-blue-200 bg-blue-50/50 p-2 text-center text-blue-400">
+      <nb-icon icon="edit-2-outline" [options]="{ width: 18, height: 18 }"></nb-icon>
+      <span class="text-xs leading-tight font-medium">Aquí va tu publicidad</span>
+    </div>
+    }
+  </div>
+
+  <a routerLink="/publicidad"
+    class="block shrink-0 truncate text-left text-[9px] leading-tight font-medium text-gray-400! no-underline! hover:text-gray-600!">
+    Coloca tu publicidad aquí
+  </a>
 </div>
-}

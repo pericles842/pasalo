@@ -1,5 +1,6 @@
 import { Component, Input, inject } from '@angular/core';
-import { NbButtonModule, NbDialogRef, NbIconModule } from '@nebular/theme';
+import { RouterLink } from '@angular/router';
+import { NbDialogRef, NbIconModule } from '@nebular/theme';
 import { AdInterface, AdsService } from '@shared/services/ads.service';
 
 /**
@@ -10,7 +11,7 @@ import { AdInterface, AdsService } from '@shared/services/ads.service';
 @Component({
   selector: 'app-ad-modal',
   standalone: true,
-  imports: [NbButtonModule, NbIconModule],
+  imports: [NbIconModule, RouterLink],
   templateUrl: './ad-modal.html',
 })
 export class AdModal {

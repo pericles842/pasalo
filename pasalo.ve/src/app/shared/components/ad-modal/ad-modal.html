@@ -1,12 +1,16 @@
-<div class="relative w-[min(90vw,26rem)] overflow-hidden rounded-xl bg-white shadow-2xl">
-  <button nbButton size="small" appearance="ghost" status="basic"
-    class="absolute top-2 right-2 z-10 rounded-full bg-white/90! shadow-md" type="button" (click)="close()"
-    aria-label="Cerrar">
-    <nb-icon icon="close-outline"></nb-icon>
+<div class="relative w-[min(90vw,26rem)]">
+  <button type="button" (click)="close()" aria-label="Cerrar"
+    class="absolute -top-2.5 -right-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 bg-white p-0 leading-none text-gray-600 shadow-md transition-colors hover:bg-gray-50">
+    <nb-icon icon="close-outline" class="text-base"></nb-icon>
   </button>
 
-  <a [href]="ad.target_url" target="_blank" rel="noopener noreferrer" (click)="onClick()" class="block"
-    [title]="ad.company_name">
+  <a [href]="ad.target_url" target="_blank" rel="noopener noreferrer" (click)="onClick()"
+    class="block overflow-hidden rounded-xl bg-white shadow-2xl" [title]="ad.company_name">
     <img [src]="ad.image_url" [alt]="ad.company_name" class="block max-h-[80vh] w-full object-cover" />
+  </a>
+
+  <a routerLink="/publicidad" (click)="close()"
+    class="mt-1.5 block text-left text-[11px] font-medium text-white/70! no-underline! hover:text-white!">
+    Coloca tu publicidad aquí
   </a>
 </div>
