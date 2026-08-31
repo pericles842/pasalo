@@ -225,11 +225,30 @@ export class OnboardingService {
     if (typeof ResizeObserver === 'undefined') return;
 
     let frame = 0;
+    let last = { top: 0, left: 0, width: 0, height: 0 };
+
     this.layout_observer = new ResizeObserver(() => {
       cancelAnimationFrame(frame);
+
       // Un frame de gracia: si entran varios cambios juntos, se recalcula una vez
       frame = requestAnimationFrame(() => {
-        if (this.driverObj?.isActive()) this.driverObj.refresh();
+        if (!this.driverObj?.isActive()) return;
+
+        const element = this.driverObj.getActiveElement();
+        if (!element) return;
+
+        // Se reposiciona SOLO si el elemento resaltado se movio de verdad. El
+        // globo y el overlay de driver.js tambien cuelgan del body: sin este
+        // chequeo, reposicionar cambia el alto del body, eso vuelve a disparar
+        // el observer y el globo tiembla en un lazo infinito.
+        const { top, left, width, height } = element.getBoundingClientRect();
+        const moved = Math.abs(top - last.top) > 1 || Math.abs(left - last.left) > 1
+          || Math.abs(width - last.width) > 1 || Math.abs(height - last.height) > 1;
+
+        if (!moved) return;
+
+        last = { top, left, width, height };
+        this.driverObj.refresh();
       });
     });
 
