@@ -4,7 +4,7 @@
 
     <form [formGroup]="form" (submit)="$event.preventDefault(); save()" class="flex flex-col gap-6">
 
-      <div class="flex items-center gap-4" data-tour="profile-photo">
+      <div class="flex w-fit items-center gap-4" data-tour="profile-photo">
         <label class="group relative cursor-pointer">
           <app-avatar [photoUrl]="photo_preview() ?? auth.session()?.user?.photo_url ?? null"
             [initialsText]="auth.initials()" sizeClass="h-20 w-20 text-2xl"></app-avatar>

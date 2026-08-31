@@ -114,7 +114,7 @@
       placeholder="Ej. Coordinar entrega, instrucciones especiales..."></textarea>
   </section>
 
-  <div class="flex justify-end" data-tour="order-submit">
+  <div class="flex w-fit self-end" data-tour="order-submit">
     <button nbButton status="primary" type="submit" [disabled]="is_saving()">
       {{ is_saving() ? 'Creando orden...' : 'Crear orden y generar link de pago' }}
     </button>

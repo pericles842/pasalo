@@ -41,7 +41,7 @@
 
     <form [formGroup]="form" (submit)="$event.preventDefault(); save()" class="flex flex-col gap-6">
 
-      <div class="flex items-center gap-4" data-tour="company-logo">
+      <div class="flex w-fit items-center gap-4" data-tour="company-logo">
         <label class="group relative cursor-pointer">
           <app-avatar [photoUrl]="logo_preview() ?? auth.session()?.company?.logo_url ?? null"
             [initialsText]="auth.company_initials()" sizeClass="h-20 w-20 text-2xl"
