@@ -25,13 +25,55 @@ export const routes: Routes = [
     path: '',
     component: WebClient,
     children: [
-      { path: '', component: Home, title: 'Pásalo.ve' },
-      { path: 'precios', component: Pricing, title: 'Precios | Pásalo.ve' },
-      { path: 'publicidad', component: Ads, title: 'Publicidad | Pásalo.ve' },
-      { path: 'terminos-y-condiciones', component: Terms, title: 'Términos y condiciones | Pásalo.ve' },
-      { path: 'politica-de-privacidad', component: Privacy, title: 'Política de privacidad | Pásalo.ve' },
-      { path: 'politica-de-cookies', component: Cookies, title: 'Política de cookies | Pásalo.ve' },
-      { path: 'create-company', component: RegisterCompany, title: 'Pásalo.ve' },
+      {
+        path: '', component: Home,
+        title: 'Pásalo | Cobra pago móvil y gestiona tu negocio en Venezuela',
+        data: {
+          description: 'Pásalo es la plataforma venezolana para vender y cobrar: gestiona pedidos, recibe pagos por pago móvil o transferencia en bolívares o dólares, y verifica cada comprobante desde un solo lugar.',
+        },
+      },
+      {
+        path: 'precios', component: Pricing,
+        title: 'Precios | Planes para vender y cobrar en Venezuela - Pásalo',
+        data: {
+          description: 'Conoce los planes de Pásalo para gestionar ventas y cobrar pago móvil o transferencia en Venezuela. Elige el plan que se ajusta a tu negocio, sin contratos ni letra pequeña.',
+        },
+      },
+      {
+        path: 'publicidad', component: Ads,
+        title: 'Publicidad | Anúnciate a negocios venezolanos - Pásalo',
+        data: {
+          description: 'Anuncia tu marca dentro del panel de miles de vendedores venezolanos que usan Pásalo cada día para gestionar sus ventas y cobros.',
+        },
+      },
+      {
+        path: 'terminos-y-condiciones', component: Terms,
+        title: 'Términos y condiciones | Pásalo',
+        data: {
+          description: 'Términos y condiciones de uso de la plataforma Pásalo para empresas y usuarios en Venezuela.',
+        },
+      },
+      {
+        path: 'politica-de-privacidad', component: Privacy,
+        title: 'Política de privacidad | Pásalo',
+        data: {
+          description: 'Política de privacidad de Pásalo: cómo protegemos y utilizamos la información de nuestros usuarios y empresas en Venezuela.',
+        },
+      },
+      {
+        path: 'politica-de-cookies', component: Cookies,
+        title: 'Política de cookies | Pásalo',
+        data: {
+          description: 'Política de cookies de Pásalo: qué cookies utilizamos y para qué dentro de nuestra plataforma para negocios venezolanos.',
+        },
+      },
+      {
+        path: 'create-company', component: RegisterCompany,
+        title: 'Crea tu cuenta gratis | Pásalo',
+        data: {
+          description: 'Crea tu cuenta gratis en Pásalo y empieza a gestionar tus ventas y a cobrar pago móvil o transferencia en minutos.',
+        },
+      },
     ],
   },
   // Pantalla independiente: sin el header ni los margenes del WebClient

@@ -4,11 +4,12 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { provideRouter, withInMemoryScrolling } from '@angular/router';
+import { TitleStrategy, provideRouter, withInMemoryScrolling } from '@angular/router';
 import { NbDialogModule, NbOverlayContainerAdapter, NbThemeModule, NbToastrModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 
 import { routes } from './app.routes';
+import { SeoTitleStrategy } from './core/seo-title-strategy';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
@@ -38,5 +39,8 @@ export const appConfig: ApplicationConfig = {
       provide: NbOverlayContainerAdapter,
       useClass: OverlayContainer
     },
+    // Ademas del <title>, setea meta description/Open Graph/canonical por
+    // ruta (ver route.data.description en app.routes.ts)
+    { provide: TitleStrategy, useClass: SeoTitleStrategy },
   ],
 };

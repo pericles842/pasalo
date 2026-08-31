@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /p/
+
+Sitemap: https://pasalo.co.ve/sitemap.xml
