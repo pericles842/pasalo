@@ -123,6 +123,9 @@ export class OnboardingService {
 
   private driverObj: Driver | null = null;
 
+  /** Reposiciona el globo cuando la pantalla termina de cargar y crece (ver watchLayoutShifts) */
+  private layout_observer: ResizeObserver | null = null;
+
   /** Pregunta una sola vez por navegador; si acepta, arranca el tour */
   maybeStart(): void {
     if (!this.is_browser || this.is_running() || localStorage.getItem(STORAGE_KEY)) return;
@@ -192,6 +195,7 @@ export class OnboardingService {
       onNextClick: () => this.move(steps, 1),
       onPrevClick: () => this.move(steps, -1),
       onDestroyed: () => {
+        this.stopWatchingLayout();
         this.is_running.set(false);
         this.driverObj = null;
       },
@@ -199,10 +203,42 @@ export class OnboardingService {
 
     await this.goToRoute(steps[0].route);
     this.driverObj.drive();
+    this.watchLayoutShifts();
   }
 
   stop(): void {
     this.driverObj?.destroy();
+  }
+
+  /**
+   * Cada pantalla termina de armarse despues del primer render (la tarjeta del
+   * plan, la barra de consumo, los slots de publicidad, la tasa de cambio...) y
+   * eso empuja el contenido hacia abajo. driver.js solo recalcula la posicion
+   * con el scroll y el resize de la ventana, no cuando crece el contenido: sin
+   * esto el recuadro y el globo quedan apuntando a donde el elemento *estaba*.
+   *
+   * Se observa el alto del body y se reposiciona, en vez de esperar la carga de
+   * cada pantalla una por una (habria que ir descubriendolas todas, y cada
+   * pantalla nueva volveria a romper el tour).
+   */
+  private watchLayoutShifts(): void {
+    if (typeof ResizeObserver === 'undefined') return;
+
+    let frame = 0;
+    this.layout_observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      // Un frame de gracia: si entran varios cambios juntos, se recalcula una vez
+      frame = requestAnimationFrame(() => {
+        if (this.driverObj?.isActive()) this.driverObj.refresh();
+      });
+    });
+
+    this.layout_observer.observe(document.body);
+  }
+
+  private stopWatchingLayout(): void {
+    this.layout_observer?.disconnect();
+    this.layout_observer = null;
   }
 
   /** El paso siguiente puede vivir en otra pantalla: primero navega, despues resalta */
