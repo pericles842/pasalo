@@ -93,14 +93,19 @@ export class OnboardingService {
   private auth = inject(AuthService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
-  /** Para que el menu pueda deshabilitar el boton mientras el tour corre */
+  /**
+   * true mientras el onboarding esta en pantalla: tanto la pregunta inicial
+   * como el tour. `ModalAdService` lo mira para no tirar publicidad encima.
+   */
   is_running = signal(false);
 
   private driverObj: Driver | null = null;
 
   /** Pregunta una sola vez por navegador; si acepta, arranca el tour */
   maybeStart(): void {
-    if (!this.is_browser || localStorage.getItem(STORAGE_KEY)) return;
+    if (!this.is_browser || this.is_running() || localStorage.getItem(STORAGE_KEY)) return;
+
+    this.is_running.set(true);
 
     this.confirm.ask({
       title: 'Bienvenido a Pásalo',
@@ -110,19 +115,29 @@ export class OnboardingService {
       status: 'primary',
     }).subscribe((wantsTour) => {
       localStorage.setItem(STORAGE_KEY, '1');
-      if (wantsTour) this.start();
+
+      if (wantsTour) this.runTour();
+      else this.is_running.set(false);
     });
   }
 
-  async start(): Promise<void> {
+  /** Relanza el tour a pedido (boton "Ver tutorial" del menu) */
+  start(): void {
     if (!this.is_browser || this.is_running()) return;
 
+    this.is_running.set(true);
+    this.runTour();
+  }
+
+  private async runTour(): Promise<void> {
     const steps = this.visibleSteps();
-    if (!steps.length) return;
+    if (!steps.length) {
+      this.is_running.set(false);
+      return;
+    }
 
     const { driver } = await import('driver.js');
 
-    this.is_running.set(true);
     this.driverObj = driver({
       showProgress: true,
       progressText: 'Paso {{current}} de {{total}}',

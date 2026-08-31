@@ -1,8 +1,9 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { Injectable, PLATFORM_ID, effect, inject } from '@angular/core';
 import { NbDialogRef, NbDialogService } from '@nebular/theme';
 import { AdModal } from '@shared/components/ad-modal/ad-modal';
 import { AdPlacement, AdsService } from './ads.service';
+import { OnboardingService } from './onboarding.service';
 
 /** Si el anuncio no trae `interval_seconds` propio, se reintenta cada 15 min */
 const DEFAULT_INTERVAL_SECONDS = 15 * 60;
@@ -18,11 +19,20 @@ export class ModalAdService {
 
   private dialogService = inject(NbDialogService);
   private adsService = inject(AdsService);
+  private onboarding = inject(OnboardingService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   private timer: ReturnType<typeof setTimeout> | null = null;
   private dialog_ref: NbDialogRef<AdModal> | null = null;
   private placement: AdPlacement = 'modal';
+
+  constructor() {
+    // Si el tutorial arranca con un anuncio ya abierto, se lo cierra: el paso a
+    // paso no puede quedar tapado por publicidad.
+    effect(() => {
+      if (this.onboarding.is_running()) this.dialog_ref?.close();
+    });
+  }
 
   start(placement: AdPlacement, initialDelayMs: number): void {
     if (!this.is_browser || this.timer) return;
@@ -41,15 +51,16 @@ export class ModalAdService {
   }
 
   private show(): void {
-    // Ya hay uno abierto (el usuario no lo cerro todavia): no se le monta otro
-    // encima, se reintenta mas tarde con el intervalo por defecto.
-    if (this.dialog_ref) {
+    // Ya hay uno abierto (el usuario no lo cerro todavia), o el tutorial guiado
+    // esta en pantalla: no se le monta nada encima, se reintenta mas tarde.
+    if (this.dialog_ref || this.onboarding.is_running()) {
       this.schedule(DEFAULT_INTERVAL_SECONDS * 1000);
       return;
     }
 
     this.adsService.getAd(this.placement).subscribe((ad) => {
-      if (!ad) {
+      // El tutorial pudo arrancar mientras el pedido estaba en vuelo
+      if (!ad || this.onboarding.is_running()) {
         this.schedule(DEFAULT_INTERVAL_SECONDS * 1000);
         return;
       }
