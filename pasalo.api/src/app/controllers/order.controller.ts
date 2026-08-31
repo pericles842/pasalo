@@ -5,6 +5,8 @@ import { Sequelize } from 'sequelize';
 import { sequelize } from '../config/db';
 import { SessionPayload } from '../../middlewares/jwtMiddleware';
 import { notifyOrderStatusChanged } from '../config/socket';
+import { extractKeyFromUrl } from '../../utils/awsBucketS3';
+import { downloadFile } from '../../utils/storage';
 
 export class OrderController {
 
@@ -240,6 +242,63 @@ export class OrderController {
             );
 
             res.json({ order, items });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    /**
+     * Sirve el comprobante con Content-Disposition: attachment para que el
+     * navegador lo descargue en vez de abrirlo (a diferencia de receipt_url,
+     * que es la URL publica de R2 usada solo para mostrarlo).
+     *
+     * @static
+     * @memberof OrderController
+     */
+    static async downloadReceipt(req: Request, res: Response, next: NextFunction) {
+        try {
+            const session = OrderController.session(req);
+            const tenantDb = OrderController.tenantDb(req);
+            const is_admin = session.role === 'admin';
+            const { id } = req.params;
+
+            const where = is_admin ? 'id = :id' : 'id = :id AND user_id = :user_id';
+
+            const [order] = await tenantDb.query<any>(
+                `SELECT id, receipt_url FROM orders WHERE ${where}`,
+                { replacements: { id, user_id: session.user.uuid }, type: QueryTypes.SELECT }
+            );
+
+            if (!order?.receipt_url) {
+                res.status(404).json({ message: 'Comprobante no encontrado', error: 'Esta orden no tiene un comprobante cargado.' });
+                return;
+            }
+
+            const key = extractKeyFromUrl('receipts', order.receipt_url);
+            if (!key) {
+                res.status(404).json({ message: 'Comprobante no encontrado', error: 'No se pudo resolver el archivo del comprobante.' });
+                return;
+            }
+
+            let file: { body: NodeJS.ReadableStream; contentType?: string };
+            try {
+                file = await downloadFile(key);
+            } catch (err: any) {
+                // El comprobante quedo registrado en la orden pero ya no existe en el
+                // storage (ej: se subio antes de migrar a R2, o se borro a mano).
+                if (err?.name === 'NoSuchKey' || err?.Code === 'NoSuchKey' || err?.code === 'ENOENT') {
+                    res.status(404).json({ message: 'Comprobante no encontrado', error: 'El comprobante ya no existe en el almacenamiento.' });
+                    return;
+                }
+                throw err;
+            }
+
+            const extension = key.split('.').pop() || 'jpg';
+
+            res.setHeader('Content-Type', file.contentType || 'application/octet-stream');
+            res.setHeader('Content-Disposition', `attachment; filename="comprobante-orden-${id}.${extension}"`);
+
+            file.body.pipe(res);
         } catch (err) {
             next(err);
         }

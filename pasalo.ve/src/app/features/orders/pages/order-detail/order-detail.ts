@@ -33,6 +33,7 @@ export class OrderDetail implements OnInit {
   is_loading = signal(true);
   is_confirming = signal(false);
   is_verifying = signal(false);
+  is_downloading = signal(false);
   data = signal<OrderDetailModel | null>(null);
 
   ngOnInit(): void {
@@ -187,6 +188,33 @@ export class OrderDetail implements OnInit {
       context: { src: url, alt: 'Comprobante de pago' },
       closeOnBackdropClick: true,
       hasScroll: false,
+    });
+  }
+
+  /** Descarga el comprobante como archivo en vez de solo mostrarlo */
+  downloadReceipt(): void {
+    const order = this.data()?.order;
+    const receipt_url = order?.receipt_url;
+    if (!order || !receipt_url || this.is_downloading()) return;
+
+    this.is_downloading.set(true);
+
+    this.ordersService.downloadReceipt(order.id).subscribe({
+      next: (blob) => {
+        this.is_downloading.set(false);
+
+        const extension = receipt_url.split('.').pop() || 'jpg';
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `comprobante-orden-${order.id}.${extension}`;
+        link.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.is_downloading.set(false);
+        this.toast.error('No pudimos descargar el comprobante.');
+      }
     });
   }
 }

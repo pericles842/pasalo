@@ -1,8 +1,9 @@
 import fs from 'fs/promises';
+import { createReadStream } from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import { optimizeImage, ResizeOptions } from './ImageOptimize';
-import { uploadToS3 } from './awsBucketS3';
+import { getFileStream, uploadToS3 } from './awsBucketS3';
 
 const UPLOADS_DIR = path.join(__dirname, '../../uploads');
 
@@ -34,6 +35,31 @@ export async function uploadFile(
     }
 
     return uploadToLocal(file, folder, format, resize, namePrefix);
+}
+
+/**
+ * Trae el archivo (S3 o disco) como stream, para que el controller lo mande
+ * con Content-Disposition: attachment y el navegador lo descargue en vez de
+ * abrirlo. Misma idea que uploadFile(): un solo código, cambia el backend
+ * segun este configurado S3 o no.
+ */
+export async function downloadFile(key: string): Promise<{ body: NodeJS.ReadableStream; contentType?: string }> {
+    if (isS3Configured()) {
+        return getFileStream(key);
+    }
+
+    return { body: createReadStream(path.join(UPLOADS_DIR, key)), contentType: guessContentType(key) };
+}
+
+function guessContentType(key: string): string {
+    const extension = key.split('.').pop()?.toLowerCase();
+    switch (extension) {
+        case 'png': return 'image/png';
+        case 'jpg':
+        case 'jpeg': return 'image/jpeg';
+        case 'webp': return 'image/webp';
+        default: return 'application/octet-stream';
+    }
 }
 
 async function uploadToLocal(

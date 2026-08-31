@@ -27,6 +27,13 @@
         }
       </nb-select>
       }
+
+      <button nbButton size="small" appearance="outline" status="primary" type="button"
+        [disabled]="is_downloading_receipts() || !ordersWithReceipt().length"
+        (click)="downloadAllReceipts()" title="Descarga en un .zip los comprobantes de las órdenes que ves en esta página">
+        <nb-icon icon="download-outline"></nb-icon>
+        {{ is_downloading_receipts() ? 'Descargando...' : 'Descargar comprobantes (' + ordersWithReceipt().length + ')' }}
+      </button>
     </div>
   </div>
 

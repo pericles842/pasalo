@@ -403,6 +403,23 @@ router.get('/orders/stats', authTenant, OrderController.stats);
 router.get('/orders/:id', authTenant, OrderController.getById);
 
 /**
+ * @openapi
+ * /orders/{id}/receipt/download:
+ *   get:
+ *     tags: [Orders]
+ *     summary: Descarga el comprobante de pago de una orden
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: Archivo del comprobante (attachment) }
+ *       404: { description: La orden no tiene comprobante }
+ */
+router.get('/orders/:id/receipt/download', authTenant, OrderController.downloadReceipt);
+
+/**
  * @swagger
  * /orders/{id}/status:
  *   put:

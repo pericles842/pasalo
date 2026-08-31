@@ -3,6 +3,9 @@ import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } f
 import { RouterLink } from '@angular/router';
 import { NbButtonModule, NbCardModule, NbIconModule, NbSelectModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import JSZip from 'jszip';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { UsersService } from 'src/app/features/users/users.service';
 import { CompanyUser } from 'src/app/features/users/interfaces/company-user';
@@ -35,6 +38,7 @@ export class OrdersList implements OnInit, OnDestroy {
 
   is_loading = signal(true);
   updating_order_id = signal<string | null>(null);
+  is_downloading_receipts = signal(false);
 
   /** Paginado: 10 ordenes por pagina */
   readonly page_size = 10;
@@ -49,6 +53,11 @@ export class OrdersList implements OnInit, OnDestroy {
   is_admin = computed(() => this.auth.session()?.role?.slug === 'admin');
 
   statusMap = computed(() => new Map(this.statuses().map((s) => [s.id, s])));
+
+  /** Solo cuentan las ordenes con comprobante ya subido, de las que estan visibles en esta pagina */
+  ordersWithReceipt = computed(() =>
+    this.orders().filter((o): o is Order & { receipt_url: string } => !!o.receipt_url)
+  );
 
   /** Guardada para poder quitar el listener al salir de la pantalla */
   private handleOrderPaid = (_payload: OrderPaidNotification) => this.loadOrders();
@@ -222,5 +231,63 @@ export class OrdersList implements OnInit, OnDestroy {
         this.toast.error(err?.error?.error ?? 'No pudimos actualizar el estado.');
       }
     });
+  }
+
+  /**
+   * Descarga en un solo .zip los comprobantes de las ordenes visibles en la
+   * pagina actual (no de todo el listado: eso obligaria a traer paginas que
+   * el usuario ni pidio ver). Cada comprobante se pide con el mismo endpoint
+   * de descarga individual, en paralelo.
+   */
+  downloadAllReceipts(): void {
+    const ordersWithReceipt = this.ordersWithReceipt();
+    if (!ordersWithReceipt.length || this.is_downloading_receipts()) return;
+
+    this.is_downloading_receipts.set(true);
+
+    const downloads = ordersWithReceipt.map((order) =>
+      this.ordersService.downloadReceipt(order.id).pipe(
+        map((blob) => ({ order, blob })),
+        catchError(() => of(null))
+      )
+    );
+
+    forkJoin(downloads).subscribe(async (results) => {
+      const ok: { order: Order & { receipt_url: string }; blob: Blob }[] = [];
+      const failed: (Order & { receipt_url: string })[] = [];
+
+      results.forEach((result, i) => (result ? ok.push(result) : failed.push(ordersWithReceipt[i])));
+
+      if (ok.length) {
+        const zip = new JSZip();
+        ok.forEach(({ order, blob }) => {
+          const extension = order.receipt_url.split('.').pop() || 'jpg';
+          zip.file(`comprobante-${order.id}.${extension}`, blob);
+        });
+
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+
+        const url = URL.createObjectURL(zipBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `comprobantes-pagina-${this.page()}.zip`;
+        link.click();
+        URL.revokeObjectURL(url);
+
+        this.toast.success(`Se descargaron ${ok.length} comprobante(s): ${ok.map((r) => this.orderLabel(r.order)).join(', ')}`);
+      }
+
+      if (failed.length) {
+        this.toast.error(`No se pudieron descargar ${failed.length} comprobante(s): ${failed.map((o) => this.orderLabel(o)).join(', ')}`);
+      }
+
+      this.is_downloading_receipts.set(false);
+    });
+  }
+
+  /** Nombre del comprador si ya lo lleno, o el id corto de la orden como respaldo */
+  private orderLabel(order: Order): string {
+    if (order.first_name_client) return `${order.first_name_client} ${order.last_name_client}`.trim();
+    return `orden #${order.id.slice(0, 8)}`;
   }
 }

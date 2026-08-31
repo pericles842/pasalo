@@ -75,4 +75,9 @@ export class OrdersService {
   getOrderById(id: string): Observable<OrderDetail> {
     return this.http.get<OrderDetail>(`${environment.host}/orders/${id}`);
   }
+
+  /** Trae el comprobante como blob para forzar la descarga (no solo verlo) */
+  downloadReceipt(id: string): Observable<Blob> {
+    return this.http.get(`${environment.host}/orders/${id}/receipt/download`, { responseType: 'blob' });
+  }
 }

@@ -75,6 +75,23 @@ export const uploadToS3 = async (
 };
 
 /* ---------------------------------------------------------
+   DESCARGAR ARCHIVO (proxy para forzar la descarga en el navegador)
+----------------------------------------------------------*/
+export const getFileStream = async (key: string) => {
+  const command = new GetObjectCommand({
+    Bucket: BUCKET,
+    Key: key
+  });
+
+  const response = await getS3Client().send(command);
+
+  return {
+    body: response.Body as NodeJS.ReadableStream,
+    contentType: response.ContentType
+  };
+};
+
+/* ---------------------------------------------------------
    OBTENER URL FIRMADA PARA ARCHIVOS PRIVADOS
 ----------------------------------------------------------*/
 export const getSignedFileUrl = async (key: string, expiresInSeconds = 3600) => {
