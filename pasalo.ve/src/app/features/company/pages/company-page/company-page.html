@@ -41,7 +41,7 @@
 
     <form [formGroup]="form" (submit)="$event.preventDefault(); save()" class="flex flex-col gap-6">
 
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4" data-tour="company-logo">
         <label class="group relative cursor-pointer">
           <app-avatar [photoUrl]="logo_preview() ?? auth.session()?.company?.logo_url ?? null"
             [initialsText]="auth.company_initials()" sizeClass="h-20 w-20 text-2xl"
@@ -83,7 +83,7 @@
           hint="Entre 1 y 120 minutos (2h). Al vencer, el cliente ya no podrá pagar con ese link."
           error="Debe ser un número entre 1 y 120 minutos" />
 
-        <div class="col-span-12 flex flex-col gap-1.5 md:col-span-6">
+        <div class="col-span-12 flex flex-col gap-1.5 md:col-span-6" data-tour="company-rate">
           <label class="text-sm font-medium text-gray-600">Tasa para convertir a bolívares</label>
           <select [formControl]="form.controls.default_rate_type"
             class="rounded-lg border border-gray-300 px-3 py-2 text-sm">

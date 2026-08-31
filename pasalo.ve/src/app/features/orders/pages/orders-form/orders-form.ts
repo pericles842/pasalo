@@ -116,6 +116,16 @@ export class OrdersForm implements OnInit, OnDestroy {
     this.items.removeAt(index);
   }
 
+  /**
+   * Comparte el link por WhatsApp sin numero fijo: WhatsApp le deja elegir a
+   * que cliente mandarselo (todavia no conocemos su telefono, lo llena el en
+   * el paso 1 del link de pago).
+   */
+  whatsappUrl(pay_url: string): string {
+    const message = `¡Hola! Aquí está tu link de pago: ${pay_url}`;
+    return `https://wa.me/?text=${encodeURIComponent(message)}`;
+  }
+
   copyPayUrl(): void {
     const url = this.created_order()?.pay_url;
     if (!url || !this.is_browser) return;

@@ -1,5 +1,10 @@
 @use 'tailwindcss';
 @use 'nebular-theme';
+// Estilos del tour guiado (driver.js). Se cargan desde aca y no desde el array
+// "styles" de angular.json a proposito: angular.json solo se lee al arrancar
+// `ng serve`, asi que un cambio ahi no se ve hasta reiniciar el server. Ademas
+// va despues de Tailwind para que el preflight no le pise el globo.
+@use 'driver.js/dist/driver.css';
 
 /* You can add global styles to this file, and also import other style files */
 
@@ -18,6 +23,82 @@
   --color-blue-800: #073888;
   --color-blue-900: #08275e;
   --color-blue-950: #061737;
+}
+
+// Tour guiado (driver.js) --------------------------------------------------
+//
+// El tour es solo explicativo: mientras corre, la pagina entera queda
+// deshabilitada (lo hace driver.js con `disableActiveInteraction`, ver
+// OnboardingService). Solo responden los botones del globo.
+//
+// Identidad visual del globo del tour: azul de marca y botones con el mismo
+// lenguaje que los de Nebular (mayusculas, bold, esquinas suaves).
+.driver-popover.pasalo-tour {
+  max-width: 340px;
+  padding: 1rem 1.15rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 30px rgb(8 39 94 / 25%);
+  font-family: inherit;
+
+  .driver-popover-title {
+    padding-right: 1.75rem;
+    color: var(--color-blue-600);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .driver-popover-description {
+    margin-top: 0.35rem;
+    color: #334155;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  .driver-popover-progress-text {
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .driver-popover-close-btn {
+    color: #94a3b8;
+
+    &:hover,
+    &:focus {
+      color: #0f172a;
+    }
+  }
+
+  .driver-popover-footer-btn {
+    padding: 0.5rem 0.9rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .driver-popover-prev-btn {
+    color: var(--color-blue-600);
+    background-color: transparent;
+    border: 1px solid var(--color-blue-600);
+
+    &:hover:not(.driver-popover-btn-disabled) {
+      background-color: var(--color-blue-50);
+    }
+  }
+
+  .driver-popover-next-btn {
+    color: #fff;
+    background-color: var(--color-blue-600);
+    border: 1px solid var(--color-blue-600);
+
+    &:hover {
+      background-color: var(--color-blue-700);
+      border-color: var(--color-blue-700);
+    }
+  }
 }
 
 // Red de seguridad: ningun elemento (propio o de una libreria de terceros como

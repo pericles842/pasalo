@@ -8,6 +8,7 @@ import { Copyright } from '@shared/components/copyright/copyright';
 import { SubscriptionStatusBanner } from '@shared/components/subscription-status-banner/subscription-status-banner';
 import { AdSlot } from '@shared/components/ad-slot/ad-slot';
 import { ModalAdService } from '@shared/services/modal-ad.service';
+import { OnboardingService } from '@shared/services/onboarding.service';
 import { ToastService } from '@shared/services/toast.service';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { SocketService } from 'src/app/features/notifications/socket.service';
@@ -32,6 +33,7 @@ export class Dashboard implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   private ordersService = inject(OrdersService);
   private modalAdService = inject(ModalAdService);
+  private onboardingService = inject(OnboardingService);
 
   /** Solo el usuario master administra los usuarios de la empresa */
   is_admin = computed(() => this.auth.session()?.role?.slug === 'admin');
@@ -77,6 +79,7 @@ export class Dashboard implements OnInit, OnDestroy {
     if (this.is_browser) {
       this.loadPaidOrdersCount();
       this.modalAdService.start('modal', MODAL_AD_INITIAL_DELAY_MS);
+      this.onboardingService.maybeStart();
     }
 
     this.socket.connect();
@@ -95,6 +98,11 @@ export class Dashboard implements OnInit, OnDestroy {
     // Cualquier cambio de estado (verificado, rechazado, etc.) tambien
     // refresca la insignia, sin importar desde que pantalla/sesion se hizo
     this.socket.onOrderStatusChanged(() => this.loadPaidOrdersCount());
+  }
+
+  /** Relanza el tour guiado a pedido (el automatico solo se ofrece una vez) */
+  startTour(): void {
+    this.onboardingService.start();
   }
 
   /** Cuenta las ordenes en estado "Pagado" para la insignia del menu */
