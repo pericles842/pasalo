@@ -1,8 +1,10 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { catchError, firstValueFrom, of } from 'rxjs';
 import type { Driver, DriveStep } from 'driver.js';
 import { AuthService } from 'src/app/features/auth/auth.service';
+import { PaymentMethodsService } from 'src/app/features/payment-methods/payment-methods.service';
 import { ConfirmService } from './confirm.service';
 
 /** Una vez que el usuario contesta (si o no), no se le vuelve a preguntar en ese navegador */
@@ -21,6 +23,13 @@ interface TourStep {
   side?: 'top' | 'right' | 'bottom' | 'left';
   /** Metodos de pago y empresa solo los administra el usuario master */
   adminOnly?: boolean;
+  /**
+   * Sin metodos de pago cargados, la pantalla de crear orden no renderiza el
+   * formulario (muestra el aviso para cargar uno): esos pasos apuntarian a
+   * elementos que no existen. Cada paso declara en que estado tiene sentido.
+   */
+  needsPaymentMethods?: boolean;
+  onlyWithoutPaymentMethods?: boolean;
 }
 
 const TOUR_STEPS: TourStep[] = [
@@ -55,12 +64,23 @@ const TOUR_STEPS: TourStep[] = [
     side: 'top',
     adminOnly: true,
   },
+  // Todavia sin metodos de pago: la pantalla solo muestra el aviso, asi que el
+  // paso resalta ese aviso en vez de un formulario que no existe.
+  {
+    route: '/dashboard/form',
+    element: '[data-tour="order-no-methods"]',
+    title: '4. Aquí vas a crear tus órdenes',
+    description: 'Por ahora ves este aviso porque todavía no cargaste un método de pago. En cuanto agregues uno, esta pantalla te muestra el formulario para cargar los productos de la venta.',
+    side: 'bottom',
+    onlyWithoutPaymentMethods: true,
+  },
   {
     route: '/dashboard/form',
     element: '[data-tour="order-items"]',
     title: '4. Crea tu primera orden',
     description: 'Carga los productos con su nombre y precio; con "Agregar producto" sumas más renglones. Los datos del comprador los llena él mismo al abrir el link.',
     side: 'bottom',
+    needsPaymentMethods: true,
   },
   {
     route: '/dashboard/form',
@@ -68,6 +88,7 @@ const TOUR_STEPS: TourStep[] = [
     title: '4. Genera el link de pago',
     description: 'Al crear la orden se genera un link único. Ese es el que le vas a enviar a tu cliente.',
     side: 'top',
+    needsPaymentMethods: true,
   },
   {
     route: '/dashboard/form',
@@ -91,6 +112,7 @@ export class OnboardingService {
   private confirm = inject(ConfirmService);
   private router = inject(Router);
   private auth = inject(AuthService);
+  private paymentMethodsService = inject(PaymentMethodsService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /**
@@ -130,7 +152,7 @@ export class OnboardingService {
   }
 
   private async runTour(): Promise<void> {
-    const steps = this.visibleSteps();
+    const steps = await this.visibleSteps();
     if (!steps.length) {
       this.is_running.set(false);
       return;
@@ -209,10 +231,31 @@ export class OnboardingService {
     await this.router.navigateByUrl(route);
   }
 
-  /** Un vendedor no admin no ve metodos de pago ni empresa: esos pasos se saltan */
-  private visibleSteps(): TourStep[] {
+  /**
+   * Arma los pasos segun el estado real de la cuenta:
+   * - un vendedor no admin no ve metodos de pago ni empresa;
+   * - sin metodos de pago cargados, la pantalla de crear orden solo muestra el
+   *   aviso, asi que se usa la variante de paso que resalta ese aviso.
+   */
+  private async visibleSteps(): Promise<TourStep[]> {
     const is_admin = this.auth.session()?.role?.slug === 'admin';
-    return TOUR_STEPS.filter((step) => !step.adminOnly || is_admin);
+    const has_payment_methods = await this.hasPaymentMethods();
+
+    return TOUR_STEPS.filter((step) => {
+      if (step.adminOnly && !is_admin) return false;
+      if (step.needsPaymentMethods && !has_payment_methods) return false;
+      if (step.onlyWithoutPaymentMethods && has_payment_methods) return false;
+      return true;
+    });
+  }
+
+  /** Si la consulta falla se asume que si tiene: es el camino normal del tour */
+  private hasPaymentMethods(): Promise<boolean> {
+    return firstValueFrom(
+      this.paymentMethodsService.getPaymentMethods().pipe(
+        catchError(() => of(null)),
+      ),
+    ).then((response) => (response ? response.methods.length > 0 : true));
   }
 
   private toDriveStep(step: TourStep): DriveStep {
