@@ -1,0 +1,174 @@
+// Tema oscuro del dashboard
+// ---------------------------------------------------------------------------
+// Nebular solo sabe pintar sus propios componentes (nb-button, nb-input,
+// nb-card...). El resto del dashboard esta hecho con utilidades de Tailwind de
+// color fijo (bg-white, text-gray-800, border-gray-100...), asi que cambiar el
+// tema de Nebular sola dejaba la pantalla a medias: inputs oscuros sobre
+// tarjetas blancas.
+//
+// La solucion es atacar la fuente: en Tailwind v4 cada utilidad de color se
+// compila a `var(--color-*)`, de modo que reescribiendo esas variables bajo
+// `body.nb-theme-dark` se da vuelta TODA la paleta de una sola vez, incluidas
+// las variantes con hover:, con opacidad (bg-blue-50/60) y las marcadas con
+// "!" (text-gray-800!), sin tener que tocar una sola plantilla.
+//
+// Las reglas van sin @layer a proposito: las utilidades de Tailwind viven
+// dentro de @layer, y en la cascada lo no-encapado le gana a lo encapado sin
+// importar el orden ni la especificidad.
+//
+// Ojo con dos casos que NO se pueden invertir por variable, porque el mismo
+// color se usa para cosas opuestas:
+//   - --color-white: es fondo de tarjeta (bg-white, hay que oscurecerlo) pero
+//     tambien texto sobre botones de color (text-white!, debe seguir blanco).
+//   - --color-slate-900: es el color de los titulos (hay que aclararlo) pero
+//     tambien el fondo del visor de comprobantes (bg-slate-900, ya es oscuro).
+// Para esos dos se sobreescribe la utilidad puntual mas abajo, no la variable.
+//
+// El tema solo se aplica en el dashboard: la web publica (landing, precios,
+// link de pago del cliente) nunca lleva esta clase en el <body>.
+
+body.nb-theme-dark {
+
+  // Fondo de respaldo por si el gradiente del layout no cubre todo (overscroll)
+  background-color: #0d0d0d;
+  color: #ededed;
+
+  // Le avisa al navegador que los controles nativos (el desplegable de un
+  // <select>, el calendario de un type="date", las barras de scroll) tienen
+  // que dibujarse en oscuro. Sin esto el navegador los pinta claros y, como el
+  // texto si hereda el color del tema, quedan blancos sobre blanco.
+  color-scheme: dark;
+
+  // Neutros: la escala se invierte (50 = superficie oscura, 800 = texto claro).
+  // Gris neutro, sin tinte azulado: el unico color vivo de la pantalla tiene
+  // que ser el azul de marca.
+  --color-gray-50: #171717;
+  --color-gray-100: #262626;
+  --color-gray-200: #2b2b2b;
+  --color-gray-300: #3a3a3a;
+  --color-gray-400: #8a8a8a;
+  --color-gray-500: #a6a6a6;
+  --color-gray-600: #c9c9c9;
+  --color-gray-800: #f0f0f0;
+
+  --color-slate-200: #2b2b2b;
+  --color-slate-500: #a6a6a6;
+  --color-slate-700: #c9c9c9;
+  --color-slate-800: #e6e6e6;
+
+  // Azul de marca. Los tonos claros (50-300) se usan como fondos y bordes, asi
+  // que pasan a ser casi negros; los medios (400-800) son texto e iconos y se
+  // aclaran para que se lean sobre el negro. El 900 queda intacto porque solo
+  // se usa en sombras (shadow-blue-900/5).
+  --color-blue-50: #16181c;
+  --color-blue-100: #262626;
+  --color-blue-200: #2f3540;
+  --color-blue-300: #3d4756;
+  --color-blue-400: #5aa1ff;
+  --color-blue-500: #4d97ff;
+  --color-blue-600: #5aa1ff;
+  --color-blue-700: #85b8ff;
+  --color-blue-800: #aecfff;
+
+  // Estados. Los tonos 50/100/200/300 son fondos y bordes de los avisos; los
+  // 600/700/800 son el texto de esos avisos. El 500 no se toca: son puntos e
+  // insignias solidas (bg-red-500, bg-amber-500) que deben seguir vivas.
+  --color-green-50: #0f2318;
+  --color-green-100: #14301f;
+  --color-green-200: #1c4a2e;
+  --color-green-300: #24603c;
+  --color-green-600: #4ade80;
+  --color-green-700: #6ee7a8;
+  --color-green-800: #9df3c4;
+
+  --color-amber-50: #241b0d;
+  --color-amber-100: #302411;
+  --color-amber-200: #46351a;
+  --color-amber-600: #fbbf24;
+  --color-amber-700: #fcd34d;
+  --color-amber-800: #fde68a;
+
+  --color-red-50: #260f15;
+  --color-red-100: #33141c;
+  --color-red-600: #ff7a90;
+  --color-red-700: #ffa0b0;
+  --color-red-800: #ffc0cb;
+
+  --color-orange-50: #26170d;
+  --color-orange-100: #321e11;
+  --color-orange-200: #482d19;
+  --color-orange-700: #fdba74;
+  --color-orange-800: #fed7aa;
+
+  --color-indigo-50: #15162a;
+  --color-indigo-600: #a5b4fc;
+  --color-violet-50: #19142a;
+  --color-violet-600: #c4b5fd;
+  --color-pink-50: #101010;
+  --color-sky-50: #0d1d29;
+  --color-sky-600: #7dd3fc;
+  --color-emerald-50: #0f2318;
+  --color-emerald-600: #34d399;
+
+  // --- Utilidades puntuales (ver nota de arriba) ---------------------------
+
+  // Superficies blancas -> tarjeta oscura. Las variantes con opacidad se
+  // seleccionan por atributo para no pelear con el escape de "/" en el nombre.
+  // Superficie de tarjeta: el mismo gris que usa Nebular para sus componentes
+  // en oscuro (color-basic-800 en src/nebular-theme.scss), para que una tarjeta
+  // de Tailwind y una nb-card se vean iguales.
+  .bg-white {
+    background-color: #1c1c1c;
+  }
+
+  [class~='bg-white/65'] {
+    background-color: rgb(18 18 18 / 65%);
+  }
+
+  [class~='bg-white/90'] {
+    background-color: rgb(28 28 28 / 90%);
+  }
+
+  [class~='bg-white/95'] {
+    background-color: rgb(28 28 28 / 95%);
+  }
+
+  // Degradado de fondo del dashboard. El azul-100 sirve como borde de tarjeta
+  // (#262626), pero como arranque del degradado dejaria una banda gris arriba:
+  // el fondo tiene que ser negro parejo, asi que la parada se pisa aparte.
+  .from-blue-100 {
+    --tw-gradient-from: #121212;
+  }
+
+  .via-white {
+    --tw-gradient-via: #0d0d0d;
+  }
+
+  // Titulos (bg-slate-900 sigue siendo el fondo del visor de comprobantes)
+  .text-slate-900 {
+    color: #fafafa;
+  }
+
+  // El azul 500/600 se aclaro arriba para que el texto se lea sobre negro,
+  // pero como fondo solido (botones, avatares, insignias) tiene que ser el
+  // azul vivo de marca: es el unico color saturado de la pantalla.
+  .bg-blue-500,
+  .bg-blue-600 {
+    background-color: #1071f9;
+  }
+
+  // El velo del spinner global es un blanco translucido fijo (vive en el scss
+  // del componente): en oscuro tiene que oscurecer, no encandilar.
+  .loading-overlay {
+    background: rgb(8 8 8 / 60%);
+  }
+
+  // Los type="date" de estadisticas son los unicos controles que no pasan por
+  // Nebular (los <select> ya son nb-select). Solo traen borde de Tailwind, asi
+  // que sin fondo propio quedaban blancos. El gris es el mismo que Nebular le
+  // da a sus inputs en oscuro, para que se vean como el mismo control.
+  input[type='date'] {
+    background-color: #171717;
+    color: #ededed;
+  }
+}

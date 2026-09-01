@@ -10,6 +10,24 @@
   <link rel="icon" type="image/png" href="pasalo-iso.png">
 </head>
 <body class="nb-theme-default">
+  <!--
+    Aplica el tema guardado antes de que el navegador pinte el dashboard: si se
+    esperara a que Angular arranque, cada recarga mostraria un parpadeo blanco.
+    Va solo para /dashboard porque la web publica siempre se ve en claro, y la
+    clase que pone aca es la misma que despues maneja ThemeService/Nebular.
+  -->
+  <script>
+    (function () {
+      try {
+        if (location.pathname.indexOf('/dashboard') === 0 && localStorage.getItem('pasalo-theme') === 'dark') {
+          document.body.classList.remove('nb-theme-default');
+          document.body.classList.add('nb-theme-dark');
+        }
+      } catch (e) {
+        // localStorage bloqueado (modo privado, cookies de terceros): se queda en claro
+      }
+    })();
+  </script>
   <app-root></app-root>
 </body>
 </html>

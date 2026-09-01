@@ -29,17 +29,17 @@
     </div>
   </div>
 
-  <div class="relative hidden min-w-0 flex-1 justify-center md:flex">
-    <div class="h-14 w-full max-w-sm py-1.5 sm:h-16">
-      <app-ad-slot placement="header-dashboard"></app-ad-slot>
-    </div>
-  </div>
-
-  <div class="relative flex shrink-0 items-center gap-1.5 sm:gap-3">
+  <div class="relative flex min-w-0 flex-1 shrink-0 items-center justify-end gap-1.5 sm:gap-3">
 
     <span class="hidden h-8 w-8 shrink-0 items-center justify-center sm:flex">
       <img src="/pasalo-logo.png" alt="Pásalo" class="h-full w-full object-contain" />
     </span>
+
+    <button nbButton size="small" shape="round" appearance="ghost" status="basic" type="button" (click)="theme.toggle()"
+      [attr.aria-label]="theme.is_dark() ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'"
+      [nbTooltip]="theme.is_dark() ? 'Tema claro' : 'Tema oscuro'" nbTooltipPlacement="bottom">
+      <nb-icon [icon]="theme.is_dark() ? 'sun-outline' : 'moon-outline'" [options]="{ width: 18, height: 18 }"></nb-icon>
+    </button>
 
     <app-notification-bell></app-notification-bell>
 

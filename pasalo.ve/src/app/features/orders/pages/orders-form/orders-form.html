@@ -22,11 +22,6 @@
       <nb-icon icon="copy-outline"></nb-icon>
       Copiar link
     </button>
-    <a nbButton status="success" appearance="outline" [href]="whatsappUrl(result.pay_url)" target="_blank"
-      rel="noopener noreferrer">
-      <nb-icon icon="message-circle-outline"></nb-icon>
-      Enviar por WhatsApp
-    </a>
   </div>
 
   <div>
@@ -109,8 +104,7 @@
   <!-- Observaciones -->
   <section class="flex flex-col gap-2">
     <label class="text-sm font-medium text-gray-600" for="notes">Observaciones generales</label>
-    <textarea id="notes" name="notes" rows="3" [formControl]="notes"
-      class="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+    <textarea nbInput fullWidth status="basic" id="notes" name="notes" rows="3" [formControl]="notes"
       placeholder="Ej. Coordinar entrega, instrucciones especiales..."></textarea>
   </section>
 

@@ -5,12 +5,12 @@ import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { NotificationBell } from 'src/app/features/notifications/components/notification-bell/notification-bell';
 import { Avatar } from '@shared/components/avatar/avatar';
-import { AdSlot } from '@shared/components/ad-slot/ad-slot';
+import { ThemeService } from '@shared/services/theme.service';
 
 @Component({
   selector: 'app-header-dashboard',
   templateUrl: './header-dashboard.html',
-  imports: [NbButtonModule, NbIconModule, NbEvaIconsModule, NbTooltipModule, NotificationBell, Avatar, AdSlot],
+  imports: [NbButtonModule, NbIconModule, NbEvaIconsModule, NbTooltipModule, NotificationBell, Avatar],
   // El sticky vive en el host: el <header> interno solo pinta, asi el elemento
   // del componente es el que se ancla arriba y ocupa el ancho completo.
   host: { class: 'sticky top-0 z-30 block' },
@@ -18,6 +18,7 @@ import { AdSlot } from '@shared/components/ad-slot/ad-slot';
 export class HeaderDashboard {
 
   protected auth = inject(AuthService);
+  protected theme = inject(ThemeService);
 
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);

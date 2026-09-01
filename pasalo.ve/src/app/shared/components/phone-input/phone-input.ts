@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { NbInputModule } from '@nebular/theme';
+import { NbInputModule, NbSelectModule } from '@nebular/theme';
 
 const PHONE_PREFIXES = ['0414', '0424', '0412', '0416', '0426'];
 
@@ -15,7 +15,7 @@ const PHONE_PREFIXES = ['0414', '0424', '0412', '0416', '0426'];
  */
 @Component({
   selector: 'app-phone-input',
-  imports: [ReactiveFormsModule, NbInputModule],
+  imports: [ReactiveFormsModule, NbInputModule, NbSelectModule],
   templateUrl: './phone-input.html',
 })
 export class PhoneInput implements OnInit, OnDestroy {

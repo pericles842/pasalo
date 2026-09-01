@@ -85,12 +85,12 @@
 
         <div class="col-span-12 flex flex-col gap-1.5 md:col-span-6" data-tour="company-rate">
           <label class="text-sm font-medium text-gray-600">Tasa para convertir a bolívares</label>
-          <select [formControl]="form.controls.default_rate_type"
-            class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <option value="bcv">BCV</option>
-            <option value="eur">EUR</option>
-            <option value="promedio">Promedio (BCV/EUR)</option>
-          </select>
+          <nb-select fullWidth placeholder="Selecciona una tasa" [formControl]="form.controls.default_rate_type"
+            scrollStrategy="reposition">
+            <nb-option value="bcv">BCV</nb-option>
+            <nb-option value="eur">EUR</nb-option>
+            <nb-option value="promedio">Promedio (BCV/EUR)</nb-option>
+          </nb-select>
           <span class="text-xs text-gray-400">
             Con esta tasa se convierten los montos a bolívares en tus comprobantes y en el link de pago del cliente.
           </span>

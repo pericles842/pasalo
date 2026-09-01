@@ -9,6 +9,7 @@ import { SubscriptionStatusBanner } from '@shared/components/subscription-status
 import { AdSlot } from '@shared/components/ad-slot/ad-slot';
 import { ModalAdService } from '@shared/services/modal-ad.service';
 import { OnboardingService } from '@shared/services/onboarding.service';
+import { ThemeService } from '@shared/services/theme.service';
 import { ToastService } from '@shared/services/toast.service';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { SocketService } from 'src/app/features/notifications/socket.service';
@@ -34,6 +35,7 @@ export class Dashboard implements OnInit, OnDestroy {
   private ordersService = inject(OrdersService);
   private modalAdService = inject(ModalAdService);
   private onboardingService = inject(OnboardingService);
+  private themeService = inject(ThemeService);
 
   /** Solo el usuario master administra los usuarios de la empresa */
   is_admin = computed(() => this.auth.session()?.role?.slug === 'admin');
@@ -53,9 +55,13 @@ export class Dashboard implements OnInit, OnDestroy {
    * Un solo string por estado evita que texto-negro y texto-azul convivan a
    * la vez en el elemento (el orden de las clases en el HTML no garantiza
    * cual gana cuando ambas son "!important").
+   *
+   * Se usa `text-gray-800!` y no `text-black!` (casi el mismo negro) porque el
+   * tema oscuro da vuelta la escala de grises por variable, y una utilidad con
+   * "!" solo se puede reteñir por variable: ver src/dark-theme.scss.
    */
   protected readonly NAV_LINK_CLASS =
-    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-black! no-underline! transition-colors hover:bg-blue-50';
+    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-800! no-underline! transition-colors hover:bg-blue-50';
   protected readonly NAV_LINK_ACTIVE_CLASS =
     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-600! bg-blue-50 no-underline!';
 
@@ -80,6 +86,7 @@ export class Dashboard implements OnInit, OnDestroy {
       this.loadPaidOrdersCount();
       this.modalAdService.start('modal', MODAL_AD_INITIAL_DELAY_MS);
       this.onboardingService.maybeStart();
+      this.themeService.applyStoredPreference();
     }
 
     this.socket.connect();
@@ -116,6 +123,7 @@ export class Dashboard implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.socket.disconnect();
     this.modalAdService.stop();
+    this.themeService.reset();
     if (this.is_browser) document.body.classList.remove('overflow-hidden');
   }
 }

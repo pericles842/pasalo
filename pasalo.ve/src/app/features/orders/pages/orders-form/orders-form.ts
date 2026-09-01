@@ -93,9 +93,14 @@ export class OrdersForm implements OnInit, OnDestroy {
   private buildItem(): FormGroup<OrderItemForm> {
     return new FormGroup<OrderItemForm>({
       name: new FormControl(null, [Validators.required]),
-      reference: new FormControl(null),
+      reference: new FormControl(this.generateReference()),
       price: new FormControl(null, [Validators.required, Validators.min(0.01)]),
     });
+  }
+
+  /** Referencia sugerida para que el vendedor no tenga que inventarla, pero la puede editar libremente */
+  private generateReference(): string {
+    return `REF-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
   }
 
   private recalculateTotal(): void {
@@ -114,16 +119,6 @@ export class OrdersForm implements OnInit, OnDestroy {
   removeItem(index: number): void {
     if (this.items.length === 1) return;
     this.items.removeAt(index);
-  }
-
-  /**
-   * Comparte el link por WhatsApp sin numero fijo: WhatsApp le deja elegir a
-   * que cliente mandarselo (todavia no conocemos su telefono, lo llena el en
-   * el paso 1 del link de pago).
-   */
-  whatsappUrl(pay_url: string): string {
-    const message = `¡Hola! Aquí está tu link de pago: ${pay_url}`;
-    return `https://wa.me/?text=${encodeURIComponent(message)}`;
   }
 
   copyPayUrl(): void {

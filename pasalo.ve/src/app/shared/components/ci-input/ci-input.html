@@ -4,12 +4,11 @@
   </label>
 
   <div class="grid grid-cols-12 gap-3">
-    <select [formControl]="prefixControl"
-      class="col-span-3 rounded-lg border border-gray-300 px-1 py-2 text-center text-sm font-medium">
+    <nb-select class="col-span-3 select-compact" fullWidth [formControl]="prefixControl" scrollStrategy="reposition">
       @for (p of prefixes; track p) {
-      <option [value]="p">{{ p }}</option>
+      <nb-option [value]="p">{{ p }}</nb-option>
       }
-    </select>
+    </nb-select>
 
     <input nbInput style="font-weight: 500;" fullWidth class="col-span-9" [id]="name" [name]="name" type="text"
       inputmode="numeric" [formControl]="numberControl" (blur)="onBlur()" [status]="status" placeholder="12345678" />

@@ -5,6 +5,8 @@
 // `ng serve`, asi que un cambio ahi no se ve hasta reiniciar el server. Ademas
 // va despues de Tailwind para que el preflight no le pise el globo.
 @use 'driver.js/dist/driver.css';
+// Paleta oscura del dashboard (se activa con la clase nb-theme-dark en <body>)
+@use 'dark-theme';
 
 /* You can add global styles to this file, and also import other style files */
 
@@ -99,6 +101,19 @@
       border-color: var(--color-blue-700);
     }
   }
+}
+
+// Nebular le da `min-width: 13rem` al boton de todo nb-select, pensando en
+// selects anchos con etiquetas largas. Los prefijos de cedula y telefono viven
+// en 3 de 12 columnas, pegados al campo del numero: ahi ese minimo se desborda
+// y termina tapando el input. La regla es global porque el boton vive dentro
+// de la vista del propio nb-select, fuera del alcance del componente que lo usa.
+//
+// Lleva el `nb-select` adelante para empatarle la especificidad al selector de
+// la libreria (`.nb-theme-* nb-select .select-button`); desempata el orden,
+// porque este archivo se emite despues del @use de nebular-theme.
+nb-select.select-compact .select-button {
+  min-width: 0;
 }
 
 // Red de seguridad: ningun elemento (propio o de una libreria de terceros como

@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { NbInputModule } from '@nebular/theme';
+import { NbInputModule, NbSelectModule } from '@nebular/theme';
 
 /**
  * Documento de identidad: prefijo (V/E para persona natural, J para juridica,
@@ -14,7 +14,7 @@ import { NbInputModule } from '@nebular/theme';
  */
 @Component({
   selector: 'app-ci-input',
-  imports: [ReactiveFormsModule, NbInputModule],
+  imports: [ReactiveFormsModule, NbInputModule, NbSelectModule],
   templateUrl: './ci-input.html',
 })
 export class CiInput implements OnInit, OnDestroy {

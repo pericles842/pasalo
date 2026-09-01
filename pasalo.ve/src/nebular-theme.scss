@@ -1,7 +1,9 @@
-// Tema Nebular de Pásalo: parte del tema "default" de la libreria y le
-// sobreescribe unicamente la paleta "primary" con el azul de marca (#045fde).
+// Temas Nebular de Pásalo: parten de los temas "default" y "dark" de la
+// libreria y les sobreescriben la paleta "primary" con el azul de marca
+// (#045fde), asi el dashboard en oscuro conserva el mismo acento.
 // Sigue el mismo patron que node_modules/@nebular/theme/styles/prebuilt/default.scss,
 // pero registrando nuestra paleta antes de instalar los componentes.
+@use 'sass:map';
 @use '@nebular/theme/styles/theming-variables' as theming-variables;
 @use '@nebular/theme/styles/core/theming/register' as register;
 @use '@nebular/theme/styles/all' as *;
@@ -24,9 +26,45 @@ $pasalo-primary: (
   color-primary-transparent-600: rgba(4, 95, 222, 0.48),
 );
 
-theming-variables.$nb-themes: register.nb-register-theme($pasalo-primary, default, default);
+// El tema "dark" de Nebular viene en azul marino (#222b45 y compañia). Se le
+// reescribe la escala "basic", que es de donde salen fondos, bordes y textos
+// (ver background-basic-color-* / border-basic-color-* en
+// node_modules/@nebular/theme/styles/themes/_dark.scss), por un gris neutro
+// casi negro. Asi los componentes de Nebular quedan del mismo negro que el
+// resto del dashboard en oscuro (ver src/dark-theme.scss) y el unico color
+// vivo sigue siendo el azul de marca.
+$pasalo-dark-basic: (
+  // Sobre negro el azul base (#045fde) se apaga: en oscuro el acento sube un
+  // escalon de la misma escala de marca (#1071f9), que es el mismo azul que
+  // usan los fondos solidos de Tailwind en src/dark-theme.scss.
+  color-primary-500: #1071f9,
+  color-primary-600: #045fde,
+  color-basic-100: #ffffff,
+  color-basic-200: #f5f5f5,
+  color-basic-300: #e5e5e5,
+  color-basic-400: #d4d4d4,
+  color-basic-500: #a6a6a6,
+  color-basic-600: #8a8a8a,
+  color-basic-700: #2e2e2e,
+  color-basic-800: #1c1c1c,
+  color-basic-900: #171717,
+  color-basic-1000: #121212,
+  color-basic-1100: #0d0d0d,
+  color-basic-transparent-100: rgba(166, 166, 166, 0.08),
+  color-basic-transparent-200: rgba(166, 166, 166, 0.16),
+  color-basic-transparent-300: rgba(166, 166, 166, 0.24),
+  color-basic-transparent-400: rgba(166, 166, 166, 0.32),
+  color-basic-transparent-500: rgba(166, 166, 166, 0.4),
+  color-basic-transparent-600: rgba(166, 166, 166, 0.48),
+  shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.6),
+);
 
-$nb-enabled-themes: (default);
+theming-variables.$nb-themes: register.nb-register-theme($pasalo-primary, default, default);
+theming-variables.$nb-themes: register.nb-register-theme(
+  map.merge($pasalo-primary, $pasalo-dark-basic), dark, dark
+);
+
+$nb-enabled-themes: (default, dark);
 $nb-enable-css-custom-properties: false;
 
 @include nb-install() {

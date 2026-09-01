@@ -2,7 +2,7 @@ import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { NbButtonModule, NbCardModule, NbCheckboxModule } from '@nebular/theme';
+import { NbButtonModule, NbCardModule, NbCheckboxModule, NbSelectModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { CiInput } from '@shared/components/ci-input/ci-input';
 import { Avatar } from '@shared/components/avatar/avatar';
@@ -36,7 +36,7 @@ export const BUYER_FIELD_OPTIONS: { key: string; label: string }[] = [
 
 @Component({
   selector: 'app-company-page',
-  imports: [ReactiveFormsModule, NbCardModule, NbButtonModule, NbCheckboxModule, GlobalInput, CiInput, Avatar, RouterLink, DatePipe],
+  imports: [ReactiveFormsModule, NbCardModule, NbButtonModule, NbCheckboxModule, NbSelectModule, GlobalInput, CiInput, Avatar, RouterLink, DatePipe],
   templateUrl: './company-page.html',
 })
 export class CompanyPage implements OnInit {
