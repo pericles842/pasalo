@@ -13,6 +13,24 @@ const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 /**
+ * Redirige cualquier host que empiece con "www." al dominio canonico, con un
+ * 301 permanente y conservando ruta y query.
+ *
+ * Asi la app queda accesible desde un unico origen y el navegador nunca emite
+ * Origin: https://www.pasalo.co.ve contra api.pasalo.co.ve, que era la causa de
+ * los errores de CORS. Ver docs/CORS_DOMINIOS.md
+ *
+ * Va antes que los estaticos para que aplique a TODAS las peticiones.
+ */
+app.use((req, res, next) => {
+  const host = req.headers.host;
+  if (!host?.startsWith('www.')) return next();
+
+  // Siempre https: es el esquema canonico y evita un segundo salto.
+  res.redirect(301, `https://${host.slice(4)}${req.originalUrl}`);
+});
+
+/**
  * Example Express Rest API endpoints can be defined here.
  * Uncomment and define endpoints as necessary.
  *

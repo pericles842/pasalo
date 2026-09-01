@@ -1,4 +1,5 @@
 // src/app.ts
+import './app/config/env'; // primero: carga el .env antes que cualquier modulo que lea process.env
 import express from 'express';
 import { errorHandler } from './middlewares/errorHandler';
 import cookieParser from 'cookie-parser';
@@ -8,16 +9,14 @@ import routes from './routes';
 import path from 'path';
 import cors from 'cors';
 
-import dotenv from 'dotenv';
 import morgan from 'morgan';
 import chalk from 'chalk';
 import { getLocalIp } from './utils/systemFunctions';
 import { initSocket } from './app/config/socket';
-import { corsOrigins } from './app/config/cors';
+import { getCorsOrigins } from './app/config/cors';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 
-dotenv.config();
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -27,7 +26,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: corsOrigins,
+    origin: getCorsOrigins(),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // explícito
     allowedHeaders: ['Content-Type', 'Authorization', 'module_id'], // explícito
@@ -79,6 +78,7 @@ const server = app.listen(port, async () => {
 
     console.log(chalk.hex('#FF69B4')('🟢 Conectado a Mysql'));
     console.log(chalk.hex('#FF69B4')(`🟢 Servidor listo en http://${address}:${actualPort}`));
+    console.log(chalk.hex('#FF69B4')(`🟢 CORS habilitado para: ${getCorsOrigins().join(', ')}`));
 
     if (isDev) {
       const docsUrl = `http://localhost:${actualPort}/api-docs`;
