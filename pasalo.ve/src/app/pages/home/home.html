@@ -10,7 +10,7 @@
         de cada orden desde un solo lugar.
       </p>
       <div class="hero-actions">
-        <button nbButton status="success" size="large" (click)="goToRegister()">
+        <button nbButton status="success" size="large" (click)="goToStart()">
           Quiero empezar a cobrar <span>→</span>
         </button>
         <a class="text-link" routerLink="/" fragment="como-funciona">Conoce Pásalo <span>↓</span></a>
@@ -54,7 +54,7 @@
         <span class="benefit-number">{{ item.number }}</span>
         <h3>{{ item.title }}</h3>
         <p>{{ item.text }}</p>
-        <a routerLink="/create-company">Saber más <span>↗</span></a>
+        <a routerLink="/login">Saber más <span>↗</span></a>
       </article>
       }
     </div>
@@ -67,7 +67,7 @@
         <p class="eyebrow light">Así de fácil</p>
         <h2>Una forma más simple de cobrar.</h2>
         <p>Diseñamos Pásalo para que cobrarle a tus clientes no se sienta como otra tarea pendiente. Crea tu link y compártelo, nosotros nos encargamos del resto.</p>
-        <button nbButton status="basic" class="btn-light" (click)="goToRegister()">Empieza hoy <span>→</span></button>
+        <button nbButton status="basic" class="btn-light" (click)="goToStart()">Empieza hoy <span>→</span></button>
       </div>
 
       <div class="steps">
@@ -114,7 +114,7 @@
     } @else {
     <div class="pricing-grid">
       @for (plan of plans(); track plan.id) {
-      <app-card-subscription-plan [plan]="plan" [isSelected]="false" (planSelected)="goToRegister()" />
+      <app-card-subscription-plan [plan]="plan" [isSelected]="false" (planSelected)="goToStart()" />
       }
     </div>
     }
@@ -125,7 +125,7 @@
     <p class="eyebrow light">El siguiente paso es tuyo</p>
     <h2>Empieza a<br /><em>cobrar hoy.</em></h2>
     <p>Registra tu empresa y crea tu primer link de pago en minutos.</p>
-    <button nbButton status="basic" class="btn-light" size="large" (click)="goToRegister()">
+    <button nbButton status="basic" class="btn-light" size="large" (click)="goToStart()">
       Registrar mi empresa <span>→</span>
     </button>
   </section>

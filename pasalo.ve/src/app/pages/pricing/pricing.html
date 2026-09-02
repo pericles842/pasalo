@@ -12,7 +12,7 @@
   } @else {
   <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
     @for (plan of plans(); track plan.id) {
-    <app-card-subscription-plan [plan]="plan" [isSelected]="false" (planSelected)="goToRegister()" />
+    <app-card-subscription-plan [plan]="plan" [isSelected]="false" (planSelected)="goToStart()" />
     }
   </div>
   }

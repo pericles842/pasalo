@@ -68,7 +68,8 @@ export class Home implements OnInit {
     });
   }
 
-  goToRegister(): void {
-    this.router.navigate(['/create-company']);
+  /** El login tiene "Iniciar con Google": ahi se decide si es cliente nuevo (va a registrar su empresa) o ya tiene cuenta */
+  goToStart(): void {
+    this.router.navigate(['/login']);
   }
 }
