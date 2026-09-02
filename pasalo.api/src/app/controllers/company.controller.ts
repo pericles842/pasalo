@@ -7,6 +7,7 @@ import { CompanyUserModel } from '../models/company_user.model';
 import { ROLE_ADMIN_SLUG, RoleModel } from '../models/role.model';
 import { sequelize } from '../config/db';
 import { hashPassword } from '../../utils/auth';
+import { GoogleProfile, verifyGoogleToken } from '../../utils/googleAuth';
 import { uploadFile } from '../../utils/storage';
 import { buildImagePrefix, slugify } from '../../utils/fileNaming';
 import { SessionPayload } from '../../middlewares/jwtMiddleware';
@@ -59,7 +60,28 @@ export class CompanyController {
             return;
         }
 
-        if (user_data.password !== user_data.password_confirmation) {
+        // Dos caminos para el usuario master: con contraseña (formulario de siempre)
+        // o con Google ("Continuar con Google" en register-company, ver AuthController.google
+        // que ya confirmo del lado del frontend que ese correo todavia no tiene cuenta).
+        // El id_token se vuelve a verificar aca: nunca se confia en datos ya "verificados"
+        // que solo paso el cliente.
+        let google_profile: GoogleProfile | null = null;
+
+        if (user_data.id_token) {
+            try {
+                google_profile = await verifyGoogleToken(user_data.id_token);
+            } catch {
+                res.status(401).json({ message: 'Token inválido', error: 'No pudimos verificar tu cuenta de Google.' });
+                return;
+            }
+
+            const existing_user = await UserModel.findOne({ where: { email: google_profile.email } });
+
+            if (existing_user) {
+                res.status(409).json({ message: 'Correo en uso', error: 'Ya existe una cuenta con ese correo. Inicia sesión en su lugar.' });
+                return;
+            }
+        } else if (user_data.password !== user_data.password_confirmation) {
             res.status(400).json({ message: 'Contraseña inválida', error: 'La confirmación de contraseña no coincide.' });
             return;
         }
@@ -134,8 +156,22 @@ export class CompanyController {
                 user_limit: starting_plan.user_limit
             }, { transaction });
 
-            // El usuario que registra la empresa siempre es el administrador
-            user = await UserModel.create({
+            // El usuario que registra la empresa siempre es el administrador.
+            // Con Google, el cliente pudo editar nombre/apellido/cedula en el paso
+            // "Usuario" (el correo llega deshabilitado en ese formulario, pero un
+            // request armado a mano igual podria mandar otro): el email SIEMPRE es
+            // el que ya verifico Google, nunca el que venga en user_data.
+            user = await UserModel.create(google_profile ? {
+                first_name: user_data.first_name || google_profile.first_name,
+                middle_name: user_data.middle_name ?? (google_profile.last_name || null),
+                photo_url: user_data.photo_url ?? google_profile.photo_url,
+                ci: user_data.ci ?? null,
+                email: google_profile.email,
+                password: null,
+                google_id: google_profile.google_id,
+                role_id: admin_role.id,
+                status: 'active'
+            } : {
                 first_name: user_data.first_name,
                 middle_name: user_data.middle_name ?? null,
                 photo_url: user_data.photo_url ?? null,

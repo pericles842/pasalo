@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NbButtonModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
@@ -34,6 +34,9 @@ export class ProfilePage implements OnInit {
   photo_file = signal<File | null>(null);
   photo_preview = signal<string | null>(null);
 
+  /** false en cuentas creadas solo por Google: ahi se ofrece "agregar" contraseña, no "cambiarla" */
+  has_password = computed(() => this.auth.session()?.user?.has_password ?? true);
+
   form: FormGroup<ProfileForm> = new FormGroup<ProfileForm>({
     first_name: new FormControl<string | null>(null, [Validators.required]),
     middle_name: new FormControl<string | null>(null),
@@ -46,11 +49,22 @@ export class ProfilePage implements OnInit {
     if (!this.is_browser) return;
 
     const user = this.auth.session()?.user;
-    if (!user) return;
+    if (user) {
+      this.form.patchValue({
+        first_name: user.first_name,
+        middle_name: user.middle_name
+      });
+    }
 
-    this.form.patchValue({
-      first_name: user.first_name,
-      middle_name: user.middle_name
+    // La sesion guardada en el navegador puede venir de un login anterior a
+    // este cambio y no traer has_password: se refresca contra el backend
+    // para que "Cambiar" vs "Agregar" contraseña siempre sea el correcto.
+    this.auth.me().subscribe({
+      next: (session) => this.form.patchValue({
+        first_name: session.user.first_name,
+        middle_name: session.user.middle_name
+      }),
+      error: () => { /* se sigue mostrando con la sesion cacheada */ }
     });
   }
 
@@ -75,13 +89,24 @@ export class ProfilePage implements OnInit {
     }
 
     const { first_name, middle_name, current_password, new_password, new_password_confirmation } = this.form.getRawValue();
+    const has_password = this.has_password();
 
-    // El cambio de contraseña es opcional: solo se envía si el usuario llenó los 3 campos
-    const wants_password_change = !!(current_password || new_password || new_password_confirmation);
+    // El cambio (o alta) de contraseña es opcional: solo se envía si el usuario llenó los campos.
+    // Sin contraseña previa (cuenta de Google) no hace falta la actual para confirmarla.
+    const wants_password_change = has_password
+      ? !!(current_password || new_password || new_password_confirmation)
+      : !!(new_password || new_password_confirmation);
 
-    if (wants_password_change && (!current_password || !new_password || !new_password_confirmation)) {
-      this.toast.error('Completa la contraseña actual y la nueva contraseña para cambiarla.');
-      return;
+    if (wants_password_change) {
+      if (has_password && !current_password) {
+        this.toast.error('Ingresa tu contraseña actual para cambiarla.');
+        return;
+      }
+
+      if (!new_password || !new_password_confirmation) {
+        this.toast.error('Completa la nueva contraseña y su confirmación.');
+        return;
+      }
     }
 
     this.is_saving.set(true);
@@ -89,7 +114,7 @@ export class ProfilePage implements OnInit {
     this.profileService.updateProfile({
       first_name: first_name!,
       middle_name: middle_name ?? null,
-      current_password: wants_password_change ? current_password : null,
+      current_password: wants_password_change && has_password ? current_password : null,
       new_password: wants_password_change ? new_password : null,
       new_password_confirmation: wants_password_change ? new_password_confirmation : null,
       photo: this.photo_file()

@@ -114,6 +114,25 @@ router.post('/auth/login', AuthController.login);
 
 /**
  * @swagger
+ * /auth/google:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Inicia sesión con un id_token de Google Identity Services
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id_token: { type: string }
+ *     responses:
+ *       200: { description: 'Login exitoso, o is_new:true si el correo no tiene cuenta' }
+ */
+router.post('/auth/google', AuthController.google);
+
+/**
+ * @swagger
  * /auth/me:
  *   get:
  *     tags: [Auth]

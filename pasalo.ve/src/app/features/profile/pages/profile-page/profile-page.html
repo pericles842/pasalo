@@ -30,19 +30,30 @@
       </section>
 
       <section class="flex flex-col gap-4 border-t border-blue-100 pt-5">
+        @if (has_password()) {
         <span class="text-sm font-semibold text-slate-900">Cambiar contraseña</span>
         <p class="-mt-2 text-xs text-gray-500">Opcional. Déjalo en blanco si no quieres cambiarla.</p>
+        } @else {
+        <span class="text-sm font-semibold text-slate-900">Agregar contraseña</span>
+        <p class="-mt-2 text-xs text-gray-500">
+          Actualmente no tienes una contraseña, entras con tu cuenta de Google. ¿Deseas agregar una?
+          Este proceso es opcional.
+        </p>
+        }
 
         <section class="grid grid-cols-12 gap-4">
+          @if (has_password()) {
           <app-global-input class="col-span-12" name="current_password" label="Contraseña actual" type="password"
             [control]="form.controls.current_password" placeholder="********" />
+          }
 
-          <app-global-input class="col-span-12 md:col-span-6" name="new_password" label="Nueva contraseña"
-            type="password" [control]="form.controls.new_password" placeholder="********"
+          <app-global-input class="col-span-12 md:col-span-6" name="new_password"
+            [label]="has_password() ? 'Nueva contraseña' : 'Contraseña'" type="password"
+            [control]="form.controls.new_password" placeholder="********"
             hint="Mínimo 8 caracteres" error="Mínimo 8 caracteres" />
 
           <app-global-input class="col-span-12 md:col-span-6" name="new_password_confirmation"
-            label="Confirmar nueva contraseña" type="password"
+            [label]="has_password() ? 'Confirmar nueva contraseña' : 'Confirmar contraseña'" type="password"
             [control]="form.controls.new_password_confirmation" placeholder="********"
             error="Las contraseñas no coinciden" />
         </section>

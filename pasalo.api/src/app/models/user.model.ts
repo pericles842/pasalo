@@ -12,7 +12,9 @@ export class UserModel extends Model<InferAttributes<UserModel>, InferCreationAt
     declare photo_url: CreationOptional<string | null>;
     declare ci: CreationOptional<string | null>;
     declare email: string;
-    declare password: string;
+    declare password: string | null;
+    /** Id de la cuenta de Google vinculada (login con Google, ver AuthController.google) */
+    declare google_id: CreationOptional<string | null>;
     declare role_id: CreationOptional<number>;
     declare status: CreationOptional<UserStatus>;
     /** Casos de exito / ventas realizadas del usuario */
@@ -21,10 +23,15 @@ export class UserModel extends Model<InferAttributes<UserModel>, InferCreationAt
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;
 
-    /** Nunca devolver el hash de la contraseña al frontend */
+    /**
+     * Nunca devolver el hash de la contraseña al frontend; en su lugar va
+     * has_password, para que el perfil sepa si pedir "contraseña actual" o
+     * dejar que el usuario agregue una por primera vez (cuentas creadas solo
+     * por Google no tienen, ver AuthController.updateMe).
+     */
     toJSON() {
         const { password, ...user } = super.toJSON() as InferAttributes<UserModel>;
-        return user;
+        return { ...user, has_password: password !== null };
     }
 }
 
@@ -69,7 +76,12 @@ UserModel.init(
         },
         password: {
             type: DataTypes.STRING(255),
-            allowNull: false
+            allowNull: true
+        },
+        google_id: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+            unique: true
         },
         role_id: {
             type: DataTypes.INTEGER,

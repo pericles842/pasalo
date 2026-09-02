@@ -17,4 +17,7 @@ export class UsersInfoForm {
   // El usuario que registra la empresa siempre es administrador,
   // por eso no se selecciona el cargo en este formulario.
   @Input({ required: true }) form!: FormGroup<UserCompanyForm>
+
+  /** El usuario se identificó con Google: ya no hace falta pedirle contraseña */
+  @Input() hidePassword = false;
 }

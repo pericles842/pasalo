@@ -7,6 +7,8 @@ export interface SessionUser {
   email: string;
   role_id: number;
   status: 'active' | 'inactive' | 'baned';
+  /** false en cuentas creadas solo por Google: todavia no tienen contraseña propia */
+  has_password: boolean;
 }
 
 export interface SessionRole {
@@ -46,3 +48,16 @@ export interface Session {
   role: SessionRole;
   company: SessionCompany;
 }
+
+/** Datos que Google ya verifico de un correo que todavia no tiene cuenta en Pásalo */
+export interface GoogleIdentity {
+  email: string;
+  first_name: string;
+  last_name: string;
+  photo_url: string | null;
+}
+
+/** Respuesta de POST /auth/google: login normal si ya existe cuenta, o el perfil de Google si hay que registrarse */
+export type GoogleAuthResponse =
+  | (LoginResponse & { is_new: false })
+  | { is_new: true; google: GoogleIdentity };

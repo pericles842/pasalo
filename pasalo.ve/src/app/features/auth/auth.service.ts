@@ -4,7 +4,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Observable, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { getInitials } from '@shared/utils/initials';
-import { LoginResponse, Session, SessionCompany, SessionRole, SessionUser } from './interfaces/auth';
+import { GoogleAuthResponse, GoogleIdentity, LoginResponse, Session, SessionCompany, SessionRole, SessionUser } from './interfaces/auth';
 
 const TOKEN_KEY = 'pasalo_token';
 const SESSION_KEY = 'pasalo_session';
@@ -32,6 +32,15 @@ export class AuthService {
   readonly company_initials = computed(() => getInitials(this.session_signal()?.company?.name));
 
   /**
+   * Identidad de Google en transito del login hacia el registro de empresa:
+   * cuando alguien intenta entrar con Google y ese correo no tiene cuenta
+   * todavia, el login la deja aca y navega a /create-company, que la
+   * consume para saltarse el paso de "Usuario" (ver RegisterCompany.ngOnInit).
+   * Vive solo en memoria: sobrevive la navegacion del SPA, no un refresh.
+   */
+  pending_google_identity = signal<(GoogleIdentity & { id_token: string }) | null>(null);
+
+  /**
    * Inicia sesión y guarda el token de la empresa
    *
    * @param {string} email
@@ -42,6 +51,28 @@ export class AuthService {
     return this.http
       .post<LoginResponse>(`${environment.host}/auth/login`, { email, password })
       .pipe(tap((response) => this.saveSession(response)));
+  }
+
+  /**
+   * Inicia sesión con un id_token de Google Identity Services. Si el correo
+   * todavia no tiene cuenta (is_new:true), no guarda nada: el caller sigue
+   * con el registro de empresa.
+   */
+  loginWithGoogle(id_token: string): Observable<GoogleAuthResponse> {
+    return this.http
+      .post<GoogleAuthResponse>(`${environment.host}/auth/google`, { id_token })
+      .pipe(tap((response) => { if (!response.is_new) this.saveSession(response); }));
+  }
+
+  /**
+   * Refresca el usuario/rol/empresa desde el backend sin tocar el token.
+   * Util cuando la sesion guardada en el navegador puede estar desactualizada
+   * (ej. has_password: la sesion cacheada de un login viejo no lo trae).
+   */
+  me(): Observable<Session> {
+    return this.http
+      .get<Session>(`${environment.host}/auth/me`)
+      .pipe(tap((session) => this.refreshSession(session.user, session.role, session.company)));
   }
 
   /**

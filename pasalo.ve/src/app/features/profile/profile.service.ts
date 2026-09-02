@@ -35,10 +35,12 @@ export class ProfileService {
     form.append('first_name', payload.first_name);
     if (payload.middle_name) form.append('middle_name', payload.middle_name);
 
-    if (payload.current_password && payload.new_password && payload.new_password_confirmation) {
-      form.append('current_password', payload.current_password);
+    // current_password solo aplica si ya tenia contraseña (ver has_password en
+    // ProfilePage): una cuenta creada por Google la agrega por primera vez sin eso.
+    if (payload.new_password && payload.new_password_confirmation) {
       form.append('new_password', payload.new_password);
       form.append('new_password_confirmation', payload.new_password_confirmation);
+      if (payload.current_password) form.append('current_password', payload.current_password);
     }
 
     if (payload.photo) form.append('photo', payload.photo);

@@ -13,6 +13,14 @@
       </nb-card-header>
 
       <nb-card-body>
+        <div class="flex justify-center" #googleButton></div>
+
+        <div class="my-5 flex items-center gap-3">
+          <span class="h-px flex-1 bg-gray-200"></span>
+          <span class="text-xs text-gray-400">o con tu correo</span>
+          <span class="h-px flex-1 bg-gray-200"></span>
+        </div>
+
         <form [formGroup]="login_form" (ngSubmit)="submit()" class="flex flex-col gap-5">
           <app-global-input name="login_email" label="Correo" type="email" [control]="login_form.controls.email"
             placeholder="tucorreo@gmail.com" error="Ingresa un correo válido" />

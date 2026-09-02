@@ -29,7 +29,7 @@
 
     <!-- Step 2: Usuario master -->
     <nb-step label="Informacion de usuario">
-      <app-users-info-form [form]="company_user"></app-users-info-form>
+      <app-users-info-form [form]="company_user" [hidePassword]="google_identity() !== null"></app-users-info-form>
       <div class="mt-6 hidden justify-end gap-4 sm:flex">
         <button nbButton nbStepperPrevious>Anterior</button>
         <button nbButton status="primary" nbStepperNext [disabled]="company_user.invalid">

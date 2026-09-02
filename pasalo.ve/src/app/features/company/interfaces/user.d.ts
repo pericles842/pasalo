@@ -10,6 +10,9 @@ export interface UserCompany {
   email: string | null;
   password: string | null;
   password_confirmation: string | null;
+  /** Presente solo si el usuario master se registro con "Continuar con Google": el
+   * backend lo vuelve a verificar y crea la cuenta sin contraseña. */
+  id_token?: string | null;
 }
 
 export interface UserCompanyForm {

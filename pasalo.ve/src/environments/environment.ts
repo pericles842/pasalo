@@ -3,6 +3,7 @@ export const environment = {
   qa: false,
   host: 'http://localhost:3000/api',
   socketHost: 'http://localhost:3000',
+  googleClientId: '928643772215-9uhat1kqvibt48mt52uktbsfui6123vc.apps.googleusercontent.com',
   // Tiles de CARTO Voyager (basados en datos de OpenStreetMap): estilo claro
   // y con pocos colores, similar a Google Maps. No se usan tiles de Google
   // directo (google.com/vt/...) porque esa URL no es una API publica: es de

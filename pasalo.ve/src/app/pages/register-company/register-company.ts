@@ -16,11 +16,13 @@ import { passwordMatchValidator } from '@shared/validators/password-match.valida
 import { domainFormatValidator } from '@shared/validators/domain-format.validator';
 import { ToastService } from '@shared/services/toast.service';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
+import { AuthService } from 'src/app/features/auth/auth.service';
+import { GoogleIdentity } from 'src/app/features/auth/interfaces/auth';
 import { CompanyService } from "src/app/features/company/company-repository.service";
 import { CompanyForm } from "src/app/features/company/components/company-form/company-form";
 import { UsersInfoForm } from "src/app/features/company/components/users-info-form/users-info-form";
 import { CompanyControls } from 'src/app/features/company/interfaces/company';
-import { UserCompanyForm } from "src/app/features/company/interfaces/user";
+import { UserCompany, UserCompanyForm } from "src/app/features/company/interfaces/user";
 import { PlanInterface } from 'src/app/services/http/plan/plan';
 import { PlanService } from 'src/app/services/http/plan/plan.service';
 import { SubscriptionService } from 'src/app/features/company/subscription.service';
@@ -65,6 +67,10 @@ export class RegisterCompany implements OnInit {
     password_confirmation: new FormControl(null, [Validators.required])
   }, { validators: passwordMatchValidator() });
 
+  /** Si el usuario master se registro con "Continuar con Google" en el login,
+   * el paso de Usuario llega precargado con estos datos y sin pedir contraseña. */
+  google_identity = signal<(GoogleIdentity & { id_token: string }) | null>(null);
+
   plans = signal<PlanInterface[]>([]);
 
   selected_plan_index = signal<number | null>(null);
@@ -104,7 +110,8 @@ export class RegisterCompany implements OnInit {
     private companyService: CompanyService,
     private subscriptionService: SubscriptionService,
     protected exchangeRate: ExchangeRateService,
-    private toast: ToastService
+    private toast: ToastService,
+    private auth: AuthService
   ) { }
 
   onStepChange(event: NbStepChangeEvent): void {
@@ -145,6 +152,36 @@ export class RegisterCompany implements OnInit {
     if (!this.is_browser) return;
 
     this.planService.getFullPlan().subscribe((plans) => this.plans.set(plans));
+
+    // Si se llega aca desde "Continuar con Google" en el login (ese correo no
+    // tenia empresa todavia), la identidad ya viene resuelta: se precargan
+    // los campos del paso "Usuario" para que el cliente solo los revise/ajuste.
+    const pending = this.auth.pending_google_identity();
+    if (pending) {
+      this.google_identity.set(pending);
+      this.auth.pending_google_identity.set(null);
+      this.prefillFromGoogle(pending);
+    }
+  }
+
+  /**
+   * Precarga el paso "Usuario" con lo que Google ya verifico. El correo se
+   * bloquea (es la identidad verificada, no se deja editar) y la contraseña
+   * deja de ser obligatoria porque ese paso se resuelve con Google.
+   */
+  private prefillFromGoogle(identity: GoogleIdentity): void {
+    this.company_user.patchValue({
+      first_name: identity.first_name,
+      middle_name: identity.last_name,
+      email: identity.email,
+      photo_url: identity.photo_url
+    });
+
+    this.company_user.controls.email.disable();
+    this.company_user.controls.password.clearValidators();
+    this.company_user.controls.password.updateValueAndValidity();
+    this.company_user.controls.password_confirmation.clearValidators();
+    this.company_user.controls.password_confirmation.updateValueAndValidity();
   }
 
   /**
@@ -168,10 +205,20 @@ export class RegisterCompany implements OnInit {
       return;
     }
 
+    const google = this.google_identity();
+
+    // getRawValue() incluye el correo aunque su control este deshabilitado
+    // (bloqueado cuando viene de Google). El backend igual vuelve a verificar
+    // el id_token y usa el correo confirmado por Google, nunca este valor.
+    const user_payload: UserCompany = {
+      ...this.company_user.getRawValue(),
+      ...(google ? { id_token: google.id_token } : {})
+    };
+
     this.is_saving.set(true);
 
     this.companyService
-      .createCompany(this.company_form.getRawValue(), this.company_user.getRawValue(), this.selected_plan.id)
+      .createCompany(this.company_form.getRawValue(), user_payload, this.selected_plan.id)
       .subscribe({
         next: () => {
           this.company_registered.set(true);
