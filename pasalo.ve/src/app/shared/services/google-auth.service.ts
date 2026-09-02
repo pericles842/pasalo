@@ -57,6 +57,10 @@ export class GoogleAuthService {
       client_id: environment.googleClientId,
       callback: (response) => onCredential(response.credential),
     });
-    google.accounts.id.renderButton(container, { theme: 'outline', size: 'large', width: 320, text: 'continue_with' });
+
+    // Ancho fijo se desborda en telefonos angostos (el boton no encoge solo):
+    // se mide el contenedor real y se limita al maximo que soporta el widget de Google.
+    const width = Math.min(container.clientWidth || 280, 400);
+    google.accounts.id.renderButton(container, { theme: 'outline', size: 'large', width, text: 'continue_with' });
   }
 }

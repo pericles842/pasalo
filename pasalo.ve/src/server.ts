@@ -31,6 +31,20 @@ app.use((req, res, next) => {
 });
 
 /**
+ * El boton "Continuar con Google" (Google Identity Services) se comunica con
+ * la ventana que abre via window.postMessage. El aislamiento de origen que
+ * Chrome aplica por defecto en paginas HTTPS bloquea ese postMessage salvo
+ * que el propio servidor declare explicitamente que permite popups del mismo
+ * origen (sin esto: "Cross-Origin-Opener-Policy policy would block the
+ * window.postMessage call" en consola, y el login con Google no completa).
+ * https://developers.google.com/identity/gsi/web/guides/fedcm-migration
+ */
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  next();
+});
+
+/**
  * Example Express Rest API endpoints can be defined here.
  * Uncomment and define endpoints as necessary.
  *
