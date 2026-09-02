@@ -146,7 +146,13 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const L = await import('leaflet');
+    // Leaflet es un modulo UMD (sin build ESM propio): bajo el bundle de
+    // produccion de Angular (esbuild), la interop CJS->ESM de un import()
+    // dinamico a veces solo expone `.default` en vez de las propiedades con
+    // nombre (Icon, map, tileLayer...) directamente sobre el namespace. Se
+    // normaliza aqui para que funcione con las dos formas.
+    const imported = await import('leaflet');
+    const L = ('Icon' in imported ? imported : (imported as unknown as { default: typeof imported }).default);
     this.leaflet = L;
 
     if (!icons_configured) {
