@@ -10,6 +10,7 @@ import { Avatar } from '@shared/components/avatar/avatar';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { CiInput } from '@shared/components/ci-input/ci-input';
 import { PhoneInput } from '@shared/components/phone-input/phone-input';
+import { LocationPicker } from '@shared/components/location-picker/location-picker';
 import { getInitials } from '@shared/utils/initials';
 import { compressImage } from '@shared/utils/compress-image';
 import { BuyerForm, PublicOrderSummary } from '../../interfaces/order';
@@ -20,7 +21,7 @@ type WizardStep = 1 | 2;
 
 @Component({
   selector: 'app-public-payment',
-  imports: [NbCardModule, NbButtonModule, NbIconModule, NbEvaIconsModule, NbTooltipModule, DecimalPipe, Copyright, Avatar, ReactiveFormsModule, GlobalInput, CiInput, PhoneInput],
+  imports: [NbCardModule, NbButtonModule, NbIconModule, NbEvaIconsModule, NbTooltipModule, DecimalPipe, Copyright, Avatar, ReactiveFormsModule, GlobalInput, CiInput, PhoneInput, LocationPicker],
   templateUrl: './public-payment.html',
 })
 export class PublicPayment implements OnInit {
@@ -52,6 +53,9 @@ export class PublicPayment implements OnInit {
     address: new FormControl(null),
   });
   is_submitting_buyer = signal(false);
+
+  /** Punto marcado en el mapa (precisa o a mano). Ver isRequired('address') en submitBuyer */
+  location = signal<{ lat: number; lng: number } | null>(null);
 
   /** Paso 2: metodo de pago + comprobante */
   selected_method_id = signal<number | null>(null);
@@ -149,8 +153,17 @@ export class PublicPayment implements OnInit {
       return;
     }
 
+    // El pin del mapa comparte el mismo checkbox "Ubicacion" que el campo de
+    // texto: si la empresa lo marco como requerido, no basta con escribir la
+    // direccion, tambien hay que haber marcado un punto en el mapa.
+    if (this.isRequired('address') && !this.location()) {
+      this.toast.error('Marca tu ubicación en el mapa.');
+      return;
+    }
+
     this.is_submitting_buyer.set(true);
     const buyer = this.buyer_form.getRawValue();
+    const location = this.location();
 
     this.publicOrderService
       .submitBuyerData(this.tenant_id, this.token, {
@@ -160,6 +173,8 @@ export class PublicPayment implements OnInit {
         ci: buyer.ci,
         phone: buyer.phone,
         address: buyer.address,
+        lat: location?.lat ?? null,
+        lng: location?.lng ?? null,
       })
       .subscribe({
         next: () => {

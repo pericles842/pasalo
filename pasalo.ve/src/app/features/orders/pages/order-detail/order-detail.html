@@ -53,6 +53,17 @@
           </div>
         </div>
 
+        @if (result.order.lat != null && result.order.lng != null) {
+        <div class="mt-4 flex flex-col gap-1.5 border-t border-gray-100 pt-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500">Punto marcado en el mapa</span>
+            <a [href]="mapUrl(result.order.lat, result.order.lng)" target="_blank" rel="noopener noreferrer"
+              class="text-xs text-blue-600">Ver en OpenStreetMap</a>
+          </div>
+          <app-location-picker [viewOnly]="true" [lat]="result.order.lat" [lng]="result.order.lng" />
+        </div>
+        }
+
         @if (result.order.notes) {
         <div class="mt-4 flex flex-col gap-0.5 border-t border-gray-100 pt-4">
           <span class="text-xs text-gray-500">Observaciones</span>

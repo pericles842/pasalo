@@ -1,0 +1,49 @@
+@if (!viewOnly) {
+<div class="flex flex-col gap-2">
+  <div class="relative">
+    <nb-form-field>
+      <nb-icon nbPrefix icon="search-outline"></nb-icon>
+      <input nbInput fullWidth type="text" placeholder="Busca tu ubicación, ej. Candelaria" autocomplete="off"
+        [value]="search_query()" (input)="onSearchInput($any($event.target).value)"
+        (focus)="show_suggestions.set(true)" (blur)="onSearchBlur()" />
+      @if (is_searching()) {
+      <nb-icon nbSuffix icon="loader-outline" class="animate-spin"></nb-icon>
+      }
+    </nb-form-field>
+
+    @if (show_suggestions() && suggestions().length > 0) {
+    <ul class="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+      @for (item of suggestions(); track item.display_name) {
+      <li class="cursor-pointer px-3 py-2 text-sm text-slate-700 hover:bg-blue-50" (mousedown)="selectSuggestion(item)">
+        {{ item.display_name }}
+      </li>
+      }
+    </ul>
+    }
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <button nbButton size="small" appearance="outline" status="primary" type="button"
+      [disabled]="is_locating()" (click)="useCurrentLocation()">
+      <nb-icon icon="radio-button-on-outline"></nb-icon>
+      {{ is_locating() ? 'Ubicando...' : 'Usar mi ubicación actual' }}
+    </button>
+
+    <button nbButton size="small" appearance="outline" status="primary" type="button" (click)="showMap()">
+      <nb-icon icon="pin-outline"></nb-icon>
+      Elegir en el mapa
+    </button>
+  </div>
+
+  @if (has_location()) {
+  <span class="text-xs font-medium text-green-700">📍 Ubicación marcada en el mapa</span>
+  }
+
+  @if (map_visible()) {
+  <div #mapContainer class="h-56 w-full overflow-hidden rounded-lg border border-gray-200"></div>
+  <span class="text-[11px] text-gray-400">Toca el mapa, arrastra el pin o busca de nuevo para ajustar el punto.</span>
+  }
+</div>
+} @else if (lat != null && lng != null) {
+<div #mapContainer class="h-64 w-full overflow-hidden rounded-lg border border-gray-200"></div>
+}

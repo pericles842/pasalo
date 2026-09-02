@@ -8,6 +8,7 @@ import { ConfirmService } from '@shared/services/confirm.service';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
 import { BsAmountPipe } from '@shared/pipes/bs-amount.pipe';
 import { ImageViewerDialog } from '@shared/components/image-viewer-dialog/image-viewer-dialog';
+import { LocationPicker } from '@shared/components/location-picker/location-picker';
 import { AuthService } from 'src/app/features/auth/auth.service';
 import { OrderDetail as OrderDetailModel } from '../../interfaces/order';
 import { OrdersService } from '../../orders.service';
@@ -16,7 +17,7 @@ const STATUS_LABELS: Record<number, string> = { 1: 'En espera', 2: 'Pagado', 3: 
 
 @Component({
   selector: 'app-order-detail',
-  imports: [NbCardModule, NbButtonModule, NbIconModule, NbEvaIconsModule, NbTooltipModule, RouterLink, BsAmountPipe, DatePipe],
+  imports: [NbCardModule, NbButtonModule, NbIconModule, NbEvaIconsModule, NbTooltipModule, RouterLink, BsAmountPipe, DatePipe, LocationPicker],
   templateUrl: './order-detail.html',
 })
 export class OrderDetail implements OnInit {
@@ -99,9 +100,17 @@ export class OrderDetail implements OnInit {
       `Teléfono: ${order.phone_client}`,
       `Ubicación: ${order.address_client ?? '—'}`,
     ];
+    if (order.lat != null && order.lng != null) {
+      lines.push(`Ubicación (mapa): ${this.mapUrl(order.lat, order.lng)}`);
+    }
     if (order.notes) lines.push(`Observaciones: ${order.notes}`);
 
     this.copyToClipboard(lines.join('\n'), 'Datos del comprador copiados.');
+  }
+
+  /** Link al visor de OpenStreetMap: mismo espiritu open-source que el mapa embebido */
+  mapUrl(lat: number, lng: number): string {
+    return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`;
   }
 
   copyProductsData(): void {

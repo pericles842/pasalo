@@ -141,9 +141,13 @@
           [label]="'Teléfono' + (isRequired('phone') ? '' : ' (opcional)')" [control]="buyer_form.controls.phone"
           error="El teléfono es requerido" />
 
-        <app-global-input class="col-span-12" name="buyer_address"
-          [label]="'Ubicación' + (isRequired('address') ? '' : ' (opcional)')" placeholder="Ej. Caracas, Venezuela"
-          [control]="buyer_form.controls.address" error="La ubicación es requerida" />
+        <div class="col-span-12 flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-gray-600">
+            Ubicación{{ isRequired('address') ? '' : ' (opcional)' }}
+          </label>
+          <app-location-picker (locationChange)="location.set($event)"
+            (addressResolved)="buyer_form.controls.address.setValue($event)" />
+        </div>
       </div>
 
       <button nbButton status="primary" fullWidth class="mt-2!" type="button" [disabled]="is_submitting_buyer()"

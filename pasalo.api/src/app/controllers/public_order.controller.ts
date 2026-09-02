@@ -161,7 +161,13 @@ export class PublicOrderController {
             const required_fields = normalizeRequiredFields(company?.required_buyer_fields);
             const missing = required_fields.filter((field) => !buyer_data[field]);
 
-            if (missing.length > 0) {
+            // El pin del mapa comparte el mismo checkbox "Ubicacion" que el texto
+            // libre: si la empresa lo marco como requerido, no basta con escribir
+            // la direccion, tambien hay que haber marcado un punto en el mapa.
+            const { lat, lng } = req.body;
+            const missing_location = required_fields.includes('address') && (!lat || !lng);
+
+            if (missing.length > 0 || missing_location) {
                 res.status(400).json({ message: 'Datos incompletos', error: 'Completa todos tus datos.' });
                 return;
             }
@@ -182,7 +188,8 @@ export class PublicOrderController {
             await tenantDb.query(
                 `UPDATE orders
                  SET first_name_client = :first_name, last_name_client = :last_name, email_client = :email,
-                     ci_client = :ci, phone_client = :phone, address_client = :address, updatedAt = NOW()
+                     ci_client = :ci, phone_client = :phone, address_client = :address,
+                     lat = :lat, lng = :lng, updatedAt = NOW()
                  WHERE id = :id`,
                 {
                     replacements: {
@@ -192,7 +199,9 @@ export class PublicOrderController {
                         email: email?.trim() || null,
                         ci: ci?.trim() || null,
                         phone: phone?.trim() || null,
-                        address: address?.trim() || null
+                        address: address?.trim() || null,
+                        lat: lat ? Number(lat) : null,
+                        lng: lng ? Number(lng) : null
                     }
                 }
             );

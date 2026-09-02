@@ -25,6 +25,9 @@ export interface Order {
   ci_client: string | null;
   phone_client: string | null;
   address_client: string | null;
+  /** Punto exacto marcado en el mapa (precisa o a mano), ademas de address_client */
+  lat: number | null;
+  lng: number | null;
   notes: string | null;
   amount: number;
   /** Bs fijado por el vendedor al crear la orden (editable), lo ve el comprador */
@@ -99,6 +102,8 @@ export interface PublicBuyerPayload {
   ci: string | null;
   phone: string | null;
   address: string | null;
+  lat: number | null;
+  lng: number | null;
 }
 
 /** Renglon de producto dentro del formulario de creacion */

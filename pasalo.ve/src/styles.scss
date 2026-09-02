@@ -116,6 +116,17 @@ nb-select.select-compact .select-button {
   min-width: 0;
 }
 
+// Nebular subraya todos los <a> por defecto, en los dos temas (login,
+// "volver", "Ver en OpenStreetMap", links dentro de tarjetas...) con una
+// regla global mas especifica que una clase suelta de Tailwind (por eso media
+// app pelea ese subrayado caso por caso con `no-underline!`, ver
+// NAV_LINK_CLASS en dashboard.ts). Se apaga una sola vez para toda la app en
+// vez de seguir peleandola link por link.
+.nb-theme-default a,
+.nb-theme-dark a {
+  text-decoration: none;
+}
+
 // Red de seguridad: ningun elemento (propio o de una libreria de terceros como
 // Nebular) puede crear scroll horizontal a nivel de pagina. Los contenedores que
 // si necesitan scroll horizontal propio (ej. las tablas) lo declaran con su propio
