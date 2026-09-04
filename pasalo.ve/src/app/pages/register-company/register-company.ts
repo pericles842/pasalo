@@ -11,6 +11,8 @@ import {
   NbStepperModule,
 } from '@nebular/theme';
 import { CardSubscriptionPlanComponent } from "@shared/components/card-subscription-plan/card-subscription-plan";
+import { BillingCycleToggle } from "@shared/components/billing-cycle-toggle/billing-cycle-toggle";
+import { BillingCycle, annualPrice } from "@shared/utils/billing";
 import { GeneralTitleForm } from "@shared/elements/general-title-form/general-title-form";
 import { passwordMatchValidator } from '@shared/validators/password-match.validator';
 import { domainFormatValidator } from '@shared/validators/domain-format.validator';
@@ -39,6 +41,7 @@ import { SubscriptionService } from 'src/app/features/company/subscription.servi
     ReactiveFormsModule,
     CommonModule,
     CardSubscriptionPlanComponent,
+    BillingCycleToggle,
     UsersInfoForm,
     RouterLink
   ],
@@ -76,6 +79,9 @@ export class RegisterCompany implements OnInit {
 
   selected_plan_index = signal<number | null>(null);
 
+  /** Ciclo de facturación elegido en el paso "Plan" (mensual por defecto) */
+  billing_cycle = signal<BillingCycle>('monthly');
+
   is_saving = signal(false);
 
   company_registered = signal(false);
@@ -103,8 +109,17 @@ export class RegisterCompany implements OnInit {
       plan: { id: plan.id, name: plan.name, price: plan.price },
       amount_usd: plan.price,
       amount_bs
-    });
+    }, this.billing_cycle());
   });
+
+  /** Precio del plan elegido con su periodo, para las pantallas de confirmación */
+  get selected_plan_price_label(): string {
+    const plan = this.selected_plan;
+    if (!plan) return '';
+    return this.billing_cycle() === 'annual'
+      ? `$${annualPrice(plan.price)}/año`
+      : `$${plan.price}/mes`;
+  }
 
   constructor(
     private planService: PlanService,

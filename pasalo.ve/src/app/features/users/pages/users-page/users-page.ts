@@ -3,6 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NbButtonModule, NbCardModule, NbDialogService } from '@nebular/theme';
 import { CardSubscriptionPlanComponent } from '@shared/components/card-subscription-plan/card-subscription-plan';
+import { BillingCycleToggle } from '@shared/components/billing-cycle-toggle/billing-cycle-toggle';
+import { BillingCycle } from '@shared/utils/billing';
 import { passwordMatchValidator } from '@shared/validators/password-match.validator';
 import { ToastService } from '@shared/services/toast.service';
 import { ConfirmService } from '@shared/services/confirm.service';
@@ -22,6 +24,7 @@ import { UsersService } from '../../users.service';
     NbCardModule,
     NbButtonModule,
     CardSubscriptionPlanComponent,
+    BillingCycleToggle,
     NewUserForm
   ],
   templateUrl: './users-page.html',
@@ -44,6 +47,7 @@ export class UsersPage implements OnInit {
   plans = signal<PlanInterface[]>([]);
   current_plan = signal<PlanInterface | null>(null);
   usage = signal<PlanUsage>({ used: 0, limit: 0, available: 0 });
+  billing_cycle = signal<BillingCycle>('monthly');
 
   is_loading = signal(true);
   is_saving = signal(false);
@@ -144,7 +148,7 @@ export class UsersPage implements OnInit {
 
         if (response.status === 'pending_verification') {
           const company_name = this.auth.session()?.company?.name ?? 'mi empresa';
-          window.open(this.subscriptionService.buildWhatsAppUrl(company_name, response), '_blank');
+          window.open(this.subscriptionService.buildWhatsAppUrl(company_name, response, this.billing_cycle()), '_blank');
           this.toast.success(`Solicitud enviada. Te escribiremos por WhatsApp para coordinar el pago del ${response.plan.name}.`);
           return;
         }

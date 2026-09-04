@@ -3,6 +3,8 @@ import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NbButtonModule } from '@nebular/theme';
 import { CardSubscriptionPlanComponent } from 'src/app/shared/components/card-subscription-plan/card-subscription-plan';
+import { BillingCycleToggle } from '@shared/components/billing-cycle-toggle/billing-cycle-toggle';
+import { BillingCycle } from '@shared/utils/billing';
 import { PlanInterface } from 'src/app/services/http/plan/plan';
 import { PlanService } from 'src/app/services/http/plan/plan.service';
 
@@ -19,7 +21,7 @@ interface Step {
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, NbButtonModule, CardSubscriptionPlanComponent],
+  imports: [RouterLink, NbButtonModule, CardSubscriptionPlanComponent, BillingCycleToggle],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
@@ -30,6 +32,7 @@ export class Home implements OnInit {
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   plans = signal<PlanInterface[]>([]);
+  billing_cycle = signal<BillingCycle>('monthly');
   is_loading = signal(true);
 
   readonly benefits: Benefit[] = [

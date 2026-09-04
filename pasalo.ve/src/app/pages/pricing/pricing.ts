@@ -2,12 +2,14 @@ import { isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CardSubscriptionPlanComponent } from 'src/app/shared/components/card-subscription-plan/card-subscription-plan';
+import { BillingCycleToggle } from '@shared/components/billing-cycle-toggle/billing-cycle-toggle';
+import { BillingCycle } from '@shared/utils/billing';
 import { PlanInterface } from 'src/app/services/http/plan/plan';
 import { PlanService } from 'src/app/services/http/plan/plan.service';
 
 @Component({
   selector: 'app-pricing',
-  imports: [RouterLink, CardSubscriptionPlanComponent],
+  imports: [RouterLink, CardSubscriptionPlanComponent, BillingCycleToggle],
   templateUrl: './pricing.html',
 })
 export class Pricing implements OnInit {
@@ -17,6 +19,7 @@ export class Pricing implements OnInit {
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   plans = signal<PlanInterface[]>([]);
+  billing_cycle = signal<BillingCycle>('monthly');
   is_loading = signal(true);
 
   ngOnInit(): void {

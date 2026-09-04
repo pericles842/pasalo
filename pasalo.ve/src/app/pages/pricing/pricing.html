@@ -10,9 +10,14 @@
   @if (is_loading()) {
   <p class="text-center text-sm text-gray-500">Cargando planes...</p>
   } @else {
+  <div class="flex flex-col items-center gap-2">
+    <app-billing-cycle-toggle [(cycle)]="billing_cycle" />
+    <span class="text-xs text-gray-500">Con el plan anual ahorras 20% (2 meses gratis).</span>
+  </div>
   <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
     @for (plan of plans(); track plan.id) {
-    <app-card-subscription-plan [plan]="plan" [isSelected]="false" (planSelected)="goToStart()" />
+    <app-card-subscription-plan [plan]="plan" [isSelected]="false" [billingCycle]="billing_cycle()"
+      (planSelected)="goToStart()" />
     }
   </div>
   }

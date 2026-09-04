@@ -34,15 +34,20 @@
   @if (show_plans()) {
   <div class="rounded-xl border border-blue-100 p-5">
     <h3 class="mb-1 text-lg font-semibold">Cambia tu plan</h3>
-    <p class="mb-5 text-sm text-gray-500">
+    <p class="mb-4 text-sm text-gray-500">
       Al subir de plan amplías el cupo de usuarios de inmediato. No puedes bajar a un plan
       con menos usuarios de los que ya tienes creados.
     </p>
 
+    <div class="mb-5 flex flex-wrap items-center gap-3">
+      <app-billing-cycle-toggle [(cycle)]="billing_cycle" />
+      <span class="text-sm text-gray-500">Con el plan anual ahorras 20% (2 meses gratis).</span>
+    </div>
+
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       @for (plan of plans(); track plan.id) {
       <app-card-subscription-plan [plan]="plan" [isSelected]="plan.id === current_plan()?.id"
-        (planSelected)="changePlan(plan)">
+        [billingCycle]="billing_cycle()" (planSelected)="changePlan(plan)">
       </app-card-subscription-plan>
       }
     </div>

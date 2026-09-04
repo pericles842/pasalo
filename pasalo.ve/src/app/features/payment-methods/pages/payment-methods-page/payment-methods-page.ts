@@ -4,6 +4,8 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { NbButtonModule, NbCardModule, NbSelectModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
 import { CardSubscriptionPlanComponent } from '@shared/components/card-subscription-plan/card-subscription-plan';
+import { BillingCycleToggle } from '@shared/components/billing-cycle-toggle/billing-cycle-toggle';
+import { BillingCycle } from '@shared/utils/billing';
 import { CiInput } from '@shared/components/ci-input/ci-input';
 import { PhoneInput } from '@shared/components/phone-input/phone-input';
 import { VENEZUELA_BANKS } from '@shared/utils/venezuela-banks';
@@ -38,6 +40,7 @@ const TYPE_LABELS: Record<PaymentMethodType, string> = {
     NbSelectModule,
     GlobalInput,
     CardSubscriptionPlanComponent,
+    BillingCycleToggle,
     CiInput,
     PhoneInput,
   ],
@@ -57,6 +60,7 @@ export class PaymentMethodsPage implements OnInit {
   usage = signal<PaymentMethodsPlanUsage | null>(null);
   current_plan = signal<PaymentMethodsPlan | null>(null);
   plans = signal<PlanInterface[]>([]);
+  billing_cycle = signal<BillingCycle>('monthly');
   show_plans = signal(false);
   is_loading = signal(true);
   is_saving = signal(false);
@@ -171,7 +175,7 @@ export class PaymentMethodsPage implements OnInit {
 
         if (response.status === 'pending_verification') {
           const company_name = this.auth.session()?.company?.name ?? 'mi empresa';
-          window.open(this.subscriptionService.buildWhatsAppUrl(company_name, response), '_blank');
+          window.open(this.subscriptionService.buildWhatsAppUrl(company_name, response, this.billing_cycle()), '_blank');
           this.toast.success(`Solicitud enviada. Te escribiremos por WhatsApp para coordinar el pago del ${response.plan.name}.`);
           return;
         }
