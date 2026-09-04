@@ -52,7 +52,8 @@ export class RegisterCompany implements OnInit {
     name: new FormControl(null, [Validators.required, Validators.minLength(5)]),
     logo: new FormControl(null),
     rif: new FormControl(null),
-    email: new FormControl(null, [Validators.required, Validators.email]),
+    // Correo de la empresa opcional: solo se valida el formato si se escribe algo
+    email: new FormControl(null, [Validators.email]),
     domain: new FormControl(null, [domainFormatValidator()])
   });
 

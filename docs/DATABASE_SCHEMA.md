@@ -14,8 +14,8 @@ La empresa cliente de Pásalo (el negocio que vende por redes).
 | `uuid` | char(36) PK | |
 | `name` | varchar(255) | Nombre del negocio |
 | `logo_url` | varchar(255) NULL | |
-| `rif` | varchar(255) UNIQUE | |
-| `email` | varchar(255) UNIQUE | Correo de contacto de la empresa (distinto del correo del usuario admin) |
+| `rif` | varchar(255) UNIQUE NULL | Opcional en el registro; vacío se guarda como NULL |
+| `email` | varchar(255) UNIQUE NULL | Correo de contacto de la empresa (distinto del correo del usuario admin). Opcional en el registro; vacío se guarda como NULL |
 | `tenant_id` | varchar(255) UNIQUE | Identificador corto derivado del dominio; se usa para resolver la conexión a la base del tenant y viaja en la URL pública de pago |
 | `domain` | varchar(255) UNIQUE | Dominio que dio la empresa al registrarse; de acá sale `tenant_id` |
 | `user_limit` | int, default 0 | **Vestigial**: el límite real de usuarios lo define el plan contratado (`plans.user_limit`), no esta columna |

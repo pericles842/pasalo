@@ -10,7 +10,7 @@ export class CompanyModel extends Model<InferAttributes<CompanyModel>, InferCrea
 
   declare name: string;
   declare rif: CreationOptional<string | null>;
-  declare email: string;
+  declare email: CreationOptional<string | null>;
   declare tenant_id: string;
   declare domain: CreationOptional<string | null>;
 
@@ -189,11 +189,13 @@ CompanyModel.init(
       unique: true
     },
     email: {
+      // Opcional, igual que el RIF y el dominio. Sigue siendo unico: el
+      // controlador guarda null cuando llega vacio para que varias empresas
+      // sin correo no choquen entre si
       type: DataTypes.STRING(255),
-      allowNull: false,
+      allowNull: true,
       unique: true,
       validate: {
-        notEmpty: { msg: 'El correo de la empresa es requerido' },
         isEmail: { msg: 'El correo de la empresa no es válido' }
       }
     },

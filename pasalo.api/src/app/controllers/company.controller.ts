@@ -147,7 +147,9 @@ export class CompanyController {
                 // Vacio se guarda como null: con unique:true, dos empresas con
                 // rif:'' chocarian entre si, pero varias con null no
                 rif: company_data.rif?.trim() || null,
-                email: company_data.email,
+                // Vacio se guarda como null por la misma razon que el rif: con
+                // unique:true, dos empresas con email:'' chocarian, con null no
+                email: company_data.email?.trim() || null,
                 domain: domain || null,
                 logo_url: company_data.logo ?? null,
                 tenant_id,
