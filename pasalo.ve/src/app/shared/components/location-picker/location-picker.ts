@@ -44,10 +44,10 @@ interface NominatimSuggestion {
  * Dos modos:
  *  - Edicion (viewOnly=false, paso 1 del pago publico): buscador de
  *    direcciones estilo Google Maps (Nominatim /search con sugerencias) mas
- *    dos botones, "Usar mi ubicacion actual" (geolocalizacion del navegador)
- *    y "Elegir en el mapa" (clic o arrastre del pin). El mapa no se carga
- *    hasta que el comprador elige una sugerencia o presiona alguno de los
- *    botones, para no sumar peso de entrada al flujo de pago.
+ *    el boton "Usar mi ubicacion actual" (geolocalizacion del navegador). El
+ *    mapa no se carga hasta que el comprador elige una sugerencia o usa su
+ *    ubicacion actual, para no sumar peso de entrada al flujo de pago; una
+ *    vez visible, el pin se puede seguir ajustando con clic o arrastre.
  *  - Solo lectura (viewOnly=true, detalle de la orden del vendedor): mapa
  *    chico con el pin ya puesto, sin controles de edicion.
  *
@@ -67,6 +67,8 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
   @Input() lat: number | null = null;
   @Input() lng: number | null = null;
   @Input() viewOnly = false;
+  /** Pinta el buscador en rojo, ej. cuando la empresa marco la ubicacion como requerida y todavia no hay punto */
+  @Input() invalid = false;
   @Output() locationChange = new EventEmitter<{ lat: number; lng: number }>();
   /** Nombre de la zona resuelto por geocoding inverso (ver reverseGeocode) */
   @Output() addressResolved = new EventEmitter<string>();
@@ -127,11 +129,6 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
-  }
-
-  showMap(): void {
-    this.map_visible.set(true);
-    this.scheduleInit();
   }
 
   private scheduleInit(): void {

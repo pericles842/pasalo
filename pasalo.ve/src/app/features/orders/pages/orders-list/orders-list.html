@@ -28,6 +28,19 @@
       </nb-select>
       }
 
+      <div class="flex items-center gap-2">
+        <input nbInput fullWidth size="small" class="w-full sm:w-56" placeholder="Rango de fechas" readonly
+          [nbDatepicker]="rangepicker" [formControl]="date_range_control" />
+        <nb-rangepicker #rangepicker></nb-rangepicker>
+
+        @if (filter_date_from() || filter_date_to()) {
+        <button nbButton size="small" appearance="ghost" status="basic" type="button" (click)="clearDateFilter()"
+          title="Quitar filtro de fecha">
+          <nb-icon icon="close-outline"></nb-icon>
+        </button>
+        }
+      </div>
+
       <button nbButton size="small" appearance="outline" status="primary" type="button"
         [disabled]="is_downloading_receipts() || !ordersWithReceipt().length"
         (click)="downloadAllReceipts()" title="Descarga en un .zip los comprobantes de las órdenes que ves en esta página">
@@ -61,7 +74,8 @@
           </thead>
           <tbody>
             @for (order of orders(); track order.id) {
-            <tr class="border-b border-gray-100 last:border-0" [class]="rowClass(order)">
+            <tr class="cursor-pointer border-b border-gray-100 last:border-0" [class]="rowClass(order)"
+              (click)="onRowClick(order, $event)">
               <td class="py-3 pr-4">
                 <div class="flex flex-col">
                   @if (order.first_name_client) {

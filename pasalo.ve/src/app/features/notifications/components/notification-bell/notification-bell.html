@@ -2,7 +2,7 @@
   <button class="relative grid h-9 w-9 place-items-center rounded-full text-primary cursor-pointer" type="button"
     aria-label="Notificaciones" (click)="toggle()">
     <nb-icon icon="bell-outline" [options]="{ width: 20, height: 20 }"></nb-icon>
-    @if (notifications().length > 0) {
+    @if (visibleNotifications().length > 0) {
     <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500"></span>
     }
   </button>
@@ -14,18 +14,18 @@
     class="fixed left-3 right-3 top-16 z-50 rounded-xl border border-gray-100 bg-white shadow-lg sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80">
     <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3">
       <span class="text-sm font-semibold text-slate-900">Notificaciones</span>
-      @if (notifications().length > 0) {
+      @if (visibleNotifications().length > 0) {
       <button class="text-xs font-medium text-gray-400 hover:text-red-600" type="button" (click)="clearAll($event)">
         Borrar todas
       </button>
       }
     </div>
 
-    @if (notifications().length === 0) {
+    @if (visibleNotifications().length === 0) {
     <p class="m-0 px-4 py-6 text-center text-sm text-gray-500">Todavía no hay pagos recibidos.</p>
     } @else {
     <div class="flex max-h-80 flex-col overflow-y-auto">
-      @for (n of notifications(); track n.id) {
+      @for (n of visibleNotifications(); track n.id) {
       <div class="relative flex flex-col gap-0.5 border-b border-gray-50 px-4 py-3 text-left last:border-0"
         [class.bg-amber-50]="n.is_suspicious">
         <button class="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded text-gray-400 hover:bg-red-50 hover:text-red-600"

@@ -142,11 +142,14 @@
           error="El teléfono es requerido" />
 
         <div class="col-span-12 flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-gray-600">
+          <label class="text-sm font-medium text-gray-600" [class.text-red-600]="addressInvalid">
             Ubicación{{ isRequired('address') ? '' : ' (opcional)' }}
           </label>
-          <app-location-picker (locationChange)="location.set($event)"
+          <app-location-picker [invalid]="addressInvalid" (locationChange)="location.set($event)"
             (addressResolved)="buyer_form.controls.address.setValue($event)" />
+          @if (addressInvalid) {
+          <small class="text-xs text-red-600">Marca tu ubicación en el mapa.</small>
+          }
         </div>
       </div>
 

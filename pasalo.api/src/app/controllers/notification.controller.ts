@@ -45,7 +45,7 @@ export class NotificationController {
             const limit = Math.min(Number(req.query.limit) || 100, 100);
 
             const notifications = await tenantDb.query<any>(
-                `SELECT n.*, o.pay_url_token
+                `SELECT n.*, o.pay_url_token, o.status_id AS order_status_id
                  FROM notifications n
                  JOIN orders o ON o.id = n.order_id
                  ${whereClause}

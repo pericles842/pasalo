@@ -9,5 +9,7 @@ export interface AppNotification {
   reference: string | null;
   pay_url_token: string;
   is_suspicious: boolean;
+  /** Estado actual de la orden asociada: permite saber si un pago sospechoso ya fue aprobado */
+  order_status_id: number;
   createdAt: string;
 }

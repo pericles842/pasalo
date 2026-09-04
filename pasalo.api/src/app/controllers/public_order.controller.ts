@@ -35,6 +35,10 @@ function normalizeRequiredFields(value: unknown): string[] {
 // creo la orden y se pago
 const AMOUNT_TOLERANCE = 0.03;
 
+// Minimo de digitos en el texto reconocido para considerar que la foto es un
+// comprobante real y no una imagen cualquiera (logo, foto random, etc.)
+const MIN_RECEIPT_DIGITS = 4;
+
 export class PublicOrderController {
 
     /**
@@ -216,7 +220,9 @@ export class PublicOrderController {
      * El cliente sube su comprobante y elige con que metodo pago.
      * Se intenta extraer la referencia y el monto de la imagen. Si el monto no
      * coincide con lo que la orden espera, la orden NO pasa a pagado sola:
-     * queda marcada como sospechosa para que el vendedor la revise a mano.
+     * queda marcada como sospechosa para que el vendedor la revise a mano. Si
+     * la foto no trae suficientes numeros (no es un comprobante), se rechaza
+     * directo.
      *
      * @static
      * @memberof PublicOrderController
@@ -302,16 +308,28 @@ export class PublicOrderController {
                 }
             }
 
-            const is_suspicious = extracted_amount !== null && expected_amount > 0
+            // Un comprobante real (monto, fecha, referencia, banco...) siempre trae
+            // varios digitos. Con menos de MIN_RECEIPT_DIGITS la foto no es un
+            // comprobante (ej. una imagen cualquiera subida por error): se rechaza
+            // directo. Se pide mas de un solo digito porque el OCR a veces "lee"
+            // un numero suelto en logos o texturas de una imagen sin nada que ver.
+            const digit_count = (raw_text.match(/\d/g) ?? []).length;
+            const is_invalid_receipt = digit_count < MIN_RECEIPT_DIGITS;
+
+            const is_suspicious = !is_invalid_receipt && extracted_amount !== null && expected_amount > 0
                 && Math.abs(extracted_amount - expected_amount) / expected_amount > AMOUNT_TOLERANCE;
 
-            const new_status_id = is_suspicious ? order.status_id : 2;
+            // Sin comprobante valido, rechazada directo. Si el monto no cuadra,
+            // la orden NO pasa a pagado sola: queda como estaba (normalmente "En
+            // espera") para que el vendedor la revise y confirme a mano.
+            const new_status_id = is_invalid_receipt ? 4 : (is_suspicious ? order.status_id : 2);
 
             await tenantDb.query(
                 `UPDATE orders
                  SET status_id = :status_id, payment_method_id = :payment_method_id, receipt_url = :receipt_url,
                      extracted_reference = :reference, extracted_amount = :extracted_amount,
-                     is_suspicious = :is_suspicious, extracted_raw_text = :raw_text,
+                     is_suspicious = :is_suspicious, is_invalid_receipt = :is_invalid_receipt,
+                     extracted_raw_text = :raw_text,
                      paid_at = CASE WHEN :status_id = 2 THEN NOW() ELSE paid_at END,
                      updatedAt = NOW()
                  WHERE id = :id`,
@@ -324,6 +342,7 @@ export class PublicOrderController {
                         reference,
                         extracted_amount,
                         is_suspicious,
+                        is_invalid_receipt,
                         raw_text
                     }
                 }

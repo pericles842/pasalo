@@ -56,6 +56,8 @@ export class PublicPayment implements OnInit {
 
   /** Punto marcado en el mapa (precisa o a mano). Ver isRequired('address') en submitBuyer */
   location = signal<{ lat: number; lng: number } | null>(null);
+  /** Se intento enviar el paso 1 al menos una vez: recien ahi se pinta en rojo la ubicacion si falta */
+  buyer_submit_attempted = signal(false);
 
   /** Paso 2: metodo de pago + comprobante */
   selected_method_id = signal<number | null>(null);
@@ -120,6 +122,11 @@ export class PublicPayment implements OnInit {
     return (this.summary()?.order.required_fields ?? []).includes(field);
   }
 
+  /** El pin del mapa no tiene FormControl propio: se pinta en rojo con esta condicion, igual que los demas campos requeridos */
+  get addressInvalid(): boolean {
+    return this.buyer_submit_attempted() && this.isRequired('address') && !this.location();
+  }
+
   parseDatos(datos: Record<string, string> | string): { label: string; value: string }[] {
     if (!datos) return [];
 
@@ -146,6 +153,7 @@ export class PublicPayment implements OnInit {
   submitBuyer(): void {
     if (this.is_submitting_buyer()) return;
 
+    this.buyer_submit_attempted.set(true);
     this.buyer_form.markAllAsTouched();
 
     if (this.buyer_form.invalid) {

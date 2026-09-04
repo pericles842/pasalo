@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, OnDestroy, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NbButtonModule, NbIconModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
@@ -31,17 +31,29 @@ export class NotificationBell implements OnInit, OnDestroy {
   is_open = signal(false);
   deleting_id = signal<string | null>(null);
 
+  /**
+   * Un pago sospechoso deja de mostrarse aca en cuanto su orden se aprueba
+   * (status_id !== 1): ya no necesita atencion, pero sigue en el historial
+   * completo (no se elimina, solo se quita de esta vista rapida).
+   */
+  visibleNotifications = computed(() =>
+    this.notifications().filter((n) => !n.is_suspicious || n.order_status_id === 1)
+  );
+
   private handleOrderPaid = (_payload: OrderPaidNotification) => this.load();
+  private handleOrderStatusChanged = () => this.load();
 
   ngOnInit(): void {
     if (!this.is_browser) return;
 
     this.load();
     this.socket.onOrderPaid(this.handleOrderPaid);
+    this.socket.onOrderStatusChanged(this.handleOrderStatusChanged);
   }
 
   ngOnDestroy(): void {
     this.socket.offOrderPaid(this.handleOrderPaid);
+    this.socket.offOrderStatusChanged(this.handleOrderStatusChanged);
   }
 
   private load(): void {

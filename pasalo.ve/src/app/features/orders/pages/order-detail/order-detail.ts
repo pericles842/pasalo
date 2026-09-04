@@ -108,9 +108,21 @@ export class OrderDetail implements OnInit {
     this.copyToClipboard(lines.join('\n'), 'Datos del comprador copiados.');
   }
 
-  /** Link al visor de OpenStreetMap: mismo espiritu open-source que el mapa embebido */
+  /** Link para abrir el punto marcado directo en Google Maps */
   mapUrl(lat: number, lng: number): string {
-    return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`;
+    return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  }
+
+  /** Link de ruta en Google Maps, listo para que el delivery navegue hasta el punto */
+  private routeUrl(lat: number, lng: number): string {
+    return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+  }
+
+  copyDeliveryRoute(): void {
+    const order = this.data()?.order;
+    if (!order || order.lat == null || order.lng == null) return;
+
+    this.copyToClipboard(this.routeUrl(order.lat, order.lng), 'Ruta copiada para el delivery.');
   }
 
   copyProductsData(): void {

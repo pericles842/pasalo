@@ -154,6 +154,16 @@ export class OrderController {
                 replacements.status_id = req.query.status_id;
             }
 
+            if (req.query.date_from) {
+                where.push('o.createdAt >= :date_from');
+                replacements.date_from = `${req.query.date_from} 00:00:00`;
+            }
+
+            if (req.query.date_to) {
+                where.push('o.createdAt <= :date_to');
+                replacements.date_to = `${req.query.date_to} 23:59:59`;
+            }
+
             const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
             const limit = Math.min(Number(req.query.limit) || 10, 50);

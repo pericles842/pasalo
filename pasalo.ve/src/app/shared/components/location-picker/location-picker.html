@@ -4,8 +4,9 @@
     <nb-form-field>
       <nb-icon nbPrefix icon="search-outline"></nb-icon>
       <input nbInput fullWidth type="text" placeholder="Busca tu ubicación, ej. Candelaria" autocomplete="off"
-        [value]="search_query()" (input)="onSearchInput($any($event.target).value)"
-        (focus)="show_suggestions.set(true)" (blur)="onSearchBlur()" />
+        [status]="invalid ? 'danger' : 'basic'" [value]="search_query()"
+        (input)="onSearchInput($any($event.target).value)" (focus)="show_suggestions.set(true)"
+        (blur)="onSearchBlur()" />
       @if (is_searching()) {
       <nb-icon nbSuffix icon="loader-outline" class="animate-spin"></nb-icon>
       }
@@ -27,11 +28,6 @@
       [disabled]="is_locating()" (click)="useCurrentLocation()">
       <nb-icon icon="radio-button-on-outline"></nb-icon>
       {{ is_locating() ? 'Ubicando...' : 'Usar mi ubicación actual' }}
-    </button>
-
-    <button nbButton size="small" appearance="outline" status="primary" type="button" (click)="showMap()">
-      <nb-icon icon="pin-outline"></nb-icon>
-      Elegir en el mapa
     </button>
   </div>
 

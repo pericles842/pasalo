@@ -5,7 +5,7 @@ import {
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { TitleStrategy, provideRouter, withInMemoryScrolling } from '@angular/router';
-import { NbDialogModule, NbOverlayContainerAdapter, NbThemeModule, NbToastrModule } from '@nebular/theme';
+import { NbDatepickerModule, NbDialogModule, NbOverlayContainerAdapter, NbThemeModule, NbToastrModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 
 import { routes } from './app.routes';
@@ -34,6 +34,7 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(NbEvaIconsModule),
     importProvidersFrom(NbToastrModule.forRoot()),
     importProvidersFrom(NbDialogModule.forRoot()),
+    importProvidersFrom(NbDatepickerModule.forRoot()),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor, loadingInterceptor])),
     {
       provide: NbOverlayContainerAdapter,

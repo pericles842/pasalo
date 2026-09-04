@@ -42,6 +42,8 @@ export interface Order {
   extracted_raw_text?: string | null;
   /** El monto extraído del comprobante no coincidía con lo esperado: revisar a mano */
   is_suspicious: boolean;
+  /** La imagen subida no tenía pinta de comprobante (muy pocos dígitos reconocidos): se rechazó sola */
+  is_invalid_receipt: boolean;
   paid_at: string | null;
   reference: string | null;
   pay_url_token: string;

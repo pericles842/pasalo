@@ -1,7 +1,8 @@
 import { DatePipe, DecimalPipe, isPlatformBrowser } from '@angular/common';
 import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { NbButtonModule, NbCardModule, NbIconModule, NbSelectModule } from '@nebular/theme';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { NbButtonModule, NbCalendarRange, NbCardModule, NbDatepickerModule, NbIconModule, NbInputModule, NbSelectModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -18,13 +19,14 @@ import { OrdersService } from '../../orders.service';
 
 @Component({
   selector: 'app-orders-list',
-  imports: [NbCardModule, NbSelectModule, NbButtonModule, NbIconModule, NbEvaIconsModule, DatePipe, DecimalPipe, RouterLink],
+  imports: [NbCardModule, NbSelectModule, NbButtonModule, NbIconModule, NbEvaIconsModule, NbDatepickerModule, NbInputModule, ReactiveFormsModule, DatePipe, DecimalPipe, RouterLink],
   templateUrl: './orders-list.html',
 })
 export class OrdersList implements OnInit, OnDestroy {
 
   private ordersService = inject(OrdersService);
   private usersService = inject(UsersService);
+  private router = inject(Router);
   protected auth = inject(AuthService);
   protected exchangeRate = inject(ExchangeRateService);
   private toast = inject(ToastService);
@@ -46,9 +48,14 @@ export class OrdersList implements OnInit, OnDestroy {
   total_pages = signal(1);
   total = signal(0);
 
-  /** Filtrado simple: por vendedor (solo admin) y por estado */
+  /** Filtrado simple: por vendedor (solo admin), por estado y por rango de fecha */
   filter_seller_id = signal<string | null>(null);
   filter_status_id = signal<number | null>(null);
+
+  filter_date_from = signal<string | null>(null);
+  filter_date_to = signal<string | null>(null);
+  /** Input Nebular del rango de fecha; sincronizado a mano con filter_date_from/to (ver ngOnInit) */
+  date_range_control = new FormControl<NbCalendarRange<Date> | null>(null);
 
   is_admin = computed(() => this.auth.session()?.role?.slug === 'admin');
 
@@ -75,6 +82,17 @@ export class OrdersList implements OnInit, OnDestroy {
 
     // El vendedor/admin ve la orden pasar a "Pagado" sin tener que recargar la pantalla
     this.socket.onOrderPaid(this.handleOrderPaid);
+
+    // Solo se filtra cuando el rango queda completo (inicio y fin elegidos);
+    // el rangepicker emite dos veces, una por cada extremo seleccionado
+    this.date_range_control.valueChanges.subscribe((range) => {
+      if (!range?.end) return;
+
+      this.filter_date_from.set(this.formatDateInput(range.start));
+      this.filter_date_to.set(this.formatDateInput(range.end));
+      this.page.set(1);
+      this.loadOrders();
+    });
   }
 
   ngOnDestroy(): void {
@@ -88,6 +106,8 @@ export class OrdersList implements OnInit, OnDestroy {
       .getOrders({
         seller_id: this.filter_seller_id(),
         status_id: this.filter_status_id(),
+        date_from: this.filter_date_from(),
+        date_to: this.filter_date_to(),
         page: this.page(),
         limit: this.page_size
       })
@@ -115,6 +135,28 @@ export class OrdersList implements OnInit, OnDestroy {
     this.filter_status_id.set(status_id);
     this.page.set(1);
     this.loadOrders();
+  }
+
+  clearDateFilter(): void {
+    this.date_range_control.reset(null, { emitEvent: false });
+    this.filter_date_from.set(null);
+    this.filter_date_to.set(null);
+    this.page.set(1);
+    this.loadOrders();
+  }
+
+  /**
+   * En telefono no hay que apuntarle al ojito: tocar la fila tambien abre el
+   * detalle. Pero un click dentro del selector de estado o los botones de
+   * accion no debe navegar: NO se usa stopPropagation para esto porque el
+   * selector de Nebular escucha clicks a nivel de document para abrirse, y
+   * cortar la propagacion antes de que llegue ahi lo deja sin poder abrirse.
+   */
+  onRowClick(order: Order, event: Event): void {
+    const target = event.target as HTMLElement;
+    if (target.closest('nb-select, button, a')) return;
+
+    this.router.navigate(['/dashboard', order.id]);
   }
 
   goToPage(page: number): void {
@@ -289,5 +331,12 @@ export class OrdersList implements OnInit, OnDestroy {
   private orderLabel(order: Order): string {
     if (order.first_name_client) return `${order.first_name_client} ${order.last_name_client}`.trim();
     return `orden #${order.id.slice(0, 8)}`;
+  }
+
+  /** Fecha en hora local, formato yyyy-MM-dd (el que espera el backend) */
+  private formatDateInput(date: Date): string {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${month}-${day}`;
   }
 }

@@ -7,6 +7,8 @@ import { CreateOrderPayload, CreateOrderResponse, Order, OrderDetail, OrderStatu
 export interface OrderFilters {
   seller_id?: string | null;
   status_id?: number | null;
+  date_from?: string | null;
+  date_to?: string | null;
   page?: number;
   limit?: number;
 }
@@ -45,6 +47,8 @@ export class OrdersService {
     let params = new HttpParams();
     if (filters?.seller_id) params = params.set('seller_id', filters.seller_id);
     if (filters?.status_id) params = params.set('status_id', filters.status_id);
+    if (filters?.date_from) params = params.set('date_from', filters.date_from);
+    if (filters?.date_to) params = params.set('date_to', filters.date_to);
     if (filters?.page) params = params.set('page', filters.page);
     if (filters?.limit) params = params.set('limit', filters.limit);
 

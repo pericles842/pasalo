@@ -58,9 +58,14 @@
           <div class="flex items-center justify-between">
             <span class="text-xs text-gray-500">Punto marcado en el mapa</span>
             <a [href]="mapUrl(result.order.lat, result.order.lng)" target="_blank" rel="noopener noreferrer"
-              class="text-xs text-blue-600">Ver en OpenStreetMap</a>
+              class="text-xs text-blue-600">Ver en Google Maps</a>
           </div>
           <app-location-picker [viewOnly]="true" [lat]="result.order.lat" [lng]="result.order.lng" />
+          <button nbButton size="small" appearance="outline" status="primary" type="button" class="self-start"
+            (click)="copyDeliveryRoute()">
+            <nb-icon icon="navigation-2-outline"></nb-icon>
+            Copiar ruta para el delivery
+          </button>
         </div>
         }
 
@@ -193,6 +198,17 @@
             <nb-icon icon="checkmark-outline"></nb-icon>
             {{ is_confirming() ? 'Confirmando...' : 'Confirmar pago' }}
           </button>
+        </div>
+        }
+
+        @if (result.order.status_id === 4 && result.order.is_invalid_receipt) {
+        <div class="mt-4 flex flex-col gap-1 rounded-lg bg-red-50 px-4 py-3">
+          <span class="text-sm font-semibold text-red-800">
+            Pago rechazado por comprobante no válido
+          </span>
+          <span class="text-xs text-red-700">
+            La imagen que subió el cliente no corresponde a un comprobante de pago reconocible.
+          </span>
         </div>
         }
 

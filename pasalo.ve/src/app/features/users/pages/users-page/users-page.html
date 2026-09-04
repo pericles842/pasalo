@@ -1,11 +1,11 @@
 <section class="flex flex-col gap-6">
 
   <!-- Consumo del plan -->
-  <div class="rounded-xl border border-blue-100 bg-blue-50/60 p-5">
+  <div class="min-w-0 rounded-xl border border-blue-100 bg-blue-50/60 p-5">
     <div class="flex flex-wrap items-start justify-between gap-4">
-      <div class="flex flex-col gap-1">
+      <div class="flex min-w-0 flex-col gap-1">
         <span class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">Tu plan</span>
-        <span class="text-xl font-bold text-slate-900">{{ current_plan()?.name ?? '—' }}</span>
+        <span class="text-xl font-bold text-slate-900 break-words">{{ current_plan()?.name ?? '—' }}</span>
         <span class="text-sm text-gray-500">
           {{ usage().used }} de {{ usage().limit }}
           {{ usage().limit === 1 ? 'usuario' : 'usuarios' }} en uso
@@ -18,7 +18,7 @@
       </div>
 
       <button nbButton size="small" status="primary" [appearance]="show_plans() ? 'filled' : 'outline'"
-        (click)="togglePlans()">
+        class="shrink-0" (click)="togglePlans()">
         {{ show_plans() ? 'Ocultar planes' : 'Cambiar plan' }}
       </button>
     </div>
@@ -58,7 +58,7 @@
 
     <!-- Crear usuario -->
     @if (is_admin()) {
-    <nb-card class="m-0">
+    <nb-card class="m-0 min-w-0">
       <nb-card-header>
         <span class="font-semibold">Nuevo usuario</span>
       </nb-card-header>
@@ -88,7 +88,7 @@
     }
 
     <!-- Listado -->
-    <nb-card class="m-0">
+    <nb-card class="m-0 min-w-0">
       <nb-card-header>
         <span class="font-semibold">Usuarios de la empresa</span>
       </nb-card-header>

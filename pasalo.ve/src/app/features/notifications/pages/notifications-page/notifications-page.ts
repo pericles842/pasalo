@@ -39,6 +39,7 @@ export class NotificationsPage implements OnInit, OnDestroy {
   is_admin = computed(() => this.auth.session()?.role?.slug === 'admin');
 
   private handleOrderPaid = (_payload: OrderPaidNotification) => this.load();
+  private handleOrderStatusChanged = () => this.load();
 
   ngOnInit(): void {
     if (!this.is_browser) return;
@@ -49,10 +50,17 @@ export class NotificationsPage implements OnInit, OnDestroy {
 
     this.load();
     this.socket.onOrderPaid(this.handleOrderPaid);
+    this.socket.onOrderStatusChanged(this.handleOrderStatusChanged);
   }
 
   ngOnDestroy(): void {
     this.socket.offOrderPaid(this.handleOrderPaid);
+    this.socket.offOrderStatusChanged(this.handleOrderStatusChanged);
+  }
+
+  /** Sospechoso y todavia sin aprobar (la orden sigue "en espera") */
+  needsReview(notification: AppNotification): boolean {
+    return notification.is_suspicious && notification.order_status_id === 1;
   }
 
   load(): void {
