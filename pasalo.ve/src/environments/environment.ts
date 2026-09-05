@@ -6,7 +6,7 @@ export const environment = {
   googleClientId: '928643772215-9uhat1kqvibt48mt52uktbsfui6123vc.apps.googleusercontent.com',
   // Clave publica VAPID: debe coincidir con VAPID_PUBLIC_KEY del backend
   // apuntado por `host` (generada con `npx web-push generate-vapid-keys`).
-  vapidPublicKey: 'BOoOLchoT1RVDL6hAwEj8Rv7EWtK7S65OSaiXmo-kqyGSk7uecJ3_elHPNzjADV34h14ysd2P1MswdvltA1ORLc',
+  vapidPublicKey: 'BNILcgqQJy2CPR8Q2YomKJq-iUzZq5GpBLotAcHbl7ZU7yRhPkSjCZXj7HPYU5KTnEdCjYdjEXeTUjR9PemZbys',
   // Tiles de CARTO Voyager (basados en datos de OpenStreetMap): estilo claro
   // y con pocos colores, similar a Google Maps. No se usan tiles de Google
   // directo (google.com/vt/...) porque esa URL no es una API publica: es de

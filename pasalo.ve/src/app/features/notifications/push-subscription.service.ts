@@ -36,9 +36,7 @@ export class PushSubscriptionService {
     let subscription: PushSubscription;
 
     try {
-      subscription = await this.swPush.requestSubscription({
-        serverPublicKey: environment.vapidPublicKey,
-      });
+      subscription = await this.requestSubscription();
     } catch (err) {
       console.error('[push] el navegador rechazo la suscripcion', err);
       return { ok: false, reason: this.permission === 'denied' ? 'permission-denied' : 'browser' };
@@ -50,6 +48,31 @@ export class PushSubscriptionService {
     } catch (err) {
       console.error('[push] el backend no pudo guardar la suscripcion', err);
       return { ok: false, reason: 'backend' };
+    }
+  }
+
+  /**
+   * Suscribe con la llave VAPID actual. Si el navegador ya tenia una
+   * suscripcion hecha con OTRA llave (por ejemplo despues de rotar las VAPID),
+   * `subscribe()` falla con InvalidStateError: en ese caso se descarta la
+   * vieja y se reintenta una sola vez, asi el usuario no queda trabado
+   * teniendo que limpiar los datos del sitio a mano.
+   */
+  private async requestSubscription(): Promise<PushSubscription> {
+    const options = { serverPublicKey: environment.vapidPublicKey };
+
+    try {
+      return await this.swPush.requestSubscription(options);
+    } catch (err) {
+      const registration = await navigator.serviceWorker.ready;
+      const stale = await registration.pushManager.getSubscription();
+
+      if (!stale) throw err;
+
+      console.warn('[push] habia una suscripcion con otra llave VAPID, se descarta y se reintenta');
+      await stale.unsubscribe();
+
+      return await this.swPush.requestSubscription(options);
     }
   }
 
