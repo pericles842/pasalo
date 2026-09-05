@@ -1,10 +1,18 @@
 @if (visible()) {
-<button nbButton status="primary" shape="round" size="medium" type="button"
-  class="fixed bottom-20 right-4 z-50 shadow-lg shadow-blue-900/20 sm:bottom-6 sm:right-6"
-  aria-label="Agregar a pantalla principal" (click)="onClick()">
-  <nb-icon icon="download-outline" [options]="{ width: 18, height: 18 }"></nb-icon>
-  Agregar a pantalla principal
-</button>
+<!--
+  El `fixed` va en este div y no en el <button>: Nebular tiene una regla
+  `.nb-theme-* [nbButton]:focus { position: relative }` con mas especificidad
+  que la clase de Tailwind, asi que al tocar el boton este perdia el `fixed`,
+  caia al flujo normal (o sea, al final de la pagina, junto al footer) y se
+  escapaba del dedo antes de disparar el click.
+-->
+<div class="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
+  <button nbButton status="primary" shape="round" size="medium" type="button"
+    class="shadow-lg shadow-blue-900/20" aria-label="Agregar a pantalla principal" (click)="onClick()">
+    <nb-icon icon="download-outline" [options]="{ width: 18, height: 18 }"></nb-icon>
+    Agregar a pantalla principal
+  </button>
+</div>
 
 @if (showIosHint()) {
 <div class="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 sm:items-center" (click)="closeHint()">

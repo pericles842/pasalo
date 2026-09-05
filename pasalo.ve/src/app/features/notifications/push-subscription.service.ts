@@ -5,6 +5,11 @@ import { SwPush } from '@angular/service-worker';
 import { firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
+/** En que paso fallo la suscripcion: el navegador, el permiso, o guardarla en el backend */
+export type PushSubscribeResult =
+  | { ok: true }
+  | { ok: false; reason: 'unsupported' | 'permission-denied' | 'browser' | 'backend' };
+
 @Injectable({ providedIn: 'root' })
 export class PushSubscriptionService {
 
@@ -20,19 +25,31 @@ export class PushSubscriptionService {
     return this.is_browser && 'Notification' in window ? Notification.permission : null;
   }
 
-  /** Pide permiso (si hace falta) y registra la suscripción push en el backend. */
-  async subscribe(): Promise<boolean> {
-    if (!this.isSupported) return false;
+  /**
+   * Pide permiso (si hace falta) y registra la suscripción push en el backend.
+   * Devuelve en que paso fallo, para poder decirle al usuario algo util en vez
+   * de un "no se pudo" generico (y para que quede en consola al depurar).
+   */
+  async subscribe(): Promise<PushSubscribeResult> {
+    if (!this.isSupported) return { ok: false, reason: 'unsupported' };
+
+    let subscription: PushSubscription;
 
     try {
-      const subscription = await this.swPush.requestSubscription({
+      subscription = await this.swPush.requestSubscription({
         serverPublicKey: environment.vapidPublicKey,
       });
-      await firstValueFrom(this.http.post(`${environment.host}/push-subscriptions`, subscription.toJSON()));
-      return true;
     } catch (err) {
-      console.error('[push] no se pudo suscribir', err);
-      return false;
+      console.error('[push] el navegador rechazo la suscripcion', err);
+      return { ok: false, reason: this.permission === 'denied' ? 'permission-denied' : 'browser' };
+    }
+
+    try {
+      await firstValueFrom(this.http.post(`${environment.host}/push-subscriptions`, subscription.toJSON()));
+      return { ok: true };
+    } catch (err) {
+      console.error('[push] el backend no pudo guardar la suscripcion', err);
+      return { ok: false, reason: 'backend' };
     }
   }
 

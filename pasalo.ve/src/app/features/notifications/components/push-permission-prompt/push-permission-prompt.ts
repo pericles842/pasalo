@@ -3,6 +3,13 @@ import { NbButtonModule, NbIconModule } from '@nebular/theme';
 import { ToastService } from '@shared/services/toast.service';
 import { PushSubscriptionService } from '../../push-subscription.service';
 
+const PERMISSION_ERRORS = {
+  unsupported: 'Este navegador no soporta notificaciones push.',
+  'permission-denied': 'Bloqueaste las notificaciones. Habilítalas desde los ajustes del navegador para este sitio.',
+  browser: 'El navegador no pudo registrar las notificaciones. Recarga la página e inténtalo de nuevo.',
+  backend: 'No pudimos guardar tus notificaciones en el servidor. Inténtalo de nuevo en un momento.',
+} as const;
+
 @Component({
   selector: 'app-push-permission-prompt',
   imports: [NbButtonModule, NbIconModule],
@@ -27,12 +34,16 @@ export class PushPermissionPrompt implements OnInit {
     if (this.is_subscribing()) return;
 
     this.is_subscribing.set(true);
-    const ok = await this.push.subscribe();
+    const result = await this.push.subscribe();
     this.is_subscribing.set(false);
     this.visible.set(false);
 
-    if (ok) this.toast.success('Te avisaremos cuando recibas un pago.', '🔔 Notificaciones activadas');
-    else this.toast.warning('No pudimos activar las notificaciones.');
+    if (result.ok) {
+      this.toast.success('Te avisaremos cuando recibas un pago.', '🔔 Notificaciones activadas');
+      return;
+    }
+
+    this.toast.warning(PERMISSION_ERRORS[result.reason]);
   }
 
   dismiss(): void {
