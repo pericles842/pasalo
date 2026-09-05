@@ -1,0 +1,24 @@
+@if (visible()) {
+<button nbButton status="primary" shape="round" size="medium" type="button"
+  class="fixed bottom-4 right-4 z-50 shadow-lg shadow-blue-900/20"
+  aria-label="Agregar a pantalla principal" (click)="onClick()">
+  <nb-icon icon="download-outline" [options]="{ width: 18, height: 18 }"></nb-icon>
+  Agregar a pantalla principal
+</button>
+
+@if (showIosHint()) {
+<div class="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 sm:items-center" (click)="closeHint()">
+  <div class="m-4 max-w-sm rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
+    <p class="m-0 mb-3 text-sm font-semibold text-slate-900">Agregar Pásalo a tu pantalla principal</p>
+    <ol class="m-0 flex list-decimal flex-col gap-2 pl-4 text-sm text-slate-600">
+      <li>Toca el ícono de <strong>Compartir</strong> (el cuadrado con la flecha hacia arriba) en Safari.</li>
+      <li>Elige <strong>"Agregar a pantalla de inicio"</strong>.</li>
+      <li>Confirma tocando <strong>"Agregar"</strong>.</li>
+    </ol>
+    <button nbButton size="small" status="primary" type="button" class="mt-4 w-full" (click)="closeHint()">
+      Entendido
+    </button>
+  </div>
+</div>
+}
+}

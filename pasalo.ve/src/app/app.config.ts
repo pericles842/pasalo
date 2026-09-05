@@ -1,6 +1,7 @@
 import {
   ApplicationConfig,
   importProvidersFrom,
+  isDevMode,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
@@ -16,6 +17,7 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { loadingInterceptor } from './shared/interceptors/loading.interceptor';
 import { authInterceptor } from './shared/interceptors/auth.interceptor';
 import { OverlayContainer } from '@angular/cdk/overlay';
+import { provideServiceWorker } from '@angular/service-worker';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -43,5 +45,9 @@ export const appConfig: ApplicationConfig = {
     // Ademas del <title>, setea meta description/Open Graph/canonical por
     // ruta (ver route.data.description en app.routes.ts)
     { provide: TitleStrategy, useClass: SeoTitleStrategy },
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
 };

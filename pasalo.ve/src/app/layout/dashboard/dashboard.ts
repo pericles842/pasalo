@@ -7,6 +7,7 @@ import { HeaderDashboard } from '@shared/components/header-dashboard/header-dash
 import { Copyright } from '@shared/components/copyright/copyright';
 import { SubscriptionStatusBanner } from '@shared/components/subscription-status-banner/subscription-status-banner';
 import { AdSlot } from '@shared/components/ad-slot/ad-slot';
+import { PushPermissionPrompt } from 'src/app/features/notifications/components/push-permission-prompt/push-permission-prompt';
 import { ModalAdService } from '@shared/services/modal-ad.service';
 import { OnboardingService } from '@shared/services/onboarding.service';
 import { ThemeService } from '@shared/services/theme.service';
@@ -23,7 +24,7 @@ const MODAL_AD_INITIAL_DELAY_MS = 8_000;
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, NbIconModule, NbEvaIconsModule, HeaderDashboard, Copyright, SubscriptionStatusBanner, AdSlot],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, NbIconModule, NbEvaIconsModule, HeaderDashboard, Copyright, SubscriptionStatusBanner, AdSlot, PushPermissionPrompt],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

@@ -10,6 +10,7 @@ import { PublicOrderController } from './app/controllers/public_order.controller
 import { PaymentMethodController } from './app/controllers/payment_method.controller';
 import { ExchangeRateController } from './app/controllers/exchange_rate.controller';
 import { NotificationController } from './app/controllers/notification.controller';
+import { PushSubscriptionController } from './app/controllers/push_subscription.controller';
 import { AdsController } from './app/controllers/ads.controller';
 import { jwtMiddleware } from './middlewares/jwtMiddleware';
 import { tenantMiddleware } from './middlewares/tenantMiddleware';
@@ -490,6 +491,19 @@ router.delete('/notifications', authTenant, NotificationController.removeAll);
  *       200: { description: Notificación eliminada }
  */
 router.delete('/notifications/:id', authTenant, NotificationController.remove);
+
+/**
+ * @swagger
+ * /push-subscriptions:
+ *   post:
+ *     tags: [Notifications]
+ *     summary: Guarda la suscripción push del navegador actual
+ *   delete:
+ *     tags: [Notifications]
+ *     summary: Elimina la suscripción push del navegador actual
+ */
+router.post('/push-subscriptions', authTenant, PushSubscriptionController.subscribe);
+router.delete('/push-subscriptions', authTenant, PushSubscriptionController.unsubscribe);
 
 /**
  * @swagger

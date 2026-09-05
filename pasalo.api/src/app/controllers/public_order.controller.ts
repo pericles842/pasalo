@@ -8,6 +8,7 @@ import { uploadFile } from '../../utils/storage';
 import { buildImagePrefix } from '../../utils/fileNaming';
 import { getExchangeRates, RateType } from '../../utils/exchangeRate';
 import { notifyOrderPaid } from '../config/socket';
+import { sendPushToUser } from '../../utils/webPush';
 
 // Metodos que se cobran en bolivares: el comprobante muestra Bs, no USD
 const BS_PAYMENT_TYPES = ['pagomovil', 'transferencia'];
@@ -371,6 +372,14 @@ export class PublicOrderController {
                 receipt_url: uploaded.url,
                 is_suspicious
             });
+
+            // Fire-and-forget: la notificacion push no debe demorar ni romper
+            // la respuesta al comprador (sendPushToUser ya nunca lanza).
+            sendPushToUser(tenantDb, order.user_id, {
+                title: '💰 Nuevo pago',
+                body: `${buyer_name} pagó $${order.amount}${reference ? ` · Ref. ${reference}` : ''}`,
+                order_id: order.id
+            }).catch(() => {});
 
             res.json({
                 message: 'Pago registrado',

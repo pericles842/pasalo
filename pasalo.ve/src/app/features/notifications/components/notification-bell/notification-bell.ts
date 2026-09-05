@@ -1,6 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { NbButtonModule, NbIconModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { ExchangeRateService } from '@shared/services/exchange-rate.service';
@@ -22,6 +22,7 @@ export class NotificationBell implements OnInit, OnDestroy {
 
   private notificationsService = inject(NotificationsService);
   private socket = inject(SocketService);
+  private router = inject(Router);
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);
   protected exchangeRate = inject(ExchangeRateService);
@@ -69,6 +70,11 @@ export class NotificationBell implements OnInit, OnDestroy {
 
   close(): void {
     this.is_open.set(false);
+  }
+
+  goToOrder(notification: AppNotification): void {
+    this.close();
+    this.router.navigate(['/dashboard', notification.order_id]);
   }
 
   remove(notification: AppNotification, event: Event): void {

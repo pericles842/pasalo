@@ -1,5 +1,6 @@
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { NbButtonModule, NbCardModule, NbIconModule, NbSelectModule } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { AuthService } from 'src/app/features/auth/auth.service';
@@ -25,6 +26,7 @@ export class NotificationsPage implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);
   private socket = inject(SocketService);
+  private router = inject(Router);
   protected auth = inject(AuthService);
   protected exchangeRate = inject(ExchangeRateService);
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -61,6 +63,10 @@ export class NotificationsPage implements OnInit, OnDestroy {
   /** Sospechoso y todavia sin aprobar (la orden sigue "en espera") */
   needsReview(notification: AppNotification): boolean {
     return notification.is_suspicious && notification.order_status_id === 1;
+  }
+
+  goToOrder(notification: AppNotification): void {
+    this.router.navigate(['/dashboard', notification.order_id]);
   }
 
   load(): void {
