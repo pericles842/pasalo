@@ -1,5 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NbButtonModule, NbCardModule, NbSelectModule } from '@nebular/theme';
 import { GlobalInput } from '@shared/components/global-input/global-input';
@@ -49,6 +50,7 @@ const TYPE_LABELS: Record<PaymentMethodType, string> = {
 export class PaymentMethodsPage implements OnInit {
 
   private paymentMethodsService = inject(PaymentMethodsService);
+  private router = inject(Router);
   private planService = inject(PlanService);
   private subscriptionService = inject(SubscriptionService);
   private auth = inject(AuthService);
@@ -265,6 +267,10 @@ export class PaymentMethodsPage implements OnInit {
 
     this.is_saving.set(true);
 
+    // Sin metodos previos: este va a ser el primero, asi que al terminar se
+    // manda al usuario directo a crear su primera orden en vez de dejarlo aqui
+    const is_first_method = !editing_id && this.methods().length === 0;
+
     if (editing_id) {
       this.paymentMethodsService.updatePaymentMethod(editing_id, payload).subscribe({
         next: ({ method }) => {
@@ -288,6 +294,12 @@ export class PaymentMethodsPage implements OnInit {
         this.usage.set(usage);
         this.toast.success('Método de pago agregado.');
         this.form.reset();
+
+        if (is_first_method) {
+          this.router.navigateByUrl('/dashboard/form');
+          return;
+        }
+
         this.load();
       },
       error: (err) => {

@@ -61,9 +61,9 @@ export class Dashboard implements OnInit, OnDestroy {
    * "!" solo se puede reteñir por variable: ver src/dark-theme.scss.
    */
   protected readonly NAV_LINK_CLASS =
-    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-800! no-underline! transition-colors hover:bg-blue-50';
+    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-base lg:text-sm font-medium text-gray-800! no-underline! transition-colors hover:bg-blue-50';
   protected readonly NAV_LINK_ACTIVE_CLASS =
-    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-600! bg-blue-50 no-underline!';
+    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-base lg:text-sm font-medium text-blue-600! bg-blue-50 no-underline!';
 
   toggleMenu(): void {
     this.is_menu_open.update((value) => !value);

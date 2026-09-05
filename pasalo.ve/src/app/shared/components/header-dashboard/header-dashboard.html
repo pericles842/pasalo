@@ -14,16 +14,16 @@
     [class]="is_pinned() ? 'opacity-100' : 'opacity-0'"></div>
 
   <div class="relative flex min-w-0 items-center gap-2 sm:gap-3">
-    <button class="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-lg text-blue-600 lg:hidden"
+    <button class="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-lg text-blue-600 lg:hidden"
       type="button" aria-label="Abrir menú" (click)="menuToggle.emit()">
-      <nb-icon icon="menu-2-outline" [options]="{ width: 22, height: 22 }"></nb-icon>
+      <nb-icon icon="menu-2-outline" [options]="{ width: 28, height: 28 }"></nb-icon>
     </button>
 
     <div class="flex min-w-0 items-center gap-2.5">
       <app-avatar class="hidden sm:block" [photoUrl]="auth.session()?.company?.logo_url ?? null"
         [initialsText]="auth.company_initials()" sizeClass="h-10 w-10 text-base sm:h-11 sm:w-11"
         shapeClass="rounded-lg" fitClass="object-contain" bubbleClass="bg-blue-600 text-white"></app-avatar>
-      <h1 class="min-w-0 truncate text-sm font-semibold text-slate-900 sm:text-base">
+      <h1 class="min-w-0 truncate text-xs font-semibold text-slate-900 sm:text-base">
         {{ auth.session()?.company?.name ?? 'Pásalo' }}
       </h1>
     </div>

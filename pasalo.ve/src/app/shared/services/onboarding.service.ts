@@ -278,6 +278,11 @@ export class OnboardingService {
       await this.goToRoute(steps[nextIndex].route);
     }
 
+    // En telefono el paso anterior puede haber dejado la pagina scrolleada:
+    // sin esto el popover del paso siguiente aparece fuera de foco porque su
+    // elemento vive arriba y el usuario sigue viendo mas abajo
+    if (this.is_browser) window.scrollTo({ top: 0 });
+
     driverObj.moveTo(nextIndex);
   }
 
