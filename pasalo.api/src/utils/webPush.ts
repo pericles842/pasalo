@@ -4,6 +4,9 @@ import webpush from 'web-push';
 
 let vapid_configured = false;
 
+/** A donde lleva el toque en la notificacion: el listado de ordenes del dashboard */
+const ORDERS_LIST_URL = '/dashboard/list';
+
 /** Configura las llaves VAPID la primera vez que se necesitan (no al importar el modulo, por si el .env aun no cargo). */
 function ensureVapidConfigured(): void {
     if (vapid_configured) return;
@@ -53,7 +56,17 @@ export async function sendPushToUser(tenantDb: Sequelize, user_id: string, paylo
                 title: payload.title,
                 body: payload.body,
                 icon: payload.icon ?? '/icons/icon-192.png',
-                data: { order_id: payload.order_id },
+                data: {
+                    order_id: payload.order_id,
+                    // Sin onActionClick el service worker de Angular solo le avisa a las
+                    // pestanas abiertas y no hace nada mas: con la app cerrada (que es el
+                    // caso normal de un push) tocar la notificacion no abre nada.
+                    // navigateLastFocusedOrOpen enfoca la app si ya estaba abierta y la
+                    // lleva al listado, o abre una ventana nueva ahi si estaba cerrada.
+                    onActionClick: {
+                        default: { operation: 'navigateLastFocusedOrOpen', url: ORDERS_LIST_URL },
+                    },
+                },
             },
         });
 

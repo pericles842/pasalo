@@ -14,9 +14,11 @@ export class PushClickService {
   listen(): void {
     if (!this.is_browser || !this.swPush.isEnabled) return;
 
-    this.swPush.notificationClicks.subscribe(({ notification }) => {
-      const order_id = (notification.data as { order_id?: string } | undefined)?.order_id;
-      if (order_id) this.router.navigate(['/dashboard', order_id]);
+    // El propio service worker ya navega al listado (via onActionClick en el
+    // payload del push). Esto cubre el caso de la app abierta en primer plano,
+    // donde conviene resolverlo con el router en vez de recargar la pagina.
+    this.swPush.notificationClicks.subscribe(() => {
+      this.router.navigate(['/dashboard/list']);
     });
   }
 }
