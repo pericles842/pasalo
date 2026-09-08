@@ -24,7 +24,17 @@
     <div class="hero-visual" aria-label="Vista previa de la app Pásalo">
       <div class="visual-circle"></div>
       <div class="visual-glow"></div>
-      <img src="/hero-app-preview.png" alt="Vista previa de la app Pásalo: inicio de sesión y métricas de negocio" class="hero-image" />
+      <!--
+        Imagen LCP del home. Va en <picture> con AVIF/WebP y PNG de respaldo, en
+        1x/2x, generadas desde el screenshot original (ver public/hero-app-preview.*).
+        fetchpriority="high" para que el navegador la baje antes que el resto.
+      -->
+      <picture class="hero-image">
+        <source type="image/avif" srcset="/hero-app-preview.avif 1x, /hero-app-preview@2x.avif 2x" />
+        <source type="image/webp" srcset="/hero-app-preview.webp 1x, /hero-app-preview@2x.webp 2x" />
+        <img src="/hero-app-preview.png" width="440" height="532" fetchpriority="high" decoding="async"
+          alt="Vista previa de la app Pásalo: inicio de sesión y métricas de negocio" />
+      </picture>
     </div>
   </section>
 

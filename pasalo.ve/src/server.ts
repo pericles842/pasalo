@@ -4,6 +4,7 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
+import compression from 'compression';
 import express from 'express';
 import { join } from 'node:path';
 
@@ -11,6 +12,15 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
+
+/**
+ * Comprime (gzip/brotli segun Accept-Encoding) el HTML del SSR y los estaticos
+ * de texto. El bundle de CSS ronda los 670 KB y los chunks de JS cientos de KB;
+ * sin esto se servian en crudo. Va antes que express.static y que el handler de
+ * Angular para que aplique a todo. Los .png/.avif/.webp ya vienen comprimidos y
+ * compression los salta solo por content-type.
+ */
+app.use(compression());
 
 /**
  * Redirige cualquier host que empiece con "www." al dominio canonico, con un
@@ -68,14 +78,72 @@ app.use(
 );
 
 /**
- * Handle all other requests by rendering the Angular application.
+ * Cache en memoria del HTML del SSR.
+ *
+ * La sesion vive en localStorage (ver auth.service.ts), no en cookie: el
+ * servidor nunca sabe quien es el visitante, asi que para una misma URL el SSR
+ * SIEMPRE renderiza el mismo HTML (el shell deslogueado) y el cliente lo hidrata
+ * despues con su token. Por eso es seguro cachear la respuesta por URL.
+ *
+ * Sin esto, cada visita re-renderiza todo el arbol de Angular (~880 ms de TTFB
+ * segun Lighthouse). Con esto, un acierto responde en microsegundos. El TTL
+ * corto acota cuanto puede quedar viejo un cambio; el proceso al reiniciar
+ * (deploy) arranca con el cache vacio.
  */
+const HTML_CACHE = new Map<
+  string,
+  { body: Buffer; headers: [string, string][]; expires: number }
+>();
+const HTML_CACHE_TTL_MS = 5 * 60 * 1000;
+const HTML_CACHE_MAX_ENTRIES = 150;
+// Headers que dependen del transporte: los pone compression/Express, no se
+// replayean desde el cache.
+const HOP_BY_HOP = new Set(['content-length', 'content-encoding', 'transfer-encoding']);
+
 app.use((req, res, next) => {
+  const cacheable = req.method === 'GET';
+  const key = req.originalUrl;
+
+  if (cacheable) {
+    const hit = HTML_CACHE.get(key);
+    if (hit && hit.expires > Date.now()) {
+      res.setHeader('X-SSR-Cache', 'HIT');
+      for (const [name, value] of hit.headers) res.setHeader(name, value);
+      res.end(hit.body);
+      return;
+    }
+  }
+
   angularApp
     .handle(req)
-    .then((response) =>
-      response ? writeResponseToNodeResponse(response, res) : next(),
-    )
+    .then(async (response) => {
+      if (!response) return next();
+
+      const contentType = response.headers.get('content-type') ?? '';
+      const shouldCache =
+        cacheable &&
+        response.status === 200 &&
+        contentType.includes('text/html') &&
+        !response.headers.has('set-cookie');
+
+      if (!shouldCache) return writeResponseToNodeResponse(response, res);
+
+      const body = Buffer.from(await response.arrayBuffer());
+      const headers: [string, string][] = [];
+      response.headers.forEach((value, name) => {
+        if (!HOP_BY_HOP.has(name.toLowerCase())) headers.push([name, value]);
+      });
+
+      if (HTML_CACHE.size >= HTML_CACHE_MAX_ENTRIES) {
+        HTML_CACHE.delete(HTML_CACHE.keys().next().value as string);
+      }
+      HTML_CACHE.set(key, { body, headers, expires: Date.now() + HTML_CACHE_TTL_MS });
+
+      res.statusCode = 200;
+      res.setHeader('X-SSR-Cache', 'MISS');
+      for (const [name, value] of headers) res.setHeader(name, value);
+      res.end(body);
+    })
     .catch(next);
 });
 

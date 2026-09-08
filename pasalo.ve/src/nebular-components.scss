@@ -1,0 +1,77 @@
+// Solo los temas de los componentes Nebular que la app realmente usa.
+//
+// Reemplaza a `nb-theme-global()` de @nebular/theme (globals/_globals.scss), que
+// instala los ~45 componentes de la libreria y era el grueso del bundle de CSS
+// (~600 KB, ademas duplicado por el tema oscuro). La lista de abajo sale de los
+// `NbXxxModule` importados en `src/app` (grep "Nb[A-Za-z]+Module").
+//
+// IMPORTANTE: al importar un `NbXxxModule` nuevo en cualquier componente hay que
+// sumar aca su `*.component.theme` y su `@include`, o ese componente sale sin
+// estilos en produccion.
+//
+//   layout        <nb-layout> en app.html
+//   card          NbCardModule (incluye flip / reveal card)
+//   checkbox      NbCheckboxModule
+//   badge         NbBadgeModule
+//   spinner       NbSpinnerModule
+//   stepper       NbStepperModule
+//   button        NbButtonModule
+//   button-group  NbButtonGroupModule (nbButtonToggle)
+//   input         NbInputModule
+//   overlay       base de dialog / select / tooltip / toast / datepicker
+//   select        NbSelectModule (+ option-list)
+//   toast         NbToastrModule
+//   tooltip       NbTooltipModule
+//   datepicker    NbDatepickerModule (+ calendar + calendar-kit para nb-rangepicker)
+//   icon          NbIconModule
+//   form-field    NbFormFieldModule (nbPrefix / nbSuffix)
+
+@use '@nebular/theme/components/layout/layout.component.theme' as layout;
+@use '@nebular/theme/components/card/card.component.theme' as card;
+@use '@nebular/theme/components/card/flip-card/flip-card.component.theme' as flip-card;
+@use '@nebular/theme/components/card/reveal-card/reveal-card.component.theme' as reveal-card;
+@use '@nebular/theme/components/checkbox/checkbox.component.theme' as checkbox;
+@use '@nebular/theme/components/badge/badge.component.theme' as badge;
+@use '@nebular/theme/components/spinner/spinner.component.theme' as spinner;
+@use '@nebular/theme/components/stepper/stepper.component.theme' as stepper;
+@use '@nebular/theme/components/button/button.component.theme' as button;
+@use '@nebular/theme/components/button-group/button-toggle.component.theme' as button-toggle;
+@use '@nebular/theme/components/button-group/button-group.component.theme' as button-group;
+@use '@nebular/theme/components/input/input.directive.theme' as input;
+@use '@nebular/theme/components/cdk/overlay/overlay.theme' as overlay;
+@use '@nebular/theme/components/select/select.component.theme' as select;
+@use '@nebular/theme/components/option/option-list.component.theme' as option-list;
+@use '@nebular/theme/components/toastr/toast.component.theme' as toast;
+@use '@nebular/theme/components/tooltip/tooltip.component.theme' as tooltip;
+@use '@nebular/theme/components/datepicker/datepicker-container.component.theme' as datepicker;
+@use '@nebular/theme/components/calendar-kit/calendar-kit.theme' as calendar-kit;
+@use '@nebular/theme/components/calendar/calendar.component.theme' as calendar;
+@use '@nebular/theme/components/icon/icon.component.theme' as icon;
+@use '@nebular/theme/components/form-field/form-field.component.theme' as form-field;
+@use '@nebular/theme/styles/global/overrides' as overrides;
+
+@mixin pasalo-nb-theme-components() {
+  @include layout.nb-layout-theme();
+  @include card.nb-card-theme();
+  @include reveal-card.nd-reveal-card-theme();
+  @include flip-card.nd-flip-card-theme();
+  @include checkbox.nb-checkbox-theme();
+  @include badge.nb-badge-theme();
+  @include spinner.nb-spinner-theme();
+  @include stepper.nb-stepper-theme();
+  @include button.nb-buttons-theme();
+  @include button-toggle.nb-buttons-toggle-theme();
+  @include button-group.nb-buttons-group-theme();
+  @include input.nb-input-theme();
+  @include overlay.nb-overlay-theme();
+  @include select.nb-select-theme();
+  @include option-list.nb-option-list-theme();
+  @include toast.nb-toast-theme();
+  @include tooltip.nb-tooltip-theme();
+  @include datepicker.nb-datepicker-theme();
+  @include calendar-kit.nb-calendar-kit-theme();
+  @include calendar.nb-calendar-theme();
+  @include icon.nb-icon-theme();
+  @include form-field.nb-form-field-theme();
+  @include overrides.nb-theme-overrides();
+}

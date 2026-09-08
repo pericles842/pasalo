@@ -152,3 +152,24 @@ html, body {
     box-sizing: border-box;
   }
 }
+
+// Contraste AA -----------------------------------------------------------------
+//
+// El verde "success" de Nebular (#00d68f) con texto blanco da ~1.9:1, muy por
+// debajo del minimo WCAG AA (4.5:1); Lighthouse lo marca en los CTA verdes del
+// home. Se oscurece solo el boton relleno success (todos sus estados quedan con
+// texto blanco legible), sin tocar la escala `color-success-*` global que usan
+// toasts, badges y estados del dashboard.
+[nbButton].appearance-filled.status-success {
+  &,
+  &:focus,
+  &:hover {
+    background-color: #00784f;
+    border-color: #00784f;
+  }
+
+  &:active {
+    background-color: #00623f;
+    border-color: #00623f;
+  }
+}

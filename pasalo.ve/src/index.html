@@ -7,6 +7,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Pásalo es la plataforma venezolana para vender y cobrar: gestiona pedidos, recibe pagos por pago móvil o transferencia en bolívares o dólares, y verifica cada comprobante desde un solo lugar.">
   <meta name="theme-color" content="#045fde">
+
+  <!--
+    Abre la conexion (DNS + TLS) a la API y al CDN de imagenes antes de que el
+    primer pedido salga: los usa casi toda la app (API en cada vista, CDN en el
+    modal de publicidad del sitio publico y el dashboard).
+  -->
+  <link rel="preconnect" href="https://api.pasalo.co.ve" crossorigin>
+  <link rel="preconnect" href="https://cdn.pasalo.co.ve" crossorigin>
   <link rel="icon" type="image/png" href="pasalo-iso.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">

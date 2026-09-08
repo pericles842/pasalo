@@ -7,6 +7,9 @@
 @use '@nebular/theme/styles/theming-variables' as theming-variables;
 @use '@nebular/theme/styles/core/theming/register' as register;
 @use '@nebular/theme/styles/all' as *;
+// Lista curada de componentes (ver nebular-components.scss): sustituye a
+// nb-theme-global(), que instalaba TODA la libreria.
+@use 'nebular-components' as pasalo-components;
 
 $pasalo-primary: (
   color-primary-100: #dcebfe,
@@ -68,5 +71,5 @@ $nb-enabled-themes: (default, dark);
 $nb-enable-css-custom-properties: false;
 
 @include nb-install() {
-  @include nb-theme-global();
+  @include pasalo-components.pasalo-nb-theme-components();
 }

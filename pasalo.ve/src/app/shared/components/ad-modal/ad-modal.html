@@ -4,9 +4,17 @@
     <nb-icon icon="close-outline" class="text-base"></nb-icon>
   </button>
 
+  <!--
+    La API del anuncio no manda dimensiones de la imagen, asi que se le reserva
+    una caja fija (aspect-[4/5]) con fondo neutro: sin esto, la imagen al cargar
+    agrandaba el modal y generaba layout shift (CLS). object-contain evita
+    recortar el creativo; la caja no cambia de alto al llegar la imagen.
+  -->
   <a [href]="ad.target_url" target="_blank" rel="noopener noreferrer" (click)="onClick()"
-    class="block overflow-hidden rounded-xl bg-white shadow-2xl" [title]="ad.company_name">
-    <img [src]="ad.image_url" [alt]="ad.company_name" class="block max-h-[80vh] w-full object-cover" />
+    class="flex aspect-[4/5] max-h-[80vh] items-center justify-center overflow-hidden rounded-xl bg-white shadow-2xl"
+    [title]="ad.company_name">
+    <img [src]="ad.image_url" [alt]="ad.company_name" loading="lazy"
+      class="block h-full w-full object-contain" />
   </a>
 
   <a routerLink="/publicidad" (click)="close()"

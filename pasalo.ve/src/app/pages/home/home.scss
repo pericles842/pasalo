@@ -163,13 +163,20 @@ h2 {
   opacity: 0.8;
 }
 
+// `.hero-image` va sobre el <picture>; el <img> interior lleva el tamano real
+// (width/height en el HTML reservan el espacio y evitan CLS al cargar).
 .hero-image {
   position: relative;
   z-index: 1;
+  display: block;
   width: 100%;
   max-width: 440px;
-  height: auto;
-  filter: drop-shadow(0 25px 45px rgba(8, 39, 94, 0.28));
+
+  img {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 25px 45px rgba(8, 39, 94, 0.28));
+  }
 }
 
 // ---------- Marcas ----------
@@ -180,7 +187,8 @@ h2 {
   display: flex;
   align-items: center;
   gap: 50px;
-  color: #97a5b8;
+  // #97a5b8 daba ~2.5:1 sobre blanco (falla WCAG AA en texto chico)
+  color: #5b6b82;
   font-size: 11px;
 }
 
@@ -193,7 +201,8 @@ h2 {
   justify-content: space-between;
   gap: clamp(1rem, 4vw, 4rem);
   width: 100%;
-  color: #7c8da8;
+  // #7c8da8 daba ~3.4:1 sobre blanco (falla WCAG AA)
+  color: #5b6b82;
   font-size: 17px;
   font-weight: 800;
   letter-spacing: -1px;

@@ -7,7 +7,9 @@ const SITE_NAME = 'Pásalo';
 const SITE_URL = 'https://pasalo.co.ve';
 const DEFAULT_DESCRIPTION =
   'Pásalo es la plataforma venezolana para gestionar tu negocio: administra pedidos y clientes, y cobra pago móvil, transferencia u otros métodos en bolívares o dólares desde un solo lugar.';
-const DEFAULT_IMAGE = `${SITE_URL}/hero-app-preview.png`;
+// Portada 1200x630 para Open Graph/Twitter (el hero real es vertical y ahora
+// pesa poco por optimizacion; esta imagen es solo para previews sociales).
+const DEFAULT_IMAGE = `${SITE_URL}/og-cover.png`;
 
 /**
  * Reemplaza el TitleStrategy por defecto de Angular: ademas de poner el

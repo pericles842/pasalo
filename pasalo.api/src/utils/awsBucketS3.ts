@@ -63,7 +63,12 @@ export const uploadToS3 = async (
     Key: fileKey,
     Body: optimized,
     ContentType: mimeType,
-    CacheControl: 'no-cache, no-store, must-revalidate'
+    // Las keys llevan `Date.now()` (ver arriba) y ningun caller pasa
+    // `keyToReplace`, asi que cada subida es una URL nueva e inmutable: al
+    // cambiar una imagen, la fila en BD apunta a otra URL. Se puede cachear
+    // fuerte. Antes iba con `no-store` y el navegador re-descargaba el logo /
+    // comprobante / creativo de publicidad en cada visita (lo marco Lighthouse).
+    CacheControl: 'public, max-age=31536000, immutable'
   };
 
   await getS3Client().send(new PutObjectCommand(uploadParams));

@@ -1,4 +1,4 @@
-import { isPlatformBrowser } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -31,6 +31,34 @@ const PIN_ZOOM = 16;
  * reescribirlo cada vez que se crea un mapa nuevo en la misma pagina.
  */
 let icons_configured = false;
+
+/**
+ * `leaflet.css` (~14 KB) se carga a demanda junto con la libreria: antes vivia
+ * en el array `styles` de angular.json, o sea en el bundle global que baja toda
+ * la app aunque casi ninguna vista monta un mapa. Se inyecta una sola vez.
+ */
+let leaflet_css_promise: Promise<void> | null = null;
+
+function loadLeafletCss(doc: Document): Promise<void> {
+  if (leaflet_css_promise) return leaflet_css_promise;
+
+  leaflet_css_promise = new Promise<void>((resolve) => {
+    const existing = doc.querySelector<HTMLLinkElement>('link[data-leaflet-css]');
+    if (existing) return resolve();
+
+    const link = doc.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '/leaflet/leaflet.css';
+    link.setAttribute('data-leaflet-css', '');
+    // Si falla la descarga el mapa igual funciona (solo sin los estilos de los
+    // controles), asi que nunca se rechaza la promesa.
+    link.onload = () => resolve();
+    link.onerror = () => resolve();
+    doc.head.appendChild(link);
+  });
+
+  return leaflet_css_promise;
+}
 
 /** Resultado crudo de Nominatim /search, solo los campos que se usan */
 interface NominatimSuggestion {
@@ -78,6 +106,7 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
   private is_browser = isPlatformBrowser(inject(PLATFORM_ID));
   private injector = inject(Injector);
   private toast = inject(ToastService);
+  private document = inject(DOCUMENT);
 
   private map: import('leaflet').Map | null = null;
   private marker: import('leaflet').Marker | null = null;
@@ -148,6 +177,8 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
     // dinamico a veces solo expone `.default` en vez de las propiedades con
     // nombre (Icon, map, tileLayer...) directamente sobre el namespace. Se
     // normaliza aqui para que funcione con las dos formas.
+    await loadLeafletCss(this.document);
+
     const imported = await import('leaflet');
     const L = ('Icon' in imported ? imported : (imported as unknown as { default: typeof imported }).default);
     this.leaflet = L;
