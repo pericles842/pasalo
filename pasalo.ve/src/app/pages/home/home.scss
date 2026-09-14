@@ -196,11 +196,37 @@ h2 {
   white-space: nowrap;
 }
 
-.logos {
+// Ventana del carrusel. La mascara difumina los dos extremos para que las
+// marcas entren y salgan en vez de cortarse de golpe contra el borde.
+.logos-marquee {
+  flex: 1;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+// La cinta lleva las dos copias de la lista y se corre media cinta: al llegar
+// al -50% la segunda copia quedo exactamente donde arrancaba la primera, asi
+// que el salto de vuelta al 0% no se ve. Lento a proposito: acompana, no distrae.
+.logos-track {
   display: flex;
-  justify-content: space-between;
-  gap: clamp(1rem, 4vw, 4rem);
-  width: 100%;
+  width: max-content;
+  animation: logos-scroll 40s linear infinite;
+}
+
+// Si el mouse se queda encima se frena, para poder leer las marcas
+.logos-marquee:hover .logos-track {
+  animation-play-state: paused;
+}
+
+.logos {
+  // El espacio entre marcas y el de la costura entre copias tienen que ser el
+  // mismo numero: si no, el bucle da un tironcito en cada vuelta
+  --logos-gap: clamp(1.5rem, 4vw, 4rem);
+  display: flex;
+  gap: var(--logos-gap);
+  padding-right: var(--logos-gap);
+  white-space: nowrap;
   // #7c8da8 daba ~3.4:1 sobre blanco (falla WCAG AA)
   color: #5b6b82;
   font-size: 17px;
@@ -492,9 +518,8 @@ h2 {
     display: block;
   }
 
-  .logos {
+  .logos-marquee {
     margin-top: 20px;
-    flex-wrap: wrap;
   }
 
   .benefit-grid,
@@ -552,7 +577,7 @@ h2 {
   }
 
   .logos {
-    gap: 15px;
+    --logos-gap: 20px;
   }
 
   .logos span {
@@ -561,5 +586,91 @@ h2 {
 
   .pricing-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+// ---------- Animaciones ----------
+//
+// Dos mecanismos distintos y a proposito:
+//
+// - El hero se anima con CSS puro. Es lo primero que se ve y ya viene pintado
+//   desde el SSR, asi que la entrada arranca en el primer frame, sin esperar a
+//   que hidrate Angular (esperarlo se veria como un tiron).
+// - El resto de la pagina usa la directiva appReveal, que espera a que la
+//   seccion entre en pantalla. Ver src/app/shared/directives/reveal.ts.
+//
+// Todo lo que se mueve son solo `opacity` y `transform`: el navegador las
+// resuelve en el compositor, sin recalcular layout, que es lo que mantiene el
+// scroll suave en telefonos modestos.
+//
+// Los @keyframes de esta pagina (hero-in-left, hero-pop, hero-float,
+// hero-breathe, logos-scroll) estan en src/styles.scss.
+
+// Titular, texto y boton entran en ese orden, uno detras de otro.
+// Los retrasos son cortos adrede: el h1 es el LCP en telefono y cada
+// milisegundo de espera se le suma a la metrica.
+.hero-copy > * {
+  animation: hero-in-left 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.hero-copy .eyebrow {
+  animation-delay: 0.04s;
+}
+
+.hero-copy h1 {
+  animation-delay: 0.12s;
+}
+
+.hero-copy .hero-text {
+  animation-delay: 0.3s;
+}
+
+.hero-copy .hero-actions {
+  animation-delay: 0.46s;
+}
+
+.hero-copy .hero-proof {
+  animation-delay: 0.6s;
+}
+
+// Dos animaciones encadenadas sobre el mismo elemento: primero crece (hero-pop)
+// y al segundo arranca el flotado infinito. Como hero-float va despues en la
+// lista, en cuanto termina su retraso es la que manda sobre `transform`.
+.hero-image {
+  animation:
+    hero-pop 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) both,
+    hero-float 6s ease-in-out 1s infinite;
+}
+
+.visual-circle {
+  animation:
+    hero-pop 1s cubic-bezier(0.22, 0.61, 0.36, 1) both,
+    hero-breathe 7s ease-in-out 1.2s infinite;
+}
+
+.visual-glow {
+  animation: hero-glow-in 1.1s cubic-bezier(0.22, 0.61, 0.36, 1) 0.1s both;
+}
+
+// Menos movimiento: se respeta la preferencia del sistema. Todo queda en su
+// estado final, visible y quieto.
+@media (prefers-reduced-motion: reduce) {
+
+  .hero-copy > *,
+  .hero-image,
+  .visual-circle,
+  .visual-glow,
+  .logos-track {
+    animation: none;
+  }
+
+  // Sin desplazamiento la segunda copia de las marcas se veria repetida
+  .logos-track .logos:last-child {
+    display: none;
+  }
+
+  .logos {
+    width: 100%;
+    justify-content: space-between;
   }
 }

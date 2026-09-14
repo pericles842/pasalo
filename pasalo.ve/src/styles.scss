@@ -173,3 +173,144 @@ html, body {
     border-color: #00623f;
   }
 }
+
+// Animaciones de entrada (directiva appReveal) ----------------------------------
+//
+// Van aca y no en el SCSS de la landing porque la directiva es compartida: el
+// dia que otra pagina la use, el estilo ya esta.
+//
+// Solo se anima opacidad y transform (las dos propiedades que el navegador
+// resuelve en el compositor, sin recalcular layout ni repintar), asi la entrada
+// no le cuesta frames al scroll.
+//
+// Importante: la clase .reveal la agrega la directiva ya en el navegador. El
+// HTML que manda el SSR no la trae, asi que si el JS no carga el contenido se
+// ve igual; nunca queda escondido por una animacion que no llego a correr.
+.reveal {
+  opacity: 0;
+  will-change: opacity, transform;
+  transition:
+    opacity 0.75s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.reveal[data-reveal='up'] {
+  transform: translate3d(0, 30px, 0);
+}
+
+.reveal[data-reveal='down'] {
+  transform: translate3d(0, -30px, 0);
+}
+
+.reveal[data-reveal='left'] {
+  transform: translate3d(-48px, 0, 0);
+}
+
+.reveal[data-reveal='right'] {
+  transform: translate3d(48px, 0, 0);
+}
+
+.reveal[data-reveal='zoom'] {
+  transform: scale(0.9);
+}
+
+.reveal[data-reveal='fade'] {
+  transform: none;
+}
+
+.reveal.reveal-in {
+  opacity: 1;
+  transform: none;
+  // Ya termino de entrar: se suelta la capa que reservo el compositor
+  will-change: auto;
+}
+
+// Red de seguridad: si el usuario pidio menos movimiento, nada se mueve ni se
+// esconde (la directiva ya lo contempla, esto cubre el HTML servido por SSR).
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+// Fotogramas de la landing ------------------------------------------------------
+//
+// Van en el CSS global y no en home.scss por dos razones: los nombres de
+// @keyframes son globales igual (el scope de componente no los aisla), y el
+// SCSS del home ya roza el presupuesto de 8 kB por estilo de componente.
+
+// El texto del hero entra desde la izquierda
+@keyframes hero-in-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-38px, 0, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// El telefono aparece chiquito y crece hasta su tamano real
+@keyframes hero-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// ...y despues se queda flotando
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -14px, 0);
+  }
+}
+
+// El circulo de fondo respira apenas, medio segundo desfasado del telefono
+@keyframes hero-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+// El resplandor detras del telefono entra igual que el, pero se queda en su
+// opacidad de diseno (0.8): terminar en 1 le comeria la profundidad al circulo.
+@keyframes hero-glow-in {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+
+  to {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+}
+
+@keyframes logos-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}

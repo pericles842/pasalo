@@ -7,6 +7,7 @@ import { BillingCycleToggle } from '@shared/components/billing-cycle-toggle/bill
 import { BillingCycle } from '@shared/utils/billing';
 import { PlanInterface } from 'src/app/services/http/plan/plan';
 import { PlanService } from 'src/app/services/http/plan/plan.service';
+import { Reveal } from '@shared/directives/reveal';
 
 interface Benefit {
   number: string;
@@ -19,9 +20,16 @@ interface Step {
   text: string;
 }
 
+/** Marca de la tira de logos. `light` va en fino y `bold` en negrita, como venian escritas en el HTML. */
+interface Brand {
+  name: string;
+  light?: string;
+  bold?: string;
+}
+
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, NbButtonModule, CardSubscriptionPlanComponent, BillingCycleToggle],
+  imports: [RouterLink, NbButtonModule, CardSubscriptionPlanComponent, BillingCycleToggle, Reveal],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
@@ -51,6 +59,19 @@ export class Home implements OnInit {
       title: 'Controla cada orden',
       text: 'Valida comprobantes, revisa el estado de cada orden y mide tus ventas desde un solo panel.',
     },
+  ];
+
+  /**
+   * Marcas de la tira. Estan en el TS y no escritas a mano en el HTML porque la
+   * tira es un carrusel infinito: el template pinta la lista dos veces y la
+   * segunda copia es la que tapa el salto cuando la animacion vuelve al inicio.
+   */
+  readonly brands: Brand[] = [
+    { name: 'cafecódigo' },
+    { name: 'norte', light: 'studio' },
+    { name: 'Casa ', bold: 'LUZ' },
+    { name: 'mercado', light: 'local' },
+    { name: 'VITA' },
   ];
 
   readonly steps: Step[] = [

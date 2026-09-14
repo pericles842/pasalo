@@ -1,6 +1,10 @@
 <div class="home-page">
 
-  <!-- Hero -->
+  <!--
+    Hero. Sus animaciones de entrada son CSS puro (ver home.scss) y no la
+    directiva appReveal: esto es lo primero que se ve, ya viene pintado por el
+    SSR y arranca solo, sin esperar a que hidrate Angular.
+  -->
   <section id="inicio" class="hero">
     <div class="hero-copy">
       <p class="eyebrow">Una app para cobrar lo que vendes</p>
@@ -38,29 +42,43 @@
     </div>
   </section>
 
-  <!-- Marcas -->
+  <!--
+    Marcas. La lista se pinta dos veces: la primera copia es la que se lee y la
+    segunda es la que entra por la derecha justo cuando la primera termina de
+    salir, para que el desplazamiento no tenga corte. La copia va con
+    aria-hidden porque para un lector de pantalla son los mismos cinco nombres.
+  -->
   <section class="trust-strip">
-    <p>Ya están cobrando con Pásalo</p>
-    <div class="logos">
-      <span>cafecódigo</span>
-      <span>norte<span class="logo-light">studio</span></span>
-      <span>Casa <b>LUZ</b></span>
-      <span>mercado<span class="logo-light">local</span></span>
-      <span>VITA</span>
+    <p appReveal="fade">Ya están cobrando con Pásalo</p>
+    <div class="logos-marquee">
+      <div class="logos-track">
+        <div class="logos">
+          @for (brand of brands; track brand.name) {
+          <span>{{ brand.name }}<span class="logo-light">{{ brand.light }}</span><b>{{ brand.bold }}</b></span>
+          }
+        </div>
+        <div class="logos" aria-hidden="true">
+          @for (brand of brands; track brand.name) {
+          <span>{{ brand.name }}<span class="logo-light">{{ brand.light }}</span><b>{{ brand.bold }}</b></span>
+          }
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- Beneficios -->
   <section id="beneficios" class="section benefits-section">
     <div class="section-heading">
-      <p class="eyebrow">Para empresas con iniciativa</p>
-      <h2>Cobrarle a tus clientes<br /><em>nunca fue tan fácil.</em></h2>
-      <p>Con Pásalo, cobrar deja de ser un dolor de cabeza y se vuelve parte de tu flujo de trabajo.</p>
+      <p class="eyebrow" appReveal="left">Para empresas con iniciativa</p>
+      <h2 appReveal="left" [revealDelay]="90">Cobrarle a tus clientes<br /><em>nunca fue tan fácil.</em></h2>
+      <p appReveal="fade" [revealDelay]="280">Con Pásalo, cobrar deja de ser un dolor de cabeza y se vuelve parte de tu
+        flujo de trabajo.</p>
     </div>
 
+    <!-- Las tarjetas caen una detras de otra, de arriba hacia abajo -->
     <div class="benefit-grid">
-      @for (item of benefits; track item.number) {
-      <article class="benefit">
+      @for (item of benefits; track item.number; let i = $index) {
+      <article class="benefit" appReveal="down" [revealDelay]="i * 150">
         <span class="benefit-number">{{ item.number }}</span>
         <h3>{{ item.title }}</h3>
         <p>{{ item.text }}</p>
@@ -74,15 +92,19 @@
   <section id="como-funciona" class="how-section">
     <div class="how-inner">
       <div class="how-copy">
-        <p class="eyebrow light">Así de fácil</p>
-        <h2>Una forma más simple de cobrar.</h2>
-        <p>Diseñamos Pásalo para que cobrarle a tus clientes no se sienta como otra tarea pendiente. Crea tu link y compártelo, nosotros nos encargamos del resto.</p>
-        <button nbButton status="basic" class="btn-light" (click)="goToStart()">Empieza hoy <span>→</span></button>
+        <p class="eyebrow light" appReveal="fade">Así de fácil</p>
+        <h2 appReveal="fade" [revealDelay]="120">Una forma más simple de cobrar.</h2>
+        <p appReveal="fade" [revealDelay]="260">Diseñamos Pásalo para que cobrarle a tus clientes no se sienta como otra
+          tarea pendiente. Crea tu link y compártelo, nosotros nos encargamos del resto.</p>
+        <div appReveal="fade" [revealDelay]="400">
+          <button nbButton status="basic" class="btn-light" (click)="goToStart()">Empieza hoy <span>→</span></button>
+        </div>
       </div>
 
+      <!-- Crea / Comparte / Cobra: entran desde la derecha, uno detras de otro -->
       <div class="steps">
-        @for (step of steps; track step.title; let last = $last) {
-        <div class="step">
+        @for (step of steps; track step.title; let last = $last; let i = $index) {
+        <div class="step" appReveal="right" [revealDelay]="i * 160">
           <span class="step-line">
             @if (!last) { <i></i> }
           </span>
@@ -96,13 +118,13 @@
     </div>
   </section>
 
-  <!-- Quienes somos -->
+  <!-- Quienes somos: el titulo entra por la izquierda y el texto por la derecha -->
   <section id="nosotros" class="section about-section">
-    <div class="about-statement">
+    <div class="about-statement" appReveal="left">
       <p class="eyebrow">Quiénes somos</p>
       <h2>Creemos que cobrarle a tus clientes no debería ser <em>complicado.</em></h2>
     </div>
-    <div class="about-detail">
+    <div class="about-detail" appReveal="right" [revealDelay]="120">
       <p>
         Somos un equipo que entiende cómo cobra un negocio en Venezuela: pago móvil, transferencias y
         comprobantes que hay que validar uno por uno. Por eso construimos Pásalo.
@@ -114,22 +136,23 @@
   <!-- Precios: reutiliza las tarjetas de subscripcion reales -->
   <section id="precios" class="section pricing-section">
     <div class="section-heading center">
-      <p class="eyebrow">Precios</p>
-      <h2>Un plan para cada etapa de tu negocio</h2>
-      <p>Empieza gratis y sube de plan cuando tu equipo o tus métodos de pago crezcan. Sin permanencia.</p>
+      <p class="eyebrow" appReveal="fade">Precios</p>
+      <h2 appReveal="up" [revealDelay]="90">Un plan para cada etapa de tu negocio</h2>
+      <p appReveal="fade" [revealDelay]="240">Empieza gratis y sube de plan cuando tu equipo o tus métodos de pago
+        crezcan. Sin permanencia.</p>
     </div>
 
     @if (is_loading()) {
     <p class="pricing-loading">Cargando planes...</p>
     } @else {
-    <div class="pricing-cycle">
+    <div class="pricing-cycle" appReveal="fade">
       <app-billing-cycle-toggle [(cycle)]="billing_cycle" />
       <span>Con el plan anual ahorras 20% (2 meses gratis).</span>
     </div>
     <div class="pricing-grid">
-      @for (plan of plans(); track plan.id) {
+      @for (plan of plans(); track plan.id; let i = $index) {
       <app-card-subscription-plan [plan]="plan" [isSelected]="false" [billingCycle]="billing_cycle()"
-        (planSelected)="goToStart()" />
+        (planSelected)="goToStart()" appReveal="up" [revealDelay]="i * 130" />
       }
     </div>
     }
@@ -137,12 +160,14 @@
 
   <!-- CTA final: registro de empresa -->
   <section id="empresas" class="cta-section">
-    <p class="eyebrow light">El siguiente paso es tuyo</p>
-    <h2>Empieza a<br /><em>cobrar hoy.</em></h2>
-    <p>Registra tu empresa y crea tu primer link de pago en minutos.</p>
-    <button nbButton status="basic" class="btn-light" size="large" (click)="goToStart()">
-      Registrar mi empresa <span>→</span>
-    </button>
+    <p class="eyebrow light" appReveal="fade">El siguiente paso es tuyo</p>
+    <h2 appReveal="up" [revealDelay]="100">Empieza a<br /><em>cobrar hoy.</em></h2>
+    <p appReveal="fade" [revealDelay]="260">Registra tu empresa y crea tu primer link de pago en minutos.</p>
+    <div appReveal="zoom" [revealDelay]="400">
+      <button nbButton status="basic" class="btn-light" size="large" (click)="goToStart()">
+        Registrar mi empresa <span>→</span>
+      </button>
+    </div>
   </section>
 
 </div>
